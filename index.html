@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOJI | Mohamed Mostafa</title>
+    <meta name="description" content="Mohamed Mostafa, TOJI. Personal portfolio, social links, small web pages, and front-end experiments.">
+    <meta name="author" content="Mohamed Mostafa">
+    <meta name="theme-color" content="#050506">
+    <meta property="og:title" content="TOJI | Mohamed Mostafa">
+    <meta property="og:description" content="My links, work ideas, and the pages I like to build.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="assets/social-preview.png">
+    <meta property="og:image:alt" content="TOJI profile preview">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TOJI | Mohamed Mostafa">
+    <meta name="twitter:description" content="My links, work ideas, and the pages I like to build.">
+    <meta name="twitter:image" content="assets/social-preview.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-dot" aria-hidden="true"></div>
+    <div class="cursor-outline" aria-hidden="true"></div>
+    <div class="mesh-bg" aria-hidden="true"></div>
+    <div class="grain-layer" aria-hidden="true"></div>
+
+    <nav class="modern-nav glass-panel" aria-label="Primary navigation">
+        <a class="brand" href="#home" aria-label="TOJI home">TOJI<span class="dot">.</span></a>
+        <div class="nav-links" aria-label="Section links">
+            <a class="nav-link active" href="#home" data-target="home">Home</a>
+            <a class="nav-link" href="#expertise" data-target="expertise">About</a>
+            <a class="nav-link" href="#work" data-target="work">Work</a>
+            <a class="nav-link" href="#connect" data-target="connect">Links</a>
+        </div>
+        <button class="theme-switch" id="themeToggle" type="button" aria-label="Switch theme">
+            <i data-lucide="sun" class="icon-sun" aria-hidden="true"></i>
+            <i data-lucide="moon" class="icon-moon" aria-hidden="true"></i>
+        </button>
+    </nav>
+
+    <main class="smooth-scroll" id="pageScroll">
+        <section class="screen hero-screen" id="home" aria-labelledby="hero-title">
+            <div class="hero-shell">
+                <div class="hero-content reveal-up">
+                    <p class="eyebrow">Mohamed Mostafa / TOJI</p>
+                    <h1 class="main-title" id="hero-title">I make simple pages that look good and feel easy.</h1>
+                    <div class="typewriter-container" aria-live="polite">
+                        <span class="static-text">Working on </span>
+                        <span id="typewriter" class="dynamic-text"></span>
+                        <span class="cursor" aria-hidden="true">|</span>
+                    </div>
+                    <p class="hero-copy">
+                        I care about clean layouts, quick loading, and small details that make a profile feel like mine.
+                    </p>
+                    <div class="status-strip" aria-label="Current status">
+                        <span class="status-dot" aria-hidden="true"></span>
+                        <span>Available for custom pages</span>
+                    </div>
+                    <div class="hero-actions">
+                        <a class="action-btn action-primary" href="#connect">
+                            <i data-lucide="send" aria-hidden="true"></i>
+                            <span>Open Links</span>
+                        </a>
+                        <a class="action-btn action-secondary" href="https://wa.me/201102550730" target="_blank" rel="noreferrer" data-whatsapp>
+                            <i data-lucide="message-circle" aria-hidden="true"></i>
+                            <span>WhatsApp</span>
+                        </a>
+                    </div>
+                    <div class="signal-row" aria-label="Profile highlights">
+                        <div class="signal-item">
+                            <span class="signal-value">UI</span>
+                            <span class="signal-label">Clean screens</span>
+                        </div>
+                        <div class="signal-item">
+                            <span class="signal-value">JS</span>
+                            <span class="signal-label">Small details</span>
+                        </div>
+                        <div class="signal-item">
+                            <span class="signal-value">Gym</span>
+                            <span class="signal-label">Routine</span>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="profile-panel reveal-up delay-2 tilt-effect" aria-label="TOJI profile card">
+                    <div class="profile-topline">
+                        <span>Profile is live</span>
+                        <span class="pulse-dot" aria-hidden="true"></span>
+                    </div>
+                    <div class="profile-mark" aria-hidden="true">
+                        <img class="profile-photo" src="assets/profile.webp" alt="" loading="lazy">
+                    </div>
+                    <div class="profile-name">TOJI</div>
+                    <p class="profile-caption">Code, training, and better details.</p>
+                    <div class="profile-stack">
+                        <span>Mobile-first</span>
+                        <span>Fast</span>
+                        <span>Personal</span>
+                    </div>
+                </aside>
+            </div>
+            <a class="scroll-cue" href="#expertise" aria-label="Scroll to about section">
+                <span></span>
+            </a>
+        </section>
+
+        <section class="screen" id="expertise" aria-labelledby="expertise-title">
+            <div class="section-shell">
+                <div class="section-heading reveal-up">
+                    <p class="eyebrow">About</p>
+                    <h2 class="section-title" id="expertise-title">A few things I care about when I build.</h2>
+                </div>
+                <div class="bento-grid">
+                    <article class="bento-item glass-card reveal-up tilt-effect wide-card">
+                        <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+                        <h3>Good first impression</h3>
+                        <p>I like pages that say who you are fast, without making people search for the important stuff.</p>
+                    </article>
+                    <article class="bento-item glass-card reveal-up tilt-effect delay-1">
+                        <i data-lucide="code-2" aria-hidden="true"></i>
+                        <h3>Clean build</h3>
+                        <p>Simple HTML, CSS, and JavaScript that stay easy to edit later.</p>
+                    </article>
+                    <article class="bento-item glass-card reveal-up tilt-effect delay-2">
+                        <i data-lucide="smartphone" aria-hidden="true"></i>
+                        <h3>Phone first</h3>
+                        <p>Most people open links from their phone, so the mobile view has to feel right.</p>
+                    </article>
+                    <article class="bento-item glass-card reveal-up tilt-effect delay-3">
+                        <i data-lucide="dumbbell" aria-hidden="true"></i>
+                        <h3>Same routine</h3>
+                        <p>Training taught me that small upgrades add up when you keep showing up.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="screen" id="work" aria-labelledby="work-title">
+            <div class="section-shell">
+                <div class="section-heading reveal-up">
+                    <p class="eyebrow">Work</p>
+                    <h2 class="section-title" id="work-title">Pages I can build or improve.</h2>
+                </div>
+                <div class="project-grid">
+                    <article class="project-card glass-card reveal-up tilt-effect">
+                        <span class="project-number">01</span>
+                        <h3>Personal portfolio</h3>
+                        <p>A clean page for your name, links, work, and the first impression you want people to get.</p>
+                        <div class="project-tags">
+                            <span>Profile</span>
+                            <span>Links</span>
+                            <span>Mobile</span>
+                        </div>
+                    </article>
+                    <article class="project-card glass-card reveal-up tilt-effect delay-1">
+                        <span class="project-number">02</span>
+                        <h3>Business landing page</h3>
+                        <p>A focused page for a service, offer, or shop, with clear buttons and no extra noise.</p>
+                        <div class="project-tags">
+                            <span>CTA</span>
+                            <span>SEO</span>
+                            <span>Fast</span>
+                        </div>
+                    </article>
+                    <article class="project-card glass-card reveal-up tilt-effect delay-2">
+                        <span class="project-number">03</span>
+                        <h3>Creator link hub</h3>
+                        <p>One place for social accounts, contact, QR code, and share buttons that actually help.</p>
+                        <div class="project-tags">
+                            <span>Bio</span>
+                            <span>QR</span>
+                            <span>Share</span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="screen" id="connect" aria-labelledby="connect-title">
+            <div class="connect-container">
+                <div class="section-heading reveal-up">
+                    <p class="eyebrow">Connect</p>
+                    <h2 class="section-title" id="connect-title">My links are here.</h2>
+                </div>
+                <div class="connect-layout">
+                    <div class="social-mesh">
+                        <a href="https://instagram.com/mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up">
+                            <i data-lucide="instagram" aria-hidden="true"></i>
+                            <span>Instagram</span>
+                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
+                        </a>
+                        <a href="https://tiktok.com/@mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up delay-1">
+                            <i data-lucide="video" aria-hidden="true"></i>
+                            <span>TikTok</span>
+                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
+                        </a>
+                        <a href="https://www.snapchat.com/add/dr.toji" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up delay-2">
+                            <i data-lucide="ghost" aria-hidden="true"></i>
+                            <span>Snapchat</span>
+                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
+                        </a>
+                        <a href="https://www.threads.net/@mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up delay-3">
+                            <i data-lucide="at-sign" aria-hidden="true"></i>
+                            <span>Threads</span>
+                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
+                        </a>
+                        <a href="https://wa.me/201102550730" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up" data-whatsapp>
+                            <i data-lucide="message-circle" aria-hidden="true"></i>
+                            <span>WhatsApp</span>
+                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
+                        </a>
+                        <button class="social-pill glass-card hover-glow reveal-up delay-1" type="button" data-copy="201102550730">
+                            <i data-lucide="copy" aria-hidden="true"></i>
+                            <span>Copy Number</span>
+                            <i data-lucide="check" class="pill-arrow" aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                    <aside class="contact-card glass-card reveal-up delay-2" aria-label="Profile QR and contact actions">
+                        <div class="qr-frame">
+                            <canvas id="profileQr" width="220" height="220" aria-label="QR code for this profile"></canvas>
+                            <div class="qr-fallback" id="qrFallback">TOJI</div>
+                        </div>
+                        <h3>Scan this profile</h3>
+                        <p>Open the same page on another phone, or save my contact card for later.</p>
+                        <div class="utility-actions">
+                            <button class="utility-btn" type="button" id="downloadContact">
+                                <i data-lucide="contact" aria-hidden="true"></i>
+                                <span>Save Contact</span>
+                            </button>
+                            <button class="utility-btn" type="button" id="downloadQr">
+                                <i data-lucide="qr-code" aria-hidden="true"></i>
+                                <span>Download QR</span>
+                            </button>
+                        </div>
+                    </aside>
+                </div>
+                <button class="share-profile reveal-up delay-2" type="button" id="shareProfile">
+                    <i data-lucide="share-2" aria-hidden="true"></i>
+                    <span>Share Profile</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <div class="floating-dock-wrapper" aria-label="Quick navigation">
+        <div class="floating-dock glass-panel">
+            <button class="dock-btn active" type="button" data-target="home" aria-label="Home">
+                <i data-lucide="home" aria-hidden="true"></i>
+            </button>
+            <button class="dock-btn" type="button" data-target="expertise" aria-label="About">
+                <i data-lucide="user-round" aria-hidden="true"></i>
+            </button>
+            <button class="dock-btn" type="button" data-target="work" aria-label="Work">
+                <i data-lucide="briefcase-business" aria-hidden="true"></i>
+            </button>
+            <button class="dock-btn" type="button" data-target="connect" aria-label="Links">
+                <i data-lucide="link-2" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js" async onload="window.tojiRenderQr && window.tojiRenderQr()"></script>
+    <script src="https://unpkg.com/lucide@latest" async onload="window.lucide && window.lucide.createIcons()"></script>
+</body>
+</html>
