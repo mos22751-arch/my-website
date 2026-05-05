@@ -1,9 +1,45 @@
 <html>
 <head>
-<title>Admin Panel</title>
+    <title>Admin Control Panel</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-<h1>Welcome to the Admin Panel</h1>
-<p>Manage your website content here.</p>
+    <header>
+        <h1>Admin Control Panel</h1>
+        <nav>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="users.html">Users</a></li>
+                <li><a href="settings.html">Settings</a></li>
+                <li><a href="logout.html">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h2>Welcome to the Admin Control Panel</h2>
+        <section>
+            <h3>Manage Users</h3>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+                <!-- User rows go here -->
+            </table>
+        </section>
+        <section>
+            <h3>Settings</h3>
+            <form>
+                <label for="site-title">Site Title:</label>
+                <input type="text" id="site-title" name="site-title">
+                <input type="submit" value="Save">
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 My Website</p>
+    </footer>
 </body>
 </html>
