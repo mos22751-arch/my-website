@@ -1,0 +1,1859 @@
+(function () {
+    const ADMIN_SESSION_KEY = 'toji_admin_ok';
+    const ADMIN_PASSWORD = '3129';
+    const STORAGE_KEY = 'toji_content_override';
+    const AUTOSAVE_DELAY = 420;
+    const IMAGE_DATA_PLACEHOLDER = '__TOJI_IMAGE_DATA_URL__';
+    const PROFILE_PLACEHOLDER_IMAGE = 'data:image/svg+xml,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22320%22 height%3D%22320%22 viewBox%3D%220 0 320 320%22%3E%3Crect width%3D%22320%22 height%3D%22320%22 rx%3D%22160%22 fill%3D%22%23101722%22%2F%3E%3Ccircle cx%3D%22160%22 cy%3D%22125%22 r%3D%2252%22 fill%3D%22%236ec6ff%22 opacity%3D%22.55%22%2F%3E%3Cpath d%3D%22M70 276c16-55 52-85 90-85s74 30 90 85%22 fill%3D%22%236ec6ff%22 opacity%3D%22.38%22%2F%3E%3C%2Fsvg%3E';
+    const OWNER_CREDIT_TEXT = 'Website created by:';
+    const OWNER_CREDIT_HANDLE = '@mouhamedmostafffa';
+    const OWNER_CREDIT_URL = 'https://www.instagram.com/mouhamedmostafffa';
+
+    if (sessionStorage.getItem(ADMIN_SESSION_KEY) !== '1') {
+        document.body.innerHTML = `
+            <main class="login-shell">
+                <form class="login-panel" id="adminLoginForm">
+                    <p class="kicker">Template Editor</p>
+                    <h1>تسجيل دخول الأدمن</h1>
+                    <label>
+                        كلمة المرور
+                        <input id="adminPasswordInput" type="password" autocomplete="current-password" autofocus>
+                    </label>
+                    <button type="submit">دخول</button>
+                    <p id="adminLoginMsg" class="hint"></p>
+                </form>
+            </main>
+        `;
+
+        document.getElementById('adminLoginForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const entered = document.getElementById('adminPasswordInput').value;
+            if (entered !== ADMIN_PASSWORD) {
+                document.getElementById('adminLoginMsg').textContent = 'كلمة المرور غير صحيحة.';
+                return;
+            }
+            sessionStorage.setItem(ADMIN_SESSION_KEY, '1');
+            window.location.reload();
+        });
+        return;
+    }
+
+    const el = (id) => document.getElementById(id);
+    const msg = (text) => {
+        const box = el('msg');
+        if (box) box.textContent = text;
+    };
+
+    function clone(value) {
+        return JSON.parse(JSON.stringify(value || {}));
+    }
+
+    function deepMerge(base, override) {
+        if (Array.isArray(base) || Array.isArray(override)) {
+            return Array.isArray(override) ? [...override] : Array.isArray(base) ? [...base] : override;
+        }
+        if (!base || typeof base !== 'object') return override ?? base;
+        if (!override || typeof override !== 'object') return { ...base };
+
+        const result = { ...base };
+        Object.keys(override).forEach((key) => {
+            result[key] = key in base ? deepMerge(base[key], override[key]) : override[key];
+        });
+        return result;
+    }
+
+    function getByPath(obj, path) {
+        return path.split('.').reduce((acc, key) => acc?.[key], obj);
+    }
+
+    function setByPath(obj, path, value) {
+        const keys = path.split('.');
+        let target = obj;
+        for (let i = 0; i < keys.length - 1; i += 1) {
+            const key = keys[i];
+            if (!target[key] || typeof target[key] !== 'object' || Array.isArray(target[key])) {
+                target[key] = {};
+            }
+            target = target[key];
+        }
+        target[keys[keys.length - 1]] = value;
+    }
+
+    function safeJsonParse(text, fallback = {}) {
+        try {
+            return JSON.parse(text || '');
+        } catch (error) {
+            return fallback;
+        }
+    }
+
+    function isDataUrl(value) {
+        return typeof value === 'string' && /^data:image\//i.test(value);
+    }
+
+    function compactDataUrlLabel(value) {
+        const sizeKb = Math.max(1, Math.round(String(value || '').length * 0.75 / 1024));
+        return `صورة مرفوعة داخل البيانات - ${sizeKb} KB`;
+    }
+
+    function cloneForJsonDisplay(value) {
+        if (isDataUrl(value)) return `${IMAGE_DATA_PLACEHOLDER} ${compactDataUrlLabel(value)}`;
+        if (Array.isArray(value)) return value.map(cloneForJsonDisplay);
+        if (value && typeof value === 'object') {
+            return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cloneForJsonDisplay(item)]));
+        }
+        return value;
+    }
+
+    function restoreJsonPlaceholders(value, original) {
+        if (typeof value === 'string' && value.startsWith(IMAGE_DATA_PLACEHOLDER)) {
+            return original;
+        }
+        if (Array.isArray(value)) {
+            return value.map((item, index) => restoreJsonPlaceholders(item, original?.[index]));
+        }
+        if (value && typeof value === 'object') {
+            const result = {};
+            Object.keys(value).forEach((key) => {
+                result[key] = restoreJsonPlaceholders(value[key], original?.[key]);
+            });
+            return result;
+        }
+        return value;
+    }
+
+    function updateFullJson() {
+        const fullJson = el('fullJson');
+        if (fullJson) fullJson.value = JSON.stringify(cloneForJsonDisplay(current), null, 4);
+    }
+
+    const defaults = clone(window.TOJI_CONTENT || {});
+    const saved = safeJsonParse(localStorage.getItem(STORAGE_KEY), {});
+    let current = deepMerge(defaults, saved);
+    let projectDirHandle = null;
+    let saveTimer = null;
+    let indexTemplate = '';
+
+    const siteFields = [
+        { label: 'اللغة الافتراضية', path: 'site.defaultLang', options: [['en', 'English'], ['ar', 'Arabic']] },
+        { label: 'الرابط الأساسي Canonical', path: 'site.canonicalUrl' },
+        { label: 'تعليمات محركات البحث', path: 'site.robots', options: [['index, follow', 'index, follow'], ['noindex, nofollow', 'noindex, nofollow']] },
+        { label: 'لون المتصفح Theme Color', path: 'site.themeColor' },
+        { label: 'لون خلفية التطبيق', path: 'site.backgroundColor' },
+        { label: 'نوع Schema', path: 'site.schemaType', options: [['Person', 'Person'], ['Organization', 'Organization']] }
+    ];
+
+    const identityFields = [
+        { label: 'اسم العميل', path: 'profile.name' },
+        { label: 'اسم البراند/الموقع', path: 'profile.nickname' },
+        { label: 'نص شاشة التحميل', path: 'profile.loaderMark' },
+        { label: 'صورة البروفايل', path: 'profile.image' },
+        { label: 'رقم واتساب/الهاتف بدون +', path: 'profile.phone' },
+        { label: 'الحالة الإنجليزية', path: 'profile.status.en' },
+        { label: 'الحالة العربية', path: 'profile.status.ar' },
+        { label: 'الثيم الافتراضي', path: 'profile.themePreset', options: [['neon', 'Neon'], ['midnight', 'Midnight'], ['emerald', 'Emerald'], ['sunset', 'Sunset'], ['aurora', 'Aurora'], ['royal', 'Royal'], ['graphite', 'Graphite']] },
+        { label: 'لون Accent الافتراضي', path: 'profile.accent', options: [['cyan', 'Cyan'], ['orange', 'Orange'], ['green', 'Green'], ['violet', 'Violet'], ['gold', 'Gold']] }
+    ];
+
+    const socialFields = [
+        { label: 'Instagram', path: 'profile.socials.instagram' },
+        { label: 'TikTok', path: 'profile.socials.tiktok' },
+        { label: 'Snapchat', path: 'profile.socials.snapchat' },
+        { label: 'Threads', path: 'profile.socials.threads' }
+    ];
+
+    const assetFields = [
+        { label: 'Favicon SVG', path: 'profile.assets.favicon' },
+        { label: 'Apple Icon', path: 'profile.assets.appleIcon' },
+        { label: 'Icon 192', path: 'profile.assets.icon192' },
+        { label: 'Icon 512', path: 'profile.assets.icon512' },
+        { label: 'Social Preview Image', path: 'profile.assets.socialPreview' },
+        { label: 'Media Kit ZIP', path: 'profile.assets.mediaKit' }
+    ];
+
+    const shareFields = [
+        { label: 'عنوان صورة المشاركة', path: 'profile.shareImage.title' },
+        { label: 'وصف صورة المشاركة', path: 'profile.shareImage.subtitle', type: 'textarea' },
+        { label: 'Handle داخل صورة المشاركة', path: 'profile.shareImage.handle' },
+        { label: 'نص QR داخل صورة المشاركة', path: 'profile.shareImage.scanLabel' },
+        { label: 'اسم ملف صورة المشاركة عند التحميل', path: 'profile.shareImage.filename' }
+    ];
+
+    const featureFields = [
+        { label: 'إظهار About', path: 'sections.about', type: 'checkbox' },
+        { label: 'إظهار Work', path: 'sections.work', type: 'checkbox' },
+        { label: 'إظهار Services', path: 'sections.services', type: 'checkbox' },
+        { label: 'إظهار Pricing', path: 'sections.pricing', type: 'checkbox' },
+        { label: 'إظهار Reviews', path: 'sections.testimonials', type: 'checkbox' },
+        { label: 'إظهار Gallery', path: 'sections.gallery', type: 'checkbox' },
+        { label: 'إظهار FAQ', path: 'sections.faq', type: 'checkbox' },
+        { label: 'إظهار Contact/Links', path: 'sections.connect', type: 'checkbox' },
+        { label: 'إظهار فورم واتساب', path: 'sections.form', type: 'checkbox' },
+        { label: 'إظهار ألوان وثيمات للزائر', path: 'sections.themeControls', type: 'checkbox' }
+    ];
+
+    const designFields = [
+        { label: 'الخط', path: 'design.fontFamily', options: [['Outfit', 'Outfit'], ['Arial', 'Arial'], ['Tahoma', 'Tahoma'], ['Inter', 'Inter'], ['system-ui', 'System UI']] },
+        { label: 'لون Primary', path: 'design.primaryColor' },
+        { label: 'لون Accent', path: 'design.accentColor' },
+        { label: 'لون Mint', path: 'design.mintColor' },
+        { label: 'Demo الحالي', path: 'design.presets.currentDemo', options: [['personal', 'Personal'], ['business', 'Business'], ['creator', 'Creator'], ['clinic', 'Clinic'], ['restaurant', 'Restaurant']] },
+        { label: 'Style Preset', path: 'design.presets.currentStyle', options: [['neon', 'Neon'], ['midnight', 'Midnight'], ['emerald', 'Emerald'], ['sunset', 'Sunset'], ['aurora', 'Aurora'], ['royal', 'Royal'], ['graphite', 'Graphite']] }
+    ];
+
+    const analyticsFields = [
+        { label: 'Google Analytics ID', path: 'analytics.googleAnalyticsId' },
+        { label: 'Meta Pixel ID', path: 'analytics.metaPixelId' },
+        { label: 'تفعيل UTM Tracking', path: 'analytics.utm.enabled', type: 'checkbox' },
+        { label: 'UTM Source', path: 'analytics.utm.source' },
+        { label: 'UTM Medium', path: 'analytics.utm.medium' },
+        { label: 'UTM Campaign', path: 'analytics.utm.campaign' },
+        { label: 'محتوى robots.txt', path: 'site.robotsText', type: 'textarea' },
+        { label: 'رابط sitemap.xml', path: 'site.sitemapUrl' }
+    ];
+
+    const builderFields = [
+        { label: 'Services Eyebrow EN', path: 'marketing.services.eyebrow.en' },
+        { label: 'Services Eyebrow AR', path: 'marketing.services.eyebrow.ar' },
+        { label: 'Services Title EN', path: 'marketing.services.title.en' },
+        { label: 'Services Title AR', path: 'marketing.services.title.ar' },
+        { label: 'Pricing Eyebrow EN', path: 'marketing.pricing.eyebrow.en' },
+        { label: 'Pricing Eyebrow AR', path: 'marketing.pricing.eyebrow.ar' },
+        { label: 'Pricing Title EN', path: 'marketing.pricing.title.en' },
+        { label: 'Pricing Title AR', path: 'marketing.pricing.title.ar' },
+        { label: 'Reviews Eyebrow EN', path: 'marketing.testimonials.eyebrow.en' },
+        { label: 'Reviews Eyebrow AR', path: 'marketing.testimonials.eyebrow.ar' },
+        { label: 'Reviews Title EN', path: 'marketing.testimonials.title.en' },
+        { label: 'Reviews Title AR', path: 'marketing.testimonials.title.ar' },
+        { label: 'Gallery Eyebrow EN', path: 'marketing.gallery.eyebrow.en' },
+        { label: 'Gallery Eyebrow AR', path: 'marketing.gallery.eyebrow.ar' },
+        { label: 'Gallery Title EN', path: 'marketing.gallery.title.en' },
+        { label: 'Gallery Title AR', path: 'marketing.gallery.title.ar' },
+        { label: 'FAQ Eyebrow EN', path: 'marketing.faq.eyebrow.en' },
+        { label: 'FAQ Eyebrow AR', path: 'marketing.faq.eyebrow.ar' },
+        { label: 'FAQ Title EN', path: 'marketing.faq.title.en' },
+        { label: 'FAQ Title AR', path: 'marketing.faq.title.ar' },
+        { label: 'روابط السوشيال: platform|label|url|icon|enabled', path: 'socialLinks', type: 'lines', lineType: 'socialLinks' },
+        { label: 'أزرار CTA: type|label EN|label AR|url|message EN|message AR|enabled', path: 'ctaButtons', type: 'lines', lineType: 'ctaButtons' },
+        { label: 'كروت الأعمال: banner|title EN|title AR|copy EN|copy AR|tags comma', path: 'workCards', type: 'lines', lineType: 'workCards' },
+        { label: 'رسائل واتساب: value|label EN|label AR|message EN|message AR', path: 'quickMessages', type: 'lines', lineType: 'quickMessages' },
+        { label: 'الخدمات: title EN|title AR|copy EN|copy AR', path: 'marketing.services.items', type: 'lines', lineType: 'services' },
+        { label: 'الباقات: name EN|name AR|price|features comma', path: 'marketing.pricing.items', type: 'lines', lineType: 'pricing' },
+        { label: 'آراء العملاء: name|quote EN|quote AR', path: 'marketing.testimonials.items', type: 'lines', lineType: 'testimonials' },
+        { label: 'المعرض: title EN|title AR|image path', path: 'marketing.gallery.items', type: 'lines', lineType: 'gallery' },
+        { label: 'FAQ: question EN|question AR|answer EN|answer AR', path: 'marketing.faq.items', type: 'lines', lineType: 'faq' }
+    ];
+
+    const translationFields = [
+        { label: 'Meta Title', path: 'meta.title' },
+        { label: 'Meta Description', path: 'meta.description', type: 'textarea' },
+        { label: 'زر اللغة التالي', path: 'lang.nextLabel' },
+        { label: 'وصف زر اللغة', path: 'lang.switchLabel' },
+        { label: 'Nav: Home', path: 'nav.home' },
+        { label: 'Nav: About', path: 'nav.about' },
+        { label: 'Nav: Work', path: 'nav.work' },
+        { label: 'Nav: Links', path: 'nav.links' },
+        { label: 'Hero Eyebrow', path: 'hero.eyebrow' },
+        { label: 'Hero Title', path: 'hero.title', type: 'textarea' },
+        { label: 'Hero Working Prefix', path: 'hero.working' },
+        { label: 'Hero Copy', path: 'hero.copy', type: 'textarea' },
+        { label: 'Hero Status', path: 'hero.status' },
+        { label: 'Hero CTA', path: 'hero.openLinks' },
+        { label: 'Typewriter - سطر لكل كلمة', path: 'typewriter', type: 'array' },
+        { label: 'Signal 1 Value', path: 'signals.valueUi' },
+        { label: 'Signal 2 Value', path: 'signals.valueJs' },
+        { label: 'Signal 3 Value', path: 'signals.valueGym' },
+        { label: 'Signal 1 Label', path: 'signals.ui' },
+        { label: 'Signal 2 Label', path: 'signals.js' },
+        { label: 'Signal 3 Label', path: 'signals.gym' },
+        { label: 'Profile Top Text', path: 'profile.live' },
+        { label: 'Profile Caption', path: 'profile.caption', type: 'textarea' },
+        { label: 'Profile Tag 1', path: 'profile.mobile' },
+        { label: 'Profile Tag 2', path: 'profile.fast' },
+        { label: 'Profile Tag 3', path: 'profile.personal' },
+        { label: 'About Title', path: 'about.title', type: 'textarea' },
+        { label: 'About Card 1 Title', path: 'about.card1.title' },
+        { label: 'About Card 1 Copy', path: 'about.card1.copy', type: 'textarea' },
+        { label: 'About Card 2 Title', path: 'about.card2.title' },
+        { label: 'About Card 2 Copy', path: 'about.card2.copy', type: 'textarea' },
+        { label: 'About Card 3 Title', path: 'about.card3.title' },
+        { label: 'About Card 3 Copy', path: 'about.card3.copy', type: 'textarea' },
+        { label: 'About Card 4 Title', path: 'about.card4.title' },
+        { label: 'About Card 4 Copy', path: 'about.card4.copy', type: 'textarea' },
+        { label: 'Work Title', path: 'work.title', type: 'textarea' },
+        { label: 'Work Banner 1', path: 'work.banner1' },
+        { label: 'Work Banner 2', path: 'work.banner2' },
+        { label: 'Work Banner 3', path: 'work.banner3' },
+        { label: 'Work Card 1 Title', path: 'work.card1.title' },
+        { label: 'Work Card 1 Copy', path: 'work.card1.copy', type: 'textarea' },
+        { label: 'Work Card 2 Title', path: 'work.card2.title' },
+        { label: 'Work Card 2 Copy', path: 'work.card2.copy', type: 'textarea' },
+        { label: 'Work Card 3 Title', path: 'work.card3.title' },
+        { label: 'Work Card 3 Copy', path: 'work.card3.copy', type: 'textarea' },
+        { label: 'Tag Profile', path: 'tags.profile' },
+        { label: 'Tag Links', path: 'tags.links' },
+        { label: 'Tag Mobile', path: 'tags.mobile' },
+        { label: 'Tag Share', path: 'tags.share' },
+        { label: 'Connect Eyebrow', path: 'connect.eyebrow' },
+        { label: 'Connect Title', path: 'connect.title', type: 'textarea' },
+        { label: 'Copy Number Button', path: 'connect.copyNumber' },
+        { label: 'QR Card Title', path: 'connect.scanTitle' },
+        { label: 'QR Card Copy', path: 'connect.scanCopy', type: 'textarea' },
+        { label: 'Save Contact Button', path: 'connect.saveContact' },
+        { label: 'Download QR Button', path: 'connect.downloadQr' },
+        { label: 'Copy Link Button', path: 'connect.copyLink' },
+        { label: 'Share Image Button', path: 'connect.shareImage' },
+        { label: 'Media Kit Button', path: 'connect.mediaKit' },
+        { label: 'Install App Button', path: 'connect.installApp' },
+        { label: 'Share Profile Button', path: 'connect.shareProfile' },
+        { label: 'QR Profile Tab', path: 'qr.profile' },
+        { label: 'Form Eyebrow', path: 'form.eyebrow' },
+        { label: 'Form Title', path: 'form.title' },
+        { label: 'Form Name Label', path: 'form.name' },
+        { label: 'Form Type Label', path: 'form.type' },
+        { label: 'Form Message Label', path: 'form.message' },
+        { label: 'Form Name Placeholder', path: 'form.namePlaceholder' },
+        { label: 'Form Message Placeholder', path: 'form.messagePlaceholder', type: 'textarea' },
+        { label: 'Form Option 1', path: 'form.personal' },
+        { label: 'Form Option 2', path: 'form.business' },
+        { label: 'Form Option 3', path: 'form.linkHub' },
+        { label: 'Form Submit', path: 'form.send' },
+        { label: 'Accent Label', path: 'accent.label' },
+        { label: 'Preset Label', path: 'preset.label' },
+        { label: 'Preset Neon', path: 'preset.neon' },
+        { label: 'Preset Midnight', path: 'preset.midnight' },
+        { label: 'Preset Emerald', path: 'preset.emerald' },
+        { label: 'Preset Sunset', path: 'preset.sunset' },
+        { label: 'Preset Aurora', path: 'preset.aurora' },
+        { label: 'Preset Royal', path: 'preset.royal' },
+        { label: 'Preset Graphite', path: 'preset.graphite' },
+        { label: 'Preset Shuffle', path: 'preset.shuffle' },
+        { label: 'ARIA Scroll About', path: 'aria.scrollAbout' },
+        { label: 'ARIA Contact Card', path: 'aria.contactCard' },
+        { label: 'ARIA Quick Nav', path: 'aria.quickNav' },
+        { label: 'ARIA Accent Colors', path: 'aria.accentColors' },
+        { label: 'ARIA Theme Presets', path: 'aria.themePresets' },
+        { label: 'WhatsApp Share Message', path: 'share.whatsappMessage', type: 'textarea' },
+        { label: 'Profile Share Text', path: 'share.profileText', type: 'textarea' },
+        { label: 'Brief Intro', path: 'share.briefIntro', type: 'textarea' },
+        { label: 'Toast Number Copied', path: 'toast.numberCopied' },
+        { label: 'Toast Copy Failed', path: 'toast.copyFailed' },
+        { label: 'Toast Contact Downloaded', path: 'toast.contactDownloaded' },
+        { label: 'Toast QR Loading', path: 'toast.qrLoading' },
+        { label: 'Toast QR Download Failed', path: 'toast.qrDownloadFailed' },
+        { label: 'Toast QR Downloaded', path: 'toast.qrDownloaded' },
+        { label: 'Toast Shared', path: 'toast.shared' },
+        { label: 'Toast Profile Copied', path: 'toast.profileCopied' },
+        { label: 'Toast Share Failed', path: 'toast.shareFailed' },
+        { label: 'Toast Accent Saved', path: 'toast.accentSaved' },
+        { label: 'Toast Preset Saved', path: 'toast.presetSaved' },
+        { label: 'Toast Share Image Ready', path: 'toast.shareImageReady' },
+        { label: 'Theme To Light', path: 'theme.toLight' },
+        { label: 'Theme To Dark', path: 'theme.toDark' }
+    ];
+
+    function boolText(value) {
+        return value === true || value === 'true' || value === '1' || value === 'yes' || value === 'on';
+    }
+
+    const lineSerializers = {
+        socialLinks: {
+            toText: (items = []) => items.map((item) => [item.platform, item.label, item.url, item.icon, item.enabled !== false].join('|')).join('\n'),
+            fromText: (text) => text.split('\n').map((line) => {
+                const [platform = '', label = '', url = '', icon = '', enabled = 'true'] = line.split('|').map((part) => part.trim());
+                return platform || label || url ? { platform, label, url, icon: icon || platform, enabled: boolText(enabled) } : null;
+            }).filter(Boolean)
+        },
+        ctaButtons: {
+            toText: (items = []) => items.map((item) => [item.type, item.label?.en, item.label?.ar, item.url, item.message?.en, item.message?.ar, item.enabled !== false].join('|')).join('\n'),
+            fromText: (text) => text.split('\n').map((line) => {
+                const [type = '', labelEn = '', labelAr = '', url = '', messageEn = '', messageAr = '', enabled = 'true'] = line.split('|').map((part) => part.trim());
+                return type || labelEn || url ? { type, label: { en: labelEn, ar: labelAr || labelEn }, url, message: { en: messageEn, ar: messageAr || messageEn }, enabled: boolText(enabled) } : null;
+            }).filter(Boolean)
+        },
+        workCards: {
+            toText: (items = []) => items.map((item) => [item.banner, item.title?.en, item.title?.ar, item.copy?.en, item.copy?.ar, (item.tags || []).join(', ')].join('|')).join('\n'),
+            fromText: (text) => text.split('\n').map((line) => {
+                const [banner = '', titleEn = '', titleAr = '', copyEn = '', copyAr = '', tags = ''] = line.split('|').map((part) => part.trim());
+                return titleEn || titleAr ? { banner, title: { en: titleEn, ar: titleAr || titleEn }, copy: { en: copyEn, ar: copyAr || copyEn }, tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean) } : null;
+            }).filter(Boolean)
+        },
+        quickMessages: {
+            toText: (items = []) => items.map((item) => [item.value, item.label?.en, item.label?.ar, item.message?.en, item.message?.ar].join('|')).join('\n'),
+            fromText: (text) => text.split('\n').map((line) => {
+                const [value = '', labelEn = '', labelAr = '', messageEn = '', messageAr = ''] = line.split('|').map((part) => part.trim());
+                return value || labelEn ? { value, label: { en: labelEn, ar: labelAr || labelEn }, message: { en: messageEn, ar: messageAr || messageEn } } : null;
+            }).filter(Boolean)
+        },
+        services: {
+            toText: (items = []) => items.map((item) => [item.title?.en, item.title?.ar, item.copy?.en, item.copy?.ar].join('|')).join('\n'),
+            fromText: (text) => text.split('\n').map((line) => {
+                const [titleEn = '', titleAr = '', copyEn = '', copyAr = ''] = line.split('|').map((part) => part.trim());
+                return titleEn || titleAr ? { title: { en: titleEn, ar: titleAr || titleEn }, copy: { en: copyEn, ar: copyAr || copyEn } } : null;
+            }).filter(Boolean)
+        },
+        pricing: {
+            toText: (items = []) => items.map((item) => [item.name?.en, item.name?.ar, item.price, (item.features || []).join(', ')].join('|')).join('\n'),
+            fromText: (text) => text.split('\n').map((line) => {
+                const [nameEn = '', nameAr = '', price = '', features = ''] = line.split('|').map((part) => part.trim());
+                return nameEn || nameAr ? { name: { en: nameEn, ar: nameAr || nameEn }, price, features: features.split(',').map((feature) => feature.trim()).filter(Boolean) } : null;
+            }).filter(Boolean)
+        },
+        testimonials: {
+            toText: (items = []) => items.map((item) => [item.name, item.quote?.en, item.quote?.ar].join('|')).join('\n'),
+            fromText: (text) => text.split('\n').map((line) => {
+                const [name = '', quoteEn = '', quoteAr = ''] = line.split('|').map((part) => part.trim());
+                return name || quoteEn ? { name, quote: { en: quoteEn, ar: quoteAr || quoteEn } } : null;
+            }).filter(Boolean)
+        },
+        gallery: {
+            toText: (items = []) => items.map((item) => [item.title?.en, item.title?.ar, item.image].join('|')).join('\n'),
+            fromText: (text) => text.split('\n').map((line) => {
+                const [titleEn = '', titleAr = '', image = ''] = line.split('|').map((part) => part.trim());
+                return titleEn || image ? { title: { en: titleEn, ar: titleAr || titleEn }, image } : null;
+            }).filter(Boolean)
+        },
+        faq: {
+            toText: (items = []) => items.map((item) => [item.question?.en, item.question?.ar, item.answer?.en, item.answer?.ar].join('|')).join('\n'),
+            fromText: (text) => text.split('\n').map((line) => {
+                const [questionEn = '', questionAr = '', answerEn = '', answerAr = ''] = line.split('|').map((part) => part.trim());
+                return questionEn || questionAr ? { question: { en: questionEn, ar: questionAr || questionEn }, answer: { en: answerEn, ar: answerAr || answerEn } } : null;
+            }).filter(Boolean)
+        }
+    };
+
+    function buildField(containerId, field, fullPath) {
+        const container = el(containerId);
+        if (!container) return;
+
+        const label = document.createElement('label');
+        const controlType = field.type || (field.options ? 'select' : 'text');
+        const previewTarget = field.preview || inferPreviewTarget(fullPath, containerId);
+        const titleRow = document.createElement('span');
+        const titleText = document.createElement('span');
+        const location = document.createElement('span');
+
+        titleRow.className = 'field-title-row';
+        titleText.textContent = field.label;
+        location.className = 'field-location';
+        location.textContent = previewTargetLabel(previewTarget);
+        titleRow.append(titleText, location);
+        label.appendChild(titleRow);
+
+        if (controlType === 'textarea' || controlType === 'array' || controlType === 'lines') label.dataset.wide = 'true';
+
+        let input;
+        if (controlType === 'select') {
+            input = document.createElement('select');
+            field.options.forEach(([value, text]) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                input.appendChild(option);
+            });
+        } else if (controlType === 'checkbox') {
+            input = document.createElement('input');
+            input.type = 'checkbox';
+            label.classList.add('checkbox-label');
+        } else if (controlType === 'textarea' || controlType === 'array') {
+            input = document.createElement('textarea');
+            input.rows = controlType === 'array' ? 4 : 3;
+            input.spellcheck = true;
+        } else if (controlType === 'lines') {
+            input = document.createElement('textarea');
+            input.rows = 5;
+            input.spellcheck = true;
+            input.dataset.lineType = field.lineType;
+        } else {
+            input = document.createElement('input');
+            input.type = field.inputType || 'text';
+        }
+
+        input.dataset.path = fullPath;
+        input.dataset.fieldType = controlType;
+        input.dataset.previewTarget = previewTarget;
+        label.appendChild(input);
+        container.appendChild(label);
+    }
+
+    function buildFields(containerId, fields) {
+        fields.forEach((field) => buildField(containerId, field, field.path));
+    }
+
+    function byPath(prefixes = [], exactPaths = []) {
+        return (field) => exactPaths.includes(field.path)
+            || prefixes.some((prefix) => field.path.startsWith(prefix));
+    }
+
+    function buildTranslationGroup(containerId, lang, predicate) {
+        translationFields
+            .filter(predicate)
+            .forEach((field) => buildField(containerId, field, `translations.${lang}.${field.path}`));
+    }
+
+    function buildBuilderGroup(containerId, predicate) {
+        builderFields
+            .filter(predicate)
+            .forEach((field) => buildField(containerId, field, field.path));
+    }
+
+    function buildLanguagePair(baseId, predicate) {
+        buildTranslationGroup(`${baseId}En`, 'en', predicate);
+        buildTranslationGroup(`${baseId}Ar`, 'ar', predicate);
+    }
+
+    function buildForm() {
+        buildFields('identityFields', identityFields);
+        buildFields('siteFields', siteFields);
+        buildLanguagePair('navFields', byPath(['lang.', 'nav.']));
+
+        buildLanguagePair('heroFields', byPath(['hero.', 'signals.', 'profile.'], ['typewriter']));
+
+        buildLanguagePair('aboutFields', byPath(['about.']));
+
+        buildLanguagePair('workFields', byPath(['work.', 'tags.']));
+        buildBuilderGroup('workBuilderFields', (field) => field.path === 'workCards');
+
+        buildFields('socialFields', socialFields);
+        buildLanguagePair('connectFields', byPath(['connect.', 'qr.']));
+        buildBuilderGroup('connectBuilderFields', (field) => ['socialLinks', 'ctaButtons'].includes(field.path));
+
+        buildLanguagePair('formFields', byPath(['form.']));
+        buildBuilderGroup('formBuilderFields', (field) => field.path === 'quickMessages');
+
+        buildBuilderGroup('servicesBuilderFields', byPath(['marketing.services.']));
+        buildBuilderGroup('pricingBuilderFields', byPath(['marketing.pricing.']));
+        buildBuilderGroup('testimonialsBuilderFields', byPath(['marketing.testimonials.']));
+        buildBuilderGroup('galleryBuilderFields', byPath(['marketing.gallery.']));
+        buildBuilderGroup('faqBuilderFields', byPath(['marketing.faq.']));
+
+        buildFields('featureFields', featureFields);
+        buildFields('designFields', designFields);
+        buildLanguagePair('themeFields', byPath(['accent.', 'preset.', 'theme.']));
+
+        buildFields('assetFields', assetFields);
+        buildFields('shareFields', shareFields);
+        buildLanguagePair('shareTextFields', byPath(['share.']));
+
+        buildFields('analyticsFields', analyticsFields);
+        buildLanguagePair('metaFields', byPath(['meta.']));
+        buildLanguagePair('toastFields', byPath(['toast.']));
+        buildLanguagePair('ariaFields', byPath(['aria.']));
+    }
+
+    function setInputValue(input, value) {
+        if (input.dataset.fieldType === 'checkbox') {
+            input.checked = Boolean(value);
+            return;
+        }
+        if (input.dataset.fieldType === 'array') {
+            input.value = Array.isArray(value) ? value.join('\n') : '';
+            return;
+        }
+        if (input.dataset.fieldType === 'lines') {
+            input.value = lineSerializers[input.dataset.lineType]?.toText(value || []) || '';
+            return;
+        }
+        if (isDataUrl(value)) {
+            input.dataset.rawValue = value;
+            input.dataset.compactValue = compactDataUrlLabel(value);
+            input.value = input.dataset.compactValue;
+            input.classList.add('compact-data-url');
+            return;
+        }
+        delete input.dataset.rawValue;
+        delete input.dataset.compactValue;
+        input.classList.remove('compact-data-url');
+        input.value = value ?? '';
+    }
+
+    function readInputValue(input) {
+        if (input.dataset.fieldType === 'checkbox') {
+            return input.checked;
+        }
+        if (input.dataset.fieldType === 'array') {
+            return input.value
+                .split('\n')
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+        if (input.dataset.fieldType === 'lines') {
+            return lineSerializers[input.dataset.lineType]?.fromText(input.value || '') || [];
+        }
+        if (input.dataset.rawValue && input.value === input.dataset.compactValue) {
+            return input.dataset.rawValue;
+        }
+        return input.value.trim();
+    }
+
+    function fillForm() {
+        document.querySelectorAll('[data-path]').forEach((input) => {
+            setInputValue(input, getByPath(current, input.dataset.path));
+        });
+        updateFullJson();
+        renderAdminPreview();
+    }
+
+    function collectForm() {
+        const next = deepMerge(defaults, current);
+        document.querySelectorAll('[data-path]').forEach((input) => {
+            setByPath(next, input.dataset.path, readInputValue(input));
+        });
+        current = next;
+        updateFullJson();
+        return next;
+    }
+
+    function safePhone(value) {
+        return String(value || '').replace(/\D+/g, '') || '201102550730';
+    }
+
+    function safeNickname(content) {
+        return (getByPath(content, 'profile.nickname') || 'TOJI').trim() || 'TOJI';
+    }
+
+    function safeName(content) {
+        return (getByPath(content, 'profile.name') || 'Mohamed Mostafa').trim() || 'Mohamed Mostafa';
+    }
+
+    function tFrom(content, lang, path) {
+        return getByPath(content.translations?.[lang], path) ?? path;
+    }
+
+    function localized(value, lang) {
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+            return value[lang] ?? value.en ?? value.ar ?? '';
+        }
+        return value ?? '';
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function safeImageSrc(value, fallback = PROFILE_PLACEHOLDER_IMAGE) {
+        const src = String(value || '').trim();
+        if (!src) return fallback;
+        if (/^javascript:/i.test(src)) return fallback;
+        return src;
+    }
+
+    function previewTargetLabel(target) {
+        const labels = {
+            home: 'الهيرو',
+            about: 'About',
+            work: 'Work',
+            connect: 'Links',
+            form: 'Form',
+            theme: 'Theme',
+            services: 'Services',
+            pricing: 'Pricing',
+            testimonials: 'Reviews',
+            gallery: 'Gallery',
+            faq: 'FAQ',
+            seo: 'SEO',
+            assets: 'Assets',
+            share: 'Share',
+            design: 'Design',
+            settings: 'Settings',
+            advanced: 'JSON'
+        };
+        return labels[target] || 'الموقع';
+    }
+
+    function inferPreviewTarget(path, containerId) {
+        if (containerId === 'assetFields') return 'assets';
+        if (containerId === 'shareFields' || containerId.startsWith('shareTextFields') || path.includes('.share.')) return 'share';
+        if (containerId === 'analyticsFields' || containerId.startsWith('metaFields') || path.startsWith('site.') || path.includes('.meta.')) return 'seo';
+        if (containerId === 'designFields') return 'design';
+        if (containerId.startsWith('toastFields') || containerId.startsWith('ariaFields')) return 'settings';
+        if (path.startsWith('profile.socials') || path === 'socialLinks') return 'connect';
+        if (path === 'sections.themeControls') return 'theme';
+        if (path.startsWith('sections.')) return path.replace('sections.', '') || 'settings';
+        if (path.includes('.lang.') || path.includes('.nav.')) return 'home';
+        if (path.includes('.hero.') || path.includes('.typewriter') || path.includes('.signals.') || path.includes('.profile.') || path.startsWith('profile.')) return 'home';
+        if (path.includes('.about.')) return 'about';
+        if (path.includes('.work.') || path === 'workCards') return 'work';
+        if (path.includes('.connect.') || path.includes('.qr.') || path === 'ctaButtons') return 'connect';
+        if (path.includes('.form.') || path === 'quickMessages') return 'form';
+        if (path.includes('.accent.') || path.includes('.preset.') || path.includes('.theme.')) return 'theme';
+        if (path.includes('marketing.services')) return 'services';
+        if (path.includes('marketing.pricing')) return 'pricing';
+        if (path.includes('marketing.testimonials')) return 'testimonials';
+        if (path.includes('marketing.gallery')) return 'gallery';
+        if (path.includes('marketing.faq')) return 'faq';
+        return 'advanced';
+    }
+
+    function markActivePreview(target) {
+        document.querySelectorAll('.preview-section').forEach((section) => {
+            section.classList.toggle('is-active', section.dataset.previewSection === target);
+        });
+        const active = document.querySelector(`[data-preview-section="${target}"]`);
+        const preview = el('adminPreview');
+        if (active && preview && preview.scrollHeight > preview.clientHeight + 8) {
+            preview.scrollTo({
+                top: Math.max(active.offsetTop - preview.offsetTop - 12, 0),
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    function markPreviewEditPath(path, lineIndex = null) {
+        document.querySelectorAll('.preview-editable.is-picked').forEach((node) => node.classList.remove('is-picked'));
+        document.querySelectorAll('[data-edit-path]').forEach((node) => {
+            const samePath = node.dataset.editPath === path;
+            const sameLine = lineIndex === undefined || lineIndex === null || node.dataset.editLine === String(lineIndex);
+            if (samePath && sameLine) node.classList.add('is-picked');
+        });
+    }
+
+    function selectTextareaLine(input, lineIndex) {
+        if (lineIndex === undefined || lineIndex === null || input.tagName !== 'TEXTAREA') return;
+        const index = Number(lineIndex);
+        if (!Number.isInteger(index) || index < 0) return;
+        const lines = input.value.split('\n');
+        if (index >= lines.length) return;
+        const start = lines.slice(0, index).reduce((total, line) => total + line.length + 1, 0);
+        const end = start + lines[index].length;
+        input.setSelectionRange(start, end);
+    }
+
+    function focusEditorField(path, lineIndex = null) {
+        const input = Array.from(document.querySelectorAll('[data-path]')).find((node) => node.dataset.path === path);
+        if (!input) {
+            msg('هذا الجزء ثابت أو يتم تعديله من حقل مجمع.');
+            return false;
+        }
+
+        markPreviewEditPath(path, lineIndex);
+        document.querySelectorAll('label.is-active-field').forEach((label) => label.classList.remove('is-active-field'));
+        input.closest('label')?.classList.add('is-active-field');
+        input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        setTimeout(() => {
+            input.focus({ preventScroll: true });
+            if (typeof input.select === 'function' && input.tagName !== 'SELECT' && input.type !== 'checkbox') {
+                input.select();
+            }
+            selectTextareaLine(input, lineIndex);
+        }, 260);
+        markActivePreview(input.dataset.previewTarget);
+        msg(`جاهز للتعديل: ${input.closest('label')?.querySelector('.field-title-row span')?.textContent || path}`);
+        return true;
+    }
+
+    function renderAdminPreview(activeTarget = null) {
+        const preview = el('adminPreview');
+        if (!preview) return;
+
+        const lang = current.site?.defaultLang || 'en';
+        const isAr = lang === 'ar';
+        const sections = current.sections || {};
+        const profile = current.profile || {};
+        const marketing = current.marketing || {};
+        const socialLinks = Array.isArray(current.socialLinks) ? current.socialLinks.map((item, index) => ({ ...item, __index: index })).filter((item) => item.enabled !== false && item.url) : [];
+        const ctaButtons = Array.isArray(current.ctaButtons) ? current.ctaButtons.map((item, index) => ({ ...item, __index: index })).filter((item) => item.enabled !== false && item.url) : [];
+        const workCards = Array.isArray(current.workCards) && current.workCards.length ? current.workCards : [
+            {
+                banner: tFrom(current, lang, 'work.banner1'),
+                title: { [lang]: tFrom(current, lang, 'work.card1.title') },
+                copy: { [lang]: tFrom(current, lang, 'work.card1.copy') },
+                tags: [tFrom(current, lang, 'tags.profile'), tFrom(current, lang, 'tags.links'), tFrom(current, lang, 'tags.mobile')]
+            },
+            {
+                banner: tFrom(current, lang, 'work.banner2'),
+                title: { [lang]: tFrom(current, lang, 'work.card2.title') },
+                copy: { [lang]: tFrom(current, lang, 'work.card2.copy') },
+                tags: ['CTA', 'SEO', tFrom(current, lang, 'profile.fast')]
+            },
+            {
+                banner: tFrom(current, lang, 'work.banner3'),
+                title: { [lang]: tFrom(current, lang, 'work.card3.title') },
+                copy: { [lang]: tFrom(current, lang, 'work.card3.copy') },
+                tags: ['Bio', 'QR', tFrom(current, lang, 'tags.share')]
+            }
+        ];
+
+        const sectionClass = (name) => `preview-section${sections[name] === false ? ' is-hidden-section' : ''}`;
+        const sectionLabel = (label) => `<span class="preview-section-label">${escapeHtml(label)}</span>`;
+        const editLineAttr = (lineIndex) => lineIndex === undefined || lineIndex === null ? '' : ` data-edit-line="${Number(lineIndex)}"`;
+        const edit = (path, value, className = '', lineIndex = null) => `<span class="preview-editable ${className}" data-edit-path="${escapeHtml(path)}"${editLineAttr(lineIndex)} title="اضغط للتعديل">${escapeHtml(value)}</span>`;
+        const locked = (value, className = '') => `<span class="preview-locked ${className}" title="جزء ثابت">${escapeHtml(value)}</span>`;
+        const tEdit = (path, className = '') => edit(`translations.${lang}.${path}`, tFrom(current, lang, path), className);
+        const card = (title, copy, extra = '', titlePath = '', copyPath = '', lineIndex = null) => `
+            <article class="preview-card" ${titlePath ? `data-edit-path="${escapeHtml(titlePath)}"${editLineAttr(lineIndex)}` : ''}>
+                ${extra}
+                <h4>${titlePath ? edit(titlePath, title, '', lineIndex) : escapeHtml(title)}</h4>
+                <p>${copyPath ? edit(copyPath, copy, '', lineIndex) : escapeHtml(copy)}</p>
+            </article>
+        `;
+        const listCards = (items = [], titleKey = 'title', copyKey = 'copy', editPath = '') => items.map((item, index) => card(
+            localized(item[titleKey] || item.name || item.question, lang),
+            localized(item[copyKey] || item.quote || item.answer || item.price, lang),
+            item.price ? `<span class="preview-pill preview-editable" data-edit-path="${escapeHtml(editPath)}" data-edit-line="${index}">${escapeHtml(item.price)}</span>` : '',
+            editPath,
+            editPath,
+            index
+        )).join('');
+
+        if (el('previewLangBadge')) el('previewLangBadge').textContent = lang.toUpperCase();
+        preview.dir = isAr ? 'rtl' : 'ltr';
+        preview.innerHTML = `
+            <div class="preview-map-help">اضغط على أي نص أو زر في الخريطة لفتح مكان تعديله مباشرة.</div>
+            <div class="preview-nav">
+                <div class="preview-brand">${edit('profile.nickname', safeNickname(current))}<span class="dot">.</span></div>
+                <div class="preview-nav-links">
+                    <span>${tEdit('nav.home')}</span>
+                    <span>${tEdit('nav.about')}</span>
+                    <span>${tEdit('nav.work')}</span>
+                    <span>${tEdit('nav.links')}</span>
+                </div>
+            </div>
+
+            <section class="preview-section" data-preview-section="home">
+                ${sectionLabel('Hero + Profile')}
+                <div class="preview-hero-grid">
+                    <div>
+                        <p class="preview-eyebrow">${tEdit('hero.eyebrow')}</p>
+                        <h3 class="preview-title">${tEdit('hero.title')}</h3>
+                        <p class="preview-copy">${tEdit('hero.working')}${edit(`translations.${lang}.typewriter`, (tFrom(current, lang, 'typewriter') || [])[0] || '', 'preview-inline-edit')}</p>
+                        <p class="preview-copy">${tEdit('hero.copy')}</p>
+                        <div class="preview-actions">
+                            <span class="preview-button preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.hero.openLinks`)}">${escapeHtml(tFrom(current, lang, 'hero.openLinks'))}</span>
+                            <span class="preview-pill preview-editable" data-edit-path="profile.phone">WhatsApp</span>
+                        </div>
+                        <div class="preview-signals">
+                            <span class="preview-tag">${tEdit('signals.valueUi')} - ${tEdit('signals.ui')}</span>
+                            <span class="preview-tag">${tEdit('signals.valueJs')} - ${tEdit('signals.js')}</span>
+                            <span class="preview-tag">${tEdit('signals.valueGym')} - ${tEdit('signals.gym')}</span>
+                        </div>
+                    </div>
+                    <aside class="preview-profile-card">
+                        <span class="preview-pill preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.profile.live`)}">${escapeHtml(tFrom(current, lang, 'profile.live'))}</span>
+                        <img class="preview-photo preview-editable" data-edit-path="profile.image" src="${escapeHtml(safeImageSrc(profile.image))}" alt="">
+                        <h4>${edit('profile.nickname', safeNickname(current))}</h4>
+                        <p>${tEdit('profile.caption')}</p>
+                        <div class="preview-tags">
+                            <span class="preview-tag">${tEdit('profile.mobile')}</span>
+                            <span class="preview-tag">${tEdit('profile.fast')}</span>
+                            <span class="preview-tag">${tEdit('profile.personal')}</span>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <section class="${sectionClass('about')}" data-preview-section="about">
+                ${sectionLabel('About')}
+                <p class="preview-eyebrow">${tEdit('nav.about')}</p>
+                <h3 class="preview-title">${tEdit('about.title')}</h3>
+                <div class="preview-card-grid">
+                    ${[1, 2, 3, 4].map((num) => card(tFrom(current, lang, `about.card${num}.title`), tFrom(current, lang, `about.card${num}.copy`), '', `translations.${lang}.about.card${num}.title`, `translations.${lang}.about.card${num}.copy`)).join('')}
+                </div>
+            </section>
+
+            <section class="${sectionClass('work')}" data-preview-section="work">
+                ${sectionLabel('Work')}
+                <p class="preview-eyebrow">${tEdit('nav.work')}</p>
+                <h3 class="preview-title">${tEdit('work.title')}</h3>
+                <div class="preview-card-grid">
+                    ${workCards.map((item, index) => card(
+                        localized(item.title, lang),
+                        localized(item.copy, lang),
+                        `<span class="preview-pill preview-editable" data-edit-path="workCards" data-edit-line="${index}">${String(index + 1).padStart(2, '0')} / ${escapeHtml(item.banner || '')}</span><div class="preview-tags">${(item.tags || []).map((tag) => `<span class="preview-tag preview-editable" data-edit-path="workCards" data-edit-line="${index}">${escapeHtml(tag)}</span>`).join('')}</div>`,
+                        'workCards',
+                        'workCards',
+                        index
+                    )).join('')}
+                </div>
+            </section>
+
+            <section class="${sectionClass('connect')}" data-preview-section="connect">
+                ${sectionLabel('Links + QR')}
+                <p class="preview-eyebrow">${tEdit('connect.eyebrow')}</p>
+                <h3 class="preview-title">${tEdit('connect.title')}</h3>
+                <div class="preview-socials">
+                    ${socialLinks.map((item) => `<span class="preview-pill preview-editable" data-edit-path="socialLinks" data-edit-line="${item.__index}">${escapeHtml(item.label || item.platform)}</span>`).join('')}
+                    <span class="preview-pill preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.connect.copyNumber`)}">${escapeHtml(tFrom(current, lang, 'connect.copyNumber'))}</span>
+                    ${ctaButtons.map((item) => `<span class="preview-button preview-editable" data-edit-path="ctaButtons" data-edit-line="${item.__index}">${escapeHtml(localized(item.label, lang))}</span>`).join('')}
+                </div>
+                <aside class="preview-contact-card">
+                    <div class="preview-tabs">
+                        <span class="preview-tab preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.qr.profile`)}">${escapeHtml(tFrom(current, lang, 'qr.profile'))}</span>
+                        <span class="preview-tab preview-editable" data-edit-path="profile.phone">WhatsApp</span>
+                        <span class="preview-tab preview-editable" data-edit-path="profile.socials.instagram">Instagram</span>
+                    </div>
+                    <div class="preview-qr preview-editable" data-edit-path="profile.nickname">${escapeHtml(safeNickname(current))}</div>
+                    <h4>${tEdit('connect.scanTitle')}</h4>
+                    <p>${tEdit('connect.scanCopy')}</p>
+                    <div class="preview-utilities">
+                        <span class="preview-utility preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.connect.saveContact`)}">${escapeHtml(tFrom(current, lang, 'connect.saveContact'))}</span>
+                        <span class="preview-utility preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.connect.downloadQr`)}">${escapeHtml(tFrom(current, lang, 'connect.downloadQr'))}</span>
+                        <span class="preview-utility preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.connect.copyLink`)}">${escapeHtml(tFrom(current, lang, 'connect.copyLink'))}</span>
+                        <span class="preview-utility preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.connect.shareImage`)}">${escapeHtml(tFrom(current, lang, 'connect.shareImage'))}</span>
+                        <span class="preview-utility preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.connect.mediaKit`)}">${escapeHtml(tFrom(current, lang, 'connect.mediaKit'))}</span>
+                    </div>
+                </aside>
+            </section>
+
+            <section class="${sectionClass('form')}" data-preview-section="form">
+                ${sectionLabel('WhatsApp Form')}
+                <div class="preview-form">
+                    <p class="preview-eyebrow">${tEdit('form.eyebrow')}</p>
+                    <h4>${tEdit('form.title')}</h4>
+                    <div class="preview-form-grid">
+                        <div class="preview-input preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.form.namePlaceholder`)}"></div>
+                        <div class="preview-input preview-editable" data-edit-path="quickMessages" data-edit-line="0"></div>
+                        <div class="preview-input wide preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.form.messagePlaceholder`)}"></div>
+                    </div>
+                    <span class="preview-button preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.form.send`)}">${escapeHtml(tFrom(current, lang, 'form.send'))}</span>
+                </div>
+            </section>
+
+            <section class="${sectionClass('themeControls')}" data-preview-section="theme">
+                ${sectionLabel('Accent + Theme')}
+                <div class="preview-theme-row">
+                    <span class="preview-color-line">${tEdit('accent.label')}</span>
+                    <span class="preview-swatch primary preview-editable" data-edit-path="design.primaryColor"></span><span class="preview-muted-note preview-editable" data-edit-path="design.primaryColor">${escapeHtml(current.design?.primaryColor || '#39d0ff')}</span>
+                    <span class="preview-swatch accent preview-editable" data-edit-path="design.accentColor"></span><span class="preview-muted-note preview-editable" data-edit-path="design.accentColor">${escapeHtml(current.design?.accentColor || '#ff7a3d')}</span>
+                    <span class="preview-swatch mint preview-editable" data-edit-path="design.mintColor"></span><span class="preview-muted-note preview-editable" data-edit-path="design.mintColor">${escapeHtml(current.design?.mintColor || '#5ee2a0')}</span>
+                    <span class="preview-pill preview-editable" data-edit-path="profile.themePreset">${escapeHtml(tFrom(current, lang, 'preset.label'))}: ${escapeHtml(profile.themePreset || current.design?.presets?.currentStyle || 'neon')}</span>
+                </div>
+            </section>
+
+            <section class="${sectionClass('services')}" data-preview-section="services">
+                ${sectionLabel('Services')}
+                <p class="preview-eyebrow">${edit(`marketing.services.eyebrow.${lang}`, localized(marketing.services?.eyebrow, lang) || 'Services')}</p>
+                <h3 class="preview-title">${edit(`marketing.services.title.${lang}`, localized(marketing.services?.title, lang))}</h3>
+                <div class="preview-card-grid">${listCards(marketing.services?.items, 'title', 'copy', 'marketing.services.items')}</div>
+            </section>
+
+            <section class="${sectionClass('pricing')}" data-preview-section="pricing">
+                ${sectionLabel('Pricing')}
+                <p class="preview-eyebrow">${edit(`marketing.pricing.eyebrow.${lang}`, localized(marketing.pricing?.eyebrow, lang) || 'Pricing')}</p>
+                <h3 class="preview-title">${edit(`marketing.pricing.title.${lang}`, localized(marketing.pricing?.title, lang))}</h3>
+                <div class="preview-card-grid">${listCards(marketing.pricing?.items, 'name', 'price', 'marketing.pricing.items')}</div>
+            </section>
+
+            <section class="${sectionClass('testimonials')}" data-preview-section="testimonials">
+                ${sectionLabel('Reviews')}
+                <p class="preview-eyebrow">${edit(`marketing.testimonials.eyebrow.${lang}`, localized(marketing.testimonials?.eyebrow, lang) || 'Reviews')}</p>
+                <h3 class="preview-title">${edit(`marketing.testimonials.title.${lang}`, localized(marketing.testimonials?.title, lang))}</h3>
+                <div class="preview-card-grid">${listCards(marketing.testimonials?.items, 'name', 'quote', 'marketing.testimonials.items')}</div>
+            </section>
+
+            <section class="${sectionClass('gallery')}" data-preview-section="gallery">
+                ${sectionLabel('Gallery')}
+                <p class="preview-eyebrow">${edit(`marketing.gallery.eyebrow.${lang}`, localized(marketing.gallery?.eyebrow, lang) || 'Gallery')}</p>
+                <h3 class="preview-title">${edit(`marketing.gallery.title.${lang}`, localized(marketing.gallery?.title, lang))}</h3>
+                <div class="preview-card-grid">${(marketing.gallery?.items || []).map((item, index) => card(localized(item.title, lang), item.image || '', `<img class="preview-photo preview-editable" data-edit-path="marketing.gallery.items" data-edit-line="${index}" src="${escapeHtml(safeImageSrc(item.image, 'assets/social-preview.png'))}" alt="">`, 'marketing.gallery.items', 'marketing.gallery.items', index)).join('')}</div>
+            </section>
+
+            <section class="${sectionClass('faq')}" data-preview-section="faq">
+                ${sectionLabel('FAQ')}
+                <p class="preview-eyebrow">${edit(`marketing.faq.eyebrow.${lang}`, localized(marketing.faq?.eyebrow, lang) || 'FAQ')}</p>
+                <h3 class="preview-title">${edit(`marketing.faq.title.${lang}`, localized(marketing.faq?.title, lang))}</h3>
+                <div class="preview-card-grid">${listCards(marketing.faq?.items, 'question', 'answer', 'marketing.faq.items')}</div>
+            </section>
+
+            <section class="preview-section" data-preview-section="assets">
+                ${sectionLabel('Images + Files')}
+                <div class="preview-card-grid">
+                    ${card('Profile image', profile.image || 'لا توجد صورة مخصصة', `<img class="preview-photo preview-editable" data-edit-path="profile.image" src="${escapeHtml(safeImageSrc(profile.image))}" alt="">`, 'profile.image', 'profile.image')}
+                    ${card('Social preview', profile.assets?.socialPreview || 'assets/social-preview.png', `<img class="preview-photo preview-editable" data-edit-path="profile.assets.socialPreview" src="${escapeHtml(safeImageSrc(profile.assets?.socialPreview, 'assets/social-preview.png'))}" alt="">`, 'profile.assets.socialPreview', 'profile.assets.socialPreview')}
+                </div>
+            </section>
+
+            <section class="preview-section" data-preview-section="share">
+                ${sectionLabel('Share Image')}
+                <div class="preview-share-card">
+                    <p class="preview-eyebrow">${edit('profile.shareImage.handle', profile.shareImage?.handle || '@mouhamedmostafffa')}</p>
+                    <h3 class="preview-title">${edit('profile.shareImage.title', profile.shareImage?.title || safeNickname(current))}</h3>
+                    <p class="preview-copy">${edit('profile.shareImage.subtitle', profile.shareImage?.subtitle || '')}</p>
+                    <span class="preview-pill preview-editable" data-edit-path="profile.shareImage.scanLabel">${escapeHtml(profile.shareImage?.scanLabel || 'Scan to connect')}</span>
+                </div>
+            </section>
+
+            <section class="preview-section" data-preview-section="seo">
+                ${sectionLabel('SEO + Analytics')}
+                ${card(tFrom(current, lang, 'meta.title'), tFrom(current, lang, 'meta.description'), `<span class="preview-pill preview-editable" data-edit-path="site.robots">${escapeHtml(current.site?.robots || 'index, follow')}</span>`, `translations.${lang}.meta.title`, `translations.${lang}.meta.description`)}
+                <p class="preview-muted-note preview-editable" data-edit-path="site.canonicalUrl">Canonical: ${escapeHtml(current.site?.canonicalUrl || './')}</p>
+            </section>
+
+            <footer class="preview-owner-credit preview-locked" title="حقوق ثابتة غير قابلة للتعديل من الأدمن">
+                <span>${escapeHtml(OWNER_CREDIT_TEXT)}</span>
+                <span>${escapeHtml(OWNER_CREDIT_HANDLE)}</span>
+            </footer>
+       `;
+
+        if (activeTarget) markActivePreview(activeTarget);
+    }
+
+    function serializeContent(content) {
+        return `window.TOJI_CONTENT = ${JSON.stringify(content, null, 4)};\n`;
+    }
+
+    function makeConfig(content) {
+        const profile = content.profile || {};
+        return {
+            name: safeName(content),
+            nickname: safeNickname(content),
+            loaderMark: profile.loaderMark || safeNickname(content),
+            image: profile.image || PROFILE_PLACEHOLDER_IMAGE,
+            phone: safePhone(profile.phone),
+            themePreset: profile.themePreset || 'neon',
+            accent: profile.accent || 'cyan',
+            status: profile.status || {},
+            socials: profile.socials || {},
+            assets: profile.assets || {},
+            shareImage: profile.shareImage || {}
+        };
+    }
+
+    function serializeConfig(content) {
+        return `window.TOJI_CONFIG = ${JSON.stringify(makeConfig(content), null, 4)};\n`;
+    }
+
+    function makeManifest(content) {
+        const profile = content.profile || {};
+        const assets = profile.assets || {};
+        const site = content.site || {};
+        const nickname = safeNickname(content);
+        const lang = site.defaultLang || 'en';
+        return {
+            name: `${nickname} | ${safeName(content)}`,
+            short_name: nickname,
+            description: tFrom(content, lang, 'meta.description'),
+            start_url: './',
+            scope: './',
+            display: 'standalone',
+            background_color: site.backgroundColor || '#050506',
+            theme_color: site.themeColor || '#050506',
+            orientation: 'portrait-primary',
+            icons: [
+                {
+                    src: assets.icon192 || 'assets/icon-192.png',
+                    sizes: '192x192',
+                    type: 'image/png',
+                    purpose: 'any maskable'
+                },
+                {
+                    src: assets.icon512 || 'assets/icon-512.png',
+                    sizes: '512x512',
+                    type: 'image/png',
+                    purpose: 'any maskable'
+                }
+            ]
+        };
+    }
+
+    function serializeManifest(content) {
+        return `${JSON.stringify(makeManifest(content), null, 4)}\n`;
+    }
+
+    function serializeRobots(content) {
+        return `${content.site?.robotsText || 'User-agent: *\nAllow: /\nDisallow: /admin.html'}\n`;
+    }
+
+    function serializeSitemap(content) {
+        const canonical = content.site?.canonicalUrl && content.site.canonicalUrl !== './'
+            ? content.site.canonicalUrl.replace(/\/+$/, '/')
+            : './';
+        const lastmod = new Date().toISOString().slice(0, 10);
+        return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n    <url>\n        <loc>${canonical}</loc>\n        <lastmod>${lastmod}</lastmod>\n        <priority>1.0</priority>\n    </url>\n</urlset>\n`;
+    }
+
+    function makeSchema(content) {
+        const site = content.site || {};
+        const profile = content.profile || {};
+        const socials = profile.socials || {};
+        const lang = site.defaultLang || 'en';
+        const sameAs = Object.values(socials).filter(Boolean);
+        const schema = {
+            '@context': 'https://schema.org',
+            '@type': site.schemaType || 'Person',
+            name: safeName(content),
+            alternateName: safeNickname(content),
+            url: site.canonicalUrl || './',
+            image: profile.assets?.socialPreview || profile.image || 'assets/social-preview.png',
+            telephone: `+${safePhone(profile.phone)}`,
+            description: tFrom(content, lang, 'meta.description'),
+            sameAs
+        };
+
+        if (schema['@type'] === 'Organization') {
+            schema.logo = profile.assets?.socialPreview || profile.image || 'assets/social-preview.png';
+        }
+
+        return schema;
+    }
+
+    function setMeta(doc, type, name, content) {
+        const selector = type === 'property' ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+        let meta = doc.head.querySelector(selector);
+        if (!meta) {
+            meta = doc.createElement('meta');
+            meta.setAttribute(type, name);
+            doc.head.appendChild(meta);
+        }
+        meta.setAttribute('content', content || '');
+    }
+
+    function setLink(doc, rel, href) {
+        let link = doc.head.querySelector(`link[rel="${rel}"]`);
+        if (!link) {
+            link = doc.createElement('link');
+            link.setAttribute('rel', rel);
+            doc.head.appendChild(link);
+        }
+        link.setAttribute('href', href || './');
+    }
+
+    function ensureOwnerCredit(doc) {
+        let credit = doc.querySelector('[data-owner-credit]');
+        if (!credit) {
+            credit = doc.createElement('footer');
+        }
+
+        credit.className = 'owner-credit';
+        credit.setAttribute('data-owner-credit', '');
+        credit.textContent = '';
+
+        const label = doc.createElement('span');
+        label.textContent = OWNER_CREDIT_TEXT;
+
+        const link = doc.createElement('a');
+        link.href = OWNER_CREDIT_URL;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = OWNER_CREDIT_HANDLE;
+
+        credit.append(label, link);
+
+        const creditParent = doc.getElementById('pageScroll') || doc.querySelector('main') || doc.body;
+        if (credit.parentNode !== creditParent) {
+            credit.remove();
+            creditParent.appendChild(credit);
+        } else if (creditParent.lastElementChild !== credit) {
+            creditParent.appendChild(credit);
+        }
+    }
+
+    function serializeIndex(content, indexText) {
+        const doc = new DOMParser().parseFromString(indexText, 'text/html');
+        const site = content.site || {};
+        const profile = content.profile || {};
+        const assets = profile.assets || {};
+        const lang = site.defaultLang || 'en';
+        const title = tFrom(content, lang, 'meta.title');
+        const description = tFrom(content, lang, 'meta.description');
+        const nickname = safeNickname(content);
+        const phone = safePhone(profile.phone);
+        const whatsappMessage = tFrom(content, lang, 'share.whatsappMessage');
+        const csp = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.facebook.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';";
+
+        doc.documentElement.lang = lang;
+        doc.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        doc.title = title;
+
+        let cspMeta = doc.head.querySelector('meta[http-equiv="Content-Security-Policy"]');
+        if (!cspMeta) {
+            cspMeta = doc.createElement('meta');
+            cspMeta.setAttribute('http-equiv', 'Content-Security-Policy');
+            doc.head.appendChild(cspMeta);
+        }
+        cspMeta.setAttribute('content', csp);
+
+        setMeta(doc, 'name', 'description', description);
+        setMeta(doc, 'name', 'author', safeName(content));
+        setMeta(doc, 'name', 'theme-color', site.themeColor || '#050506');
+        setMeta(doc, 'name', 'application-name', nickname);
+        setMeta(doc, 'name', 'apple-mobile-web-app-title', nickname);
+        setMeta(doc, 'name', 'robots', site.robots || 'index, follow');
+        setMeta(doc, 'property', 'og:title', title);
+        setMeta(doc, 'property', 'og:description', description);
+        setMeta(doc, 'property', 'og:type', 'website');
+        setMeta(doc, 'property', 'og:image', assets.socialPreview || 'assets/social-preview.png');
+        setMeta(doc, 'property', 'og:image:alt', `${nickname} preview`);
+        setMeta(doc, 'name', 'twitter:card', 'summary_large_image');
+        setMeta(doc, 'name', 'twitter:title', title);
+        setMeta(doc, 'name', 'twitter:description', description);
+        setMeta(doc, 'name', 'twitter:image', assets.socialPreview || 'assets/social-preview.png');
+        setLink(doc, 'canonical', site.canonicalUrl || './');
+
+        const favicon = doc.head.querySelector('link[rel="icon"]');
+        if (favicon) favicon.setAttribute('href', assets.favicon || 'assets/favicon.svg');
+        const appleIcon = doc.head.querySelector('link[rel="apple-touch-icon"]');
+        if (appleIcon) appleIcon.setAttribute('href', assets.appleIcon || 'assets/icon-192.png');
+
+        doc.querySelectorAll('[data-i18n]').forEach((node) => {
+            const value = tFrom(content, lang, node.dataset.i18n);
+            if (value !== node.dataset.i18n) node.textContent = value;
+        });
+
+        doc.querySelectorAll('[data-i18n-attr]').forEach((node) => {
+            node.dataset.i18nAttr.split(',').forEach((pair) => {
+                const [attribute, key] = pair.split(':').map((part) => part.trim());
+                const value = tFrom(content, lang, key);
+                if (attribute && key && value !== key) node.setAttribute(attribute, value);
+            });
+        });
+
+        const brandName = doc.getElementById('brandName');
+        if (brandName) brandName.textContent = nickname;
+        const brandLink = doc.querySelector('.brand');
+        if (brandLink) brandLink.setAttribute('aria-label', `${nickname} home`);
+        const loaderBrand = doc.getElementById('loaderBrand');
+        if (loaderBrand) loaderBrand.textContent = profile.loaderMark || nickname;
+        const profileCardName = doc.getElementById('profileCardName');
+        if (profileCardName) profileCardName.textContent = nickname;
+        const profilePhoto = doc.getElementById('profilePhoto');
+        if (profilePhoto) {
+            profilePhoto.setAttribute('src', profile.image || PROFILE_PLACEHOLDER_IMAGE);
+            profilePhoto.setAttribute('alt', nickname);
+        }
+        const qrFallback = doc.getElementById('qrFallback');
+        if (qrFallback) qrFallback.textContent = nickname;
+
+        doc.querySelectorAll('[data-social]').forEach((link) => {
+            const href = profile.socials?.[link.dataset.social] || '';
+            if (href) link.setAttribute('href', href);
+        });
+
+        doc.querySelectorAll('[data-whatsapp]').forEach((link) => {
+            link.setAttribute('href', `https://wa.me/${phone}?text=${encodeURIComponent(whatsappMessage)}`);
+        });
+
+        doc.querySelectorAll('[data-copy]').forEach((button) => {
+            button.setAttribute('data-copy', phone);
+        });
+
+        const mediaKit = Array.from(doc.querySelectorAll('a[download]'))
+            .find((link) => link.getAttribute('href')?.includes('media-kit') || link.textContent.includes(tFrom(content, lang, 'connect.mediaKit')));
+        if (mediaKit) mediaKit.setAttribute('href', assets.mediaKit || 'assets/toji-media-kit.zip');
+
+        let schemaScript = doc.getElementById('profileSchema') || doc.querySelector('script[type="application/ld+json"]');
+        if (!schemaScript) {
+            schemaScript = doc.createElement('script');
+            schemaScript.type = 'application/ld+json';
+            doc.head.appendChild(schemaScript);
+        }
+        schemaScript.id = 'profileSchema';
+        schemaScript.textContent = `\n    ${JSON.stringify(makeSchema(content), null, 4).replace(/\n/g, '\n    ')}\n    `;
+        ensureOwnerCredit(doc);
+
+        return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}\n`;
+    }
+
+    function makeClientInfo(content) {
+        return {
+            generatedAt: new Date().toISOString(),
+            siteOwner: safeName(content),
+            brand: safeNickname(content),
+            phone: safePhone(content.profile?.phone),
+            filesToUpload: [
+                'index.html',
+                'style.css',
+                'script.js',
+                'content.js',
+                'config.js',
+                'status.js',
+                'manifest.webmanifest',
+                'sw.js',
+                'site-help.html',
+                'README-AR.md',
+                'README-EN.md',
+                'CHECKLIST-AR.md',
+                'LICENSE.txt',
+                'assets/',
+                'vendor/'
+            ],
+            note: 'Do not upload admin.html/admin.js to a public site unless you intentionally want to include the local editor.'
+        };
+    }
+
+    async function fetchIndexTemplate() {
+        if (indexTemplate) return indexTemplate;
+        try {
+            const response = await fetch('index.html', { cache: 'no-store' });
+            indexTemplate = await response.text();
+        } catch (error) {
+            indexTemplate = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>TOJI</title></head><body></body></html>';
+        }
+        return indexTemplate;
+    }
+
+    async function readProjectFile(filename) {
+        if (!projectDirHandle) return '';
+        try {
+            const fileHandle = await projectDirHandle.getFileHandle(filename);
+            const file = await fileHandle.getFile();
+            return await file.text();
+        } catch (error) {
+            return '';
+        }
+    }
+
+    async function makeGeneratedFiles() {
+        const content = collectForm();
+        const indexSource = await readProjectFile('index.html') || await fetchIndexTemplate();
+        return {
+            'content.js': serializeContent(content),
+            'config.js': serializeConfig(content),
+            'manifest.webmanifest': serializeManifest(content),
+            'index.html': serializeIndex(content, indexSource),
+            'robots.txt': serializeRobots(content),
+            'sitemap.xml': serializeSitemap(content),
+            'site-info.json': `${JSON.stringify(makeClientInfo(content), null, 4)}\n`
+        };
+    }
+
+    async function writeFile(filename, text) {
+        if (!projectDirHandle) return false;
+        try {
+            const fileHandle = await projectDirHandle.getFileHandle(filename, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(text);
+            await writable.close();
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async function writeProjectFiles() {
+        const files = await makeGeneratedFiles();
+        const results = {};
+        for (const [filename, text] of Object.entries(files)) {
+            if (filename === 'site-info.json') continue;
+            results[filename] = await writeFile(filename, text);
+        }
+        return results;
+    }
+
+    function allWritten(results) {
+        return ['content.js', 'config.js', 'manifest.webmanifest', 'index.html', 'robots.txt', 'sitemap.xml'].every((name) => results[name]);
+    }
+
+    async function persist(auto = false) {
+        collectForm();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+        if (projectDirHandle) {
+            const results = await writeProjectFiles();
+            if (!auto) {
+                msg(allWritten(results)
+                    ? 'تم حفظ الملفات الفعلية: content.js + config.js + manifest.webmanifest + index.html'
+                    : 'تم حفظ بعض الملفات، لكن حصل خطأ في ملف أو أكثر. راجع صلاحيات المجلد.');
+            }
+            return;
+        }
+
+        if (!auto) {
+            msg('تم حفظ المعاينة فقط. اربط مجلد المشروع للحفظ داخل الملفات، أو حمّل الملفات المولدة.');
+        }
+    }
+
+    function scheduleAutoSave() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+            persist(true);
+        }, AUTOSAVE_DELAY);
+    }
+
+    function syncPreviewFromInput(input) {
+        collectForm();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+        renderAdminPreview(input.dataset.previewTarget);
+        scheduleAutoSave();
+    }
+
+    function downloadText(filename, text, type = 'text/plain;charset=utf-8') {
+        const blob = new Blob([text], { type });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 500);
+    }
+
+    function downloadBlob(filename, blob) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 800);
+    }
+
+    function makeSlug(value) {
+        return String(value || 'public-site')
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9\u0600-\u06ff]+/gi, '-')
+            .replace(/^-+|-+$/g, '') || 'public-site';
+    }
+
+    function makeReadmeAr(content, includeAdmin) {
+        return `# ${safeNickname(content)} | ملفات الموقع
+
+هذه النسخة جاهزة للرفع أو الإرسال للعميل.
+
+## طريقة الرفع
+
+1. ارفع كل الملفات والفولدرات الموجودة في هذا الـ ZIP على الاستضافة.
+2. افتح الدومين وتأكد أن الصفحة تعمل.
+3. جرّب زر واتساب، QR، الروابط الاجتماعية، وتغيير اللغة.
+4. لو عندك دومين نهائي، حدّث canonical و sitemap من لوحة الأدمن قبل التصدير.
+
+## ملفات مهمة
+
+- index.html: الصفحة الرئيسية.
+- content.js و config.js: بيانات العميل والمحتوى.
+- style.css و script.js: التصميم والتفاعل.
+- assets/: الصور والأيقونات.
+- vendor/: مكتبات محلية يحتاجها الموقع.
+
+${includeAdmin ? 'هذه النسخة تحتوي ملفات الأدمن للمطور.' : 'هذه نسخة موقع نهائية بدون ملفات الأدمن.'}
+`;
+    }
+
+    function makeReadmeEn(content, includeAdmin) {
+        return `# ${safeNickname(content)} | Website Package
+
+This package is ready to upload as the TOJI website.
+
+## Upload
+
+1. Upload all files and folders from this ZIP to the hosting account.
+2. Open the final domain and test the page.
+3. Test WhatsApp, QR, social links, and language switching.
+4. If you have a final domain, update canonical and sitemap before exporting.
+
+## Important Files
+
+- index.html: main page.
+- content.js and config.js: site content and settings.
+- style.css and script.js: design and interactions.
+- assets/: images and icons.
+- vendor/: local libraries used by the page.
+
+${includeAdmin ? 'This developer package includes the admin editor files.' : 'This is a public site package without admin editor files.'}
+`;
+    }
+
+    function makeChecklistAr(content) {
+        return `# Checklist قبل التسليم
+
+- [ ] اسم العميل صحيح: ${safeName(content)}
+- [ ] اسم البراند صحيح: ${safeNickname(content)}
+- [ ] رقم واتساب صحيح: ${safePhone(content.profile?.phone)}
+- [ ] كل الروابط الاجتماعية تفتح بشكل صحيح.
+- [ ] الصورة الشخصية وصورة المشاركة موجودين.
+- [ ] العنوان والوصف مناسبين للعميل.
+- [ ] QR يعمل.
+- [ ] زر حفظ جهة الاتصال يعمل.
+- [ ] اللغة العربية والإنجليزية سليمة.
+- [ ] لا توجد أخطاء في Console.
+- [ ] ملفات الأدمن غير موجودة في نسخة العميل النهائية.
+`;
+    }
+
+    function makeLicenseText(content) {
+        return `Website template delivery license
+
+Client: ${safeName(content)}
+Brand: ${safeNickname(content)}
+Generated: ${new Date().toISOString()}
+
+This package is delivered as a static website customized for TOJI.
+Do not resell the customized public version as a separate template unless your sales agreement allows it.
+`;
+    }
+
+    async function fetchPackageAsset(path) {
+        const response = await fetch(path, { cache: 'no-store' });
+        if (!response.ok) throw new Error(`Missing ${path}`);
+        return new Uint8Array(await response.arrayBuffer());
+    }
+
+    function makeCrcTable() {
+        const table = new Uint32Array(256);
+        for (let i = 0; i < 256; i += 1) {
+            let c = i;
+            for (let k = 0; k < 8; k += 1) {
+                c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+            }
+            table[i] = c >>> 0;
+        }
+        return table;
+    }
+
+    const crcTable = makeCrcTable();
+
+    function crc32(bytes) {
+        let crc = 0xffffffff;
+        bytes.forEach((byte) => {
+            crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+        });
+        return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    function textBytes(text) {
+        return new TextEncoder().encode(text);
+    }
+
+    function numberBytes(value, size) {
+        const bytes = new Uint8Array(size);
+        for (let i = 0; i < size; i += 1) {
+            bytes[i] = (value >>> (i * 8)) & 0xff;
+        }
+        return bytes;
+    }
+
+    function concatBytes(parts) {
+        const length = parts.reduce((total, part) => total + part.length, 0);
+        const output = new Uint8Array(length);
+        let offset = 0;
+        parts.forEach((part) => {
+            output.set(part, offset);
+            offset += part.length;
+        });
+        return output;
+    }
+
+    function zipDateTime(date = new Date()) {
+        const time = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
+        const day = (date.getFullYear() - 1980) << 9 | ((date.getMonth() + 1) << 5) | date.getDate();
+        return { time, day };
+    }
+
+    function makeZip(entries) {
+        const fileParts = [];
+        const centralParts = [];
+        let offset = 0;
+        const { time, day } = zipDateTime();
+
+        entries.forEach((entry) => {
+            const filename = textBytes(entry.path.replace(/\\/g, '/'));
+            const data = typeof entry.data === 'string' ? textBytes(entry.data) : entry.data;
+            const crc = crc32(data);
+            const localHeader = concatBytes([
+                numberBytes(0x04034b50, 4),
+                numberBytes(20, 2),
+                numberBytes(0x0800, 2),
+                numberBytes(0, 2),
+                numberBytes(time, 2),
+                numberBytes(day, 2),
+                numberBytes(crc, 4),
+                numberBytes(data.length, 4),
+                numberBytes(data.length, 4),
+                numberBytes(filename.length, 2),
+                numberBytes(0, 2),
+                filename
+            ]);
+
+            fileParts.push(localHeader, data);
+
+            const centralHeader = concatBytes([
+                numberBytes(0x02014b50, 4),
+                numberBytes(20, 2),
+                numberBytes(20, 2),
+                numberBytes(0x0800, 2),
+                numberBytes(0, 2),
+                numberBytes(time, 2),
+                numberBytes(day, 2),
+                numberBytes(crc, 4),
+                numberBytes(data.length, 4),
+                numberBytes(data.length, 4),
+                numberBytes(filename.length, 2),
+                numberBytes(0, 2),
+                numberBytes(0, 2),
+                numberBytes(0, 2),
+                numberBytes(0, 2),
+                numberBytes(0, 4),
+                numberBytes(offset, 4),
+                filename
+            ]);
+
+            centralParts.push(centralHeader);
+            offset += localHeader.length + data.length;
+        });
+
+        const centralDirectory = concatBytes(centralParts);
+        const endRecord = concatBytes([
+            numberBytes(0x06054b50, 4),
+            numberBytes(0, 2),
+            numberBytes(0, 2),
+            numberBytes(entries.length, 2),
+            numberBytes(entries.length, 2),
+            numberBytes(centralDirectory.length, 4),
+            numberBytes(offset, 4),
+            numberBytes(0, 2)
+        ]);
+
+        return new Blob([concatBytes([...fileParts, centralDirectory, endRecord])], { type: 'application/zip' });
+    }
+
+    async function makeWebsitePackage(includeAdmin = false) {
+        const files = await makeGeneratedFiles();
+        const content = collectForm();
+        const staticFiles = [
+            'style.css',
+            'script.js',
+            'status.js',
+            'sw.js',
+            'site-help.html',
+            'assets/favicon.svg',
+            'assets/icon-192.png',
+            'assets/icon-512.png',
+            'assets/profile.webp',
+            'assets/social-preview.png',
+            'assets/social-preview.svg',
+            'assets/toji-media-kit.zip',
+            'vendor/lucide.min.js'
+        ];
+        const adminFiles = ['admin.html', 'admin.css', 'admin.js', 'SELLING-GUIDE-AR.md'];
+        const entries = [
+            { path: 'index.html', data: files['index.html'] },
+            { path: 'content.js', data: files['content.js'] },
+            { path: 'config.js', data: files['config.js'] },
+            { path: 'manifest.webmanifest', data: files['manifest.webmanifest'] },
+            { path: 'robots.txt', data: files['robots.txt'] },
+            { path: 'sitemap.xml', data: files['sitemap.xml'] },
+            { path: 'site-info.json', data: files['site-info.json'] },
+            { path: 'README-AR.md', data: makeReadmeAr(content, includeAdmin) },
+            { path: 'README-EN.md', data: makeReadmeEn(content, includeAdmin) },
+            { path: 'CHECKLIST-AR.md', data: makeChecklistAr(content) },
+            { path: 'LICENSE.txt', data: makeLicenseText(content) }
+        ];
+
+        const wantedFiles = includeAdmin ? staticFiles.concat(adminFiles) : staticFiles;
+        for (const path of wantedFiles) {
+            try {
+                entries.push({ path, data: await fetchPackageAsset(path) });
+            } catch (error) {
+                entries.push({ path: `MISSING-${path.replace(/[\\/]/g, '-')}.txt`, data: `Could not include ${path}. Add it manually if needed.\n` });
+            }
+        }
+
+        return makeZip(entries);
+    }
+
+    function sanitizeOwnerData() {
+        current = deepMerge(current, {
+            site: {
+                defaultLang: 'en',
+                canonicalUrl: './',
+                robots: 'index, follow',
+                themeColor: '#050506',
+                backgroundColor: '#050506',
+                schemaType: 'Person'
+            },
+            profile: {
+                name: 'Mohamed Mostafa',
+                nickname: 'TOJI',
+                loaderMark: 'TOJI',
+                image: 'assets/profile.webp',
+                phone: '201102550730',
+                themePreset: 'neon',
+                accent: 'cyan',
+                status: {
+                    en: 'Available for custom pages and clean web builds',
+                    ar: 'متاح لصفحات مخصصة ومواقع خفيفة وشكلها مميز'
+                },
+                socials: {
+                    instagram: 'https://instagram.com/mouhamedmostafffa',
+                    tiktok: 'https://tiktok.com/@mouhamedmostafffa',
+                    snapchat: 'https://www.snapchat.com/add/dr.toji',
+                    threads: 'https://www.threads.net/@mouhamedmostafffa',
+                    website: './'
+                },
+                shareImage: {
+                    title: 'TOJI',
+                    subtitle: 'Personal links, clean pages, QR, contact, and web details in one place.',
+                    handle: '@mouhamedmostafffa',
+                    scanLabel: 'Scan to connect',
+                    filename: 'TOJI-share-card.png'
+                }
+            }
+        });
+        fillForm();
+    }
+
+    function setPathInput(path, value) {
+        const input = document.querySelector(`[data-path="${path}"]`);
+        if (input) {
+            setInputValue(input, value);
+            setByPath(current, path, value);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+            updateFullJson();
+            renderAdminPreview(input.dataset.previewTarget);
+        }
+    }
+
+    function readFileAsDataUrl(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function bindImageUpload(inputId, targetPath) {
+        const input = el(inputId);
+        if (!input) return;
+        input.addEventListener('change', async () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            const dataUrl = await readFileAsDataUrl(file);
+            setPathInput(targetPath, dataUrl);
+            await persist(true);
+            msg('تم رفع الصورة داخل بيانات القالب. صدّر ZIP بعد الانتهاء.');
+        });
+    }
+
+    buildForm();
+    fillForm();
+    fetchIndexTemplate();
+    bindImageUpload('profileUpload', 'profile.image');
+    bindImageUpload('previewUpload', 'profile.assets.socialPreview');
+
+    document.querySelectorAll('[data-path]').forEach((node) => {
+        node.addEventListener('focus', () => {
+            document.querySelectorAll('label.is-active-field').forEach((label) => label.classList.remove('is-active-field'));
+            node.closest('label')?.classList.add('is-active-field');
+            markPreviewEditPath(node.dataset.path);
+            markActivePreview(node.dataset.previewTarget);
+        });
+        node.addEventListener('input', () => syncPreviewFromInput(node));
+        node.addEventListener('change', () => syncPreviewFromInput(node));
+    });
+
+    const adminPreview = el('adminPreview');
+    if (adminPreview) {
+        adminPreview.addEventListener('click', (event) => {
+            const target = event.target.closest('[data-edit-path]');
+            if (!target || !adminPreview.contains(target)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            focusEditorField(target.dataset.editPath, target.dataset.editLine);
+        });
+    }
+
+    el('connectFolderBtn').addEventListener('click', async () => {
+        try {
+            if (!window.showDirectoryPicker) {
+                msg('المتصفح الحالي لا يدعم ربط المجلد. استخدم Chrome أو Edge على localhost، أو زر تحميل الملفات المولدة.');
+                return;
+            }
+            projectDirHandle = await window.showDirectoryPicker();
+            const results = await writeProjectFiles();
+            msg(allWritten(results)
+                ? 'تم ربط المجلد وحفظ الملفات. أي تعديل جديد هيحفظ في الملفات تلقائياً.'
+                : 'تم ربط المجلد لكن حصل خطأ أثناء كتابة بعض الملفات.');
+        } catch (error) {
+            msg('تم إلغاء ربط المجلد.');
+        }
+    });
+
+    el('saveFilesBtn').addEventListener('click', async () => {
+        if (!projectDirHandle) {
+            msg('اربط مجلد المشروع الأول، أو استخدم زر تحميل الملفات المولدة.');
+            return;
+        }
+        await persist(false);
+    });
+
+    el('downloadFilesBtn').addEventListener('click', async () => {
+        const files = await makeGeneratedFiles();
+        Object.entries(files).forEach(([filename, text]) => {
+            const type = filename.endsWith('.json') || filename.endsWith('.webmanifest')
+                ? 'application/json;charset=utf-8'
+                : filename.endsWith('.html')
+                    ? 'text/html;charset=utf-8'
+                    : 'application/javascript;charset=utf-8';
+            downloadText(filename, text, type);
+        });
+        msg('تم تحميل الملفات المولدة. استبدل الملفات القديمة بنفس الأسماء داخل فولدر المشروع.');
+    });
+
+    el('exportClientZipBtn').addEventListener('click', async () => {
+        msg('جاري تجهيز ZIP نسخة العميل...');
+        try {
+            const zip = await makeWebsitePackage(false);
+            downloadBlob(`${makeSlug(safeNickname(current))}-public-site.zip`, zip);
+            msg('تم تحميل ZIP نسخة العميل. هذه النسخة لا تحتوي ملفات الأدمن.');
+        } catch (error) {
+            msg('حصل خطأ أثناء تجهيز ZIP نسخة العميل. تأكد أنك فاتح الموقع من localhost وليس file://.');
+        }
+    });
+
+    el('exportDeveloperZipBtn').addEventListener('click', async () => {
+        msg('جاري تجهيز ZIP نسخة المطور...');
+        try {
+            const zip = await makeWebsitePackage(true);
+            downloadBlob(`${makeSlug(safeNickname(current))}-developer-site.zip`, zip);
+            msg('تم تحميل ZIP نسخة المطور وفيها ملفات الأدمن.');
+        } catch (error) {
+            msg('حصل خطأ أثناء تجهيز ZIP نسخة المطور. تأكد أنك فاتح الموقع من localhost وليس file://.');
+        }
+    });
+
+    el('cleanFinalBtn').addEventListener('click', () => {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('toji_lang');
+        localStorage.removeItem('toji_theme');
+        localStorage.removeItem('toji_theme_preset');
+        localStorage.removeItem('toji_accent');
+        localStorage.removeItem('toji_qr_mode');
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+        msg('تم تنظيف بيانات المعاينة من المتصفح. استخدم زر تصدير الموقع ZIP لو عايز نسخة نهائية بدون ملفات الأدمن.');
+    });
+
+    el('sanitizeOwnerBtn').addEventListener('click', async () => {
+        sanitizeOwnerData();
+        await persist(false);
+        msg('تم استرجاع بيانات TOJI الأساسية داخل الأدمن. احفظ الملفات لو عايز تثبت التغيير.');
+    });
+
+    el('resetBtn').addEventListener('click', () => {
+        if (!window.confirm('سيتم حذف تعديلات المعاينة والرجوع للنسخة المحفوظة في content.js. هل تريد المتابعة؟')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        current = clone(defaults);
+        fillForm();
+        msg('تم الرجوع لآخر نسخة محفوظة في content.js.');
+    });
+
+    el('copyFullBtn').addEventListener('click', async () => {
+        collectForm();
+        try {
+            await navigator.clipboard.writeText(JSON.stringify(current, null, 4));
+            msg('تم نسخ JSON الحقيقي بالكامل، شامل الصور المرفوعة.');
+        } catch (error) {
+            msg('النسخ فشل. صندوق JSON يعرض الصور مختصرة، جرّب النسخ مرة أخرى من زر نسخ JSON.');
+        }
+    });
+
+    el('loadFullBtn').addEventListener('click', async () => {
+        try {
+            const parsed = restoreJsonPlaceholders(JSON.parse(el('fullJson').value || '{}'), current);
+            current = deepMerge(defaults, parsed);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+            fillForm();
+            await persist(false);
+            msg('تم تطبيق JSON وحفظ المعاينة.');
+        } catch (error) {
+            msg('JSON غير صالح. راجع الأقواس والفواصل.');
+        }
+    });
+})();

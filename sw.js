@@ -1,12 +1,15 @@
-const CACHE_NAME = 'toji-site-v1';
+const CACHE_NAME = 'toji-site-v18';
 const ASSETS = [
     './',
     './index.html',
     './style.css',
+    './content.js',
     './config.js',
     './script.js',
     './status.js',
     './manifest.webmanifest',
+    './vendor/lucide.min.js',
+    './vendor/qrcode.min.js',
     './assets/profile.webp',
     './assets/social-preview.png',
     './assets/icon-192.png',

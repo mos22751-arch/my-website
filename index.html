@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en" dir="ltr"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.facebook.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
     <title>TOJI | Mohamed Mostafa</title>
-    <meta name="description" content="Mohamed Mostafa, TOJI. Personal portfolio, social links, small web pages, and front-end experiments.">
+    <meta name="description" content="Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details.">
     <meta name="author" content="Mohamed Mostafa">
     <meta name="theme-color" content="#050506">
     <meta name="application-name" content="TOJI">
@@ -13,24 +13,23 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="robots" content="index, follow">
     <meta property="og:title" content="TOJI | Mohamed Mostafa">
-    <meta property="og:description" content="My links, work ideas, and the pages I like to build.">
+    <meta property="og:description" content="Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details.">
     <meta property="og:type" content="website">
     <meta property="og:image" content="assets/social-preview.png">
-    <meta property="og:image:alt" content="TOJI profile preview">
+    <meta property="og:image:alt" content="TOJI preview">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="TOJI | Mohamed Mostafa">
-    <meta name="twitter:description" content="My links, work ideas, and the pages I like to build.">
+    <meta name="twitter:description" content="Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details.">
     <meta name="twitter:image" content="assets/social-preview.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="canonical" href="./">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="assets/icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://unpkg.com">
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-    <link rel="stylesheet" href="style.css">
-    <script type="application/ld+json">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link rel="stylesheet" href="style.css?v=18">
+    <script src="content.js?v=18"></script>
+    <script id="profileSchema" type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "Person",
@@ -38,19 +37,21 @@
         "alternateName": "TOJI",
         "url": "./",
         "image": "assets/social-preview.png",
+        "telephone": "+201102550730",
+        "description": "Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details.",
         "sameAs": [
             "https://instagram.com/mouhamedmostafffa",
             "https://tiktok.com/@mouhamedmostafffa",
             "https://www.snapchat.com/add/dr.toji",
-            "https://www.threads.net/@mouhamedmostafffa"
-        ],
-        "telephone": "+201102550730"
+            "https://www.threads.net/@mouhamedmostafffa",
+            "./"
+        ]
     }
     </script>
 </head>
 <body class="dark-theme is-loading">
     <div class="page-loader" id="pageLoader" role="status" aria-live="polite">
-        <div class="loader-mark">TOJI<span>.</span></div>
+        <div class="loader-mark"><span id="loaderBrand">TOJI</span><span>.</span></div>
         <div class="loader-line" aria-hidden="true"></div>
     </div>
     <div class="scroll-progress" aria-hidden="true"></div>
@@ -60,7 +61,7 @@
     <div class="grain-layer" aria-hidden="true"></div>
 
     <nav class="modern-nav glass-panel" aria-label="Primary navigation">
-        <a class="brand" href="#home" aria-label="TOJI home">TOJI<span class="dot">.</span></a>
+        <a class="brand" href="#home" aria-label="TOJI home"><span id="brandName">TOJI</span><span class="dot">.</span></a>
         <div class="nav-links" aria-label="Section links">
             <a class="nav-link active" href="#home" data-target="home" data-i18n="nav.home">Home</a>
             <a class="nav-link" href="#expertise" data-target="expertise" data-i18n="nav.about">About</a>
@@ -82,56 +83,54 @@
         <section class="screen hero-screen" id="home" aria-labelledby="hero-title">
             <div class="hero-shell">
                 <div class="hero-content reveal-up">
-                    <p class="eyebrow">Mohamed Mostafa / TOJI</p>
-                    <h1 class="main-title" id="hero-title" data-i18n="hero.title">I make simple pages that look good and feel easy.</h1>
+                    <p class="eyebrow" data-i18n="hero.eyebrow">Mohamed Mostafa / TOJI</p>
+                    <h1 class="main-title" id="hero-title" data-i18n="hero.title">I build clean personal pages, link hubs, and small web experiences.</h1>
                     <div class="typewriter-container" aria-live="polite">
-                        <span class="static-text" data-i18n="hero.working">Working on </span>
+                        <span class="static-text" data-i18n="hero.working">Focused on</span>
                         <span id="typewriter" class="dynamic-text"></span>
                         <span class="cursor" aria-hidden="true">|</span>
                     </div>
-                    <p class="hero-copy" data-i18n="hero.copy">
-                        I care about clean layouts, quick loading, and small details that make a profile feel like mine.
-                    </p>
+                    <p class="hero-copy" data-i18n="hero.copy">This is my personal web base: links, work ideas, QR contact, share tools, theme controls, and the kind of details I like to put into every page.</p>
                     <div class="status-strip" aria-label="Current status">
                         <span class="status-dot" aria-hidden="true"></span>
-                        <span id="liveStatusText" data-i18n="hero.status">Available for custom pages</span>
+                        <span id="liveStatusText" data-i18n="hero.status">Available for custom pages and clean web builds</span>
                     </div>
                     <div class="hero-actions">
                         <a class="action-btn action-primary" href="#connect">
                             <i data-lucide="send" aria-hidden="true"></i>
                             <span data-i18n="hero.openLinks">Open Links</span>
                         </a>
-                        <a class="action-btn action-secondary" href="https://wa.me/201102550730" target="_blank" rel="noreferrer" data-whatsapp>
+                        <a class="action-btn action-secondary" href="https://wa.me/201102550730?text=Hi%20TOJI%2C%20I%20saw%20your%20profile%20and%20wanted%20to%20ask%20about%20a%20custom%20page." target="_blank" rel="noreferrer" data-whatsapp="">
                             <i data-lucide="message-circle" aria-hidden="true"></i>
                             <span>WhatsApp</span>
                         </a>
                     </div>
                     <div class="signal-row" aria-label="Profile highlights">
                         <div class="signal-item">
-                            <span class="signal-value">UI</span>
+                            <span class="signal-value" data-i18n="signals.valueUi">UI</span>
                             <span class="signal-label" data-i18n="signals.ui">Clean screens</span>
                         </div>
                         <div class="signal-item">
-                            <span class="signal-value">JS</span>
-                            <span class="signal-label" data-i18n="signals.js">Small details</span>
+                            <span class="signal-value" data-i18n="signals.valueJs">JS</span>
+                            <span class="signal-label" data-i18n="signals.js">Useful details</span>
                         </div>
                         <div class="signal-item">
-                            <span class="signal-value">Gym</span>
-                            <span class="signal-label" data-i18n="signals.gym">Routine</span>
+                            <span class="signal-value" data-i18n="signals.valueGym">QR</span>
+                            <span class="signal-label" data-i18n="signals.gym">Easy contact</span>
                         </div>
                     </div>
                 </div>
 
                 <aside class="profile-panel reveal-up delay-2 tilt-effect" aria-label="TOJI profile card">
                     <div class="profile-topline">
-                        <span data-i18n="profile.live">Profile is live</span>
+                        <span data-i18n="profile.live">TOJI is live</span>
                         <span class="pulse-dot" aria-hidden="true"></span>
                     </div>
                     <div class="profile-mark" aria-hidden="true">
-                        <img class="profile-photo" src="assets/profile.webp" alt="" loading="lazy">
+                        <img class="profile-photo" id="profilePhoto" src="assets/profile.webp" alt="TOJI" loading="lazy">
                     </div>
-                    <div class="profile-name">TOJI</div>
-                    <p class="profile-caption" data-i18n="profile.caption">Code, training, and better details.</p>
+                    <div class="profile-name" id="profileCardName">TOJI</div>
+                    <p class="profile-caption" data-i18n="profile.caption">Code, training, links, and better details.</p>
                     <div class="profile-stack">
                         <span data-i18n="profile.mobile">Mobile-first</span>
                         <span data-i18n="profile.fast">Fast</span>
@@ -148,28 +147,28 @@
             <div class="section-shell">
                 <div class="section-heading reveal-up">
                     <p class="eyebrow" data-i18n="nav.about">About</p>
-                    <h2 class="section-title" id="expertise-title" data-i18n="about.title">A few things I care about when I build.</h2>
+                    <h2 class="section-title" id="expertise-title" data-i18n="about.title">The page is built to feel personal, fast, and useful.</h2>
                 </div>
                 <div class="bento-grid">
                     <article class="bento-item glass-card reveal-up tilt-effect wide-card">
                         <i data-lucide="layout-dashboard" aria-hidden="true"></i>
-                        <h3 data-i18n="about.card1.title">Good first impression</h3>
-                        <p data-i18n="about.card1.copy">I like pages that say who you are fast, without making people search for the important stuff.</p>
+                        <h3 data-i18n="about.card1.title">First impression</h3>
+                        <p data-i18n="about.card1.copy">The hero says who I am quickly, then gives people a clear route to links, WhatsApp, and work ideas.</p>
                     </article>
                     <article class="bento-item glass-card reveal-up tilt-effect delay-1">
                         <i data-lucide="code-2" aria-hidden="true"></i>
-                        <h3 data-i18n="about.card2.title">Clean build</h3>
-                        <p data-i18n="about.card2.copy">Simple HTML, CSS, and JavaScript that stay easy to edit later.</p>
+                        <h3 data-i18n="about.card2.title">Clean front-end</h3>
+                        <p data-i18n="about.card2.copy">Simple HTML, CSS, and JavaScript with enough structure to keep the page editable and easy to improve.</p>
                     </article>
                     <article class="bento-item glass-card reveal-up tilt-effect delay-2">
                         <i data-lucide="smartphone" aria-hidden="true"></i>
                         <h3 data-i18n="about.card3.title">Phone first</h3>
-                        <p data-i18n="about.card3.copy">Most people open links from their phone, so the mobile view has to feel right.</p>
+                        <p data-i18n="about.card3.copy">Most people open profiles from social apps, so the mobile view, buttons, QR, and sharing flow matter most.</p>
                     </article>
                     <article class="bento-item glass-card reveal-up tilt-effect delay-3">
                         <i data-lucide="dumbbell" aria-hidden="true"></i>
-                        <h3 data-i18n="about.card4.title">Same routine</h3>
-                        <p data-i18n="about.card4.copy">Training taught me that small upgrades add up when you keep showing up.</p>
+                        <h3 data-i18n="about.card4.title">Built like a system</h3>
+                        <p data-i18n="about.card4.copy">The personal site now has content controls, optional sections, PWA setup, share tools, and an admin map.</p>
                     </article>
                 </div>
             </div>
@@ -179,12 +178,12 @@
             <div class="section-shell">
                 <div class="section-heading reveal-up">
                     <p class="eyebrow" data-i18n="nav.work">Work</p>
-                    <h2 class="section-title" id="work-title" data-i18n="work.title">Pages I can build or improve.</h2>
+                    <h2 class="section-title" id="work-title" data-i18n="work.title">Pages and systems I can build or improve.</h2>
                 </div>
                 <div class="project-grid">
                     <article class="project-card glass-card reveal-up tilt-effect">
                         <div class="project-preview preview-profile" aria-hidden="true">
-                            <span>TOJI</span>
+                            <span data-i18n="work.banner1">TOJI</span>
                         </div>
                         <span class="project-number">01</span>
                         <h3 data-i18n="work.card1.title">Personal portfolio</h3>
@@ -197,11 +196,11 @@
                     </article>
                     <article class="project-card glass-card reveal-up tilt-effect delay-1">
                         <div class="project-preview preview-business" aria-hidden="true">
-                            <span>CTA</span>
+                            <span data-i18n="work.banner2">WEB</span>
                         </div>
                         <span class="project-number">02</span>
                         <h3 data-i18n="work.card2.title">Business landing page</h3>
-                        <p data-i18n="work.card2.copy">A focused page for a service, offer, or shop, with clear buttons and no extra noise.</p>
+                        <p data-i18n="work.card2.copy">A focused page for a service, offer, creator, or shop with clear buttons and no extra noise.</p>
                         <div class="project-tags">
                             <span>CTA</span>
                             <span>SEO</span>
@@ -210,11 +209,11 @@
                     </article>
                     <article class="project-card glass-card reveal-up tilt-effect delay-2">
                         <div class="project-preview preview-links" aria-hidden="true">
-                            <span>QR</span>
+                            <span data-i18n="work.banner3">ADMIN</span>
                         </div>
                         <span class="project-number">03</span>
                         <h3 data-i18n="work.card3.title">Creator link hub</h3>
-                        <p data-i18n="work.card3.copy">One place for social accounts, contact, QR code, and share buttons that actually help.</p>
+                        <p data-i18n="work.card3.copy">One place for social accounts, WhatsApp, QR code, contact card, and share actions that actually help.</p>
                         <div class="project-tags">
                             <span>Bio</span>
                             <span>QR</span>
@@ -253,7 +252,7 @@
                             <span>Threads</span>
                             <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
                         </a>
-                        <a href="https://wa.me/201102550730" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up" data-whatsapp>
+                        <a href="https://wa.me/201102550730?text=Hi%20TOJI%2C%20I%20saw%20your%20profile%20and%20wanted%20to%20ask%20about%20a%20custom%20page." target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up" data-whatsapp="">
                             <i data-lucide="message-circle" aria-hidden="true"></i>
                             <span>WhatsApp</span>
                             <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
@@ -276,7 +275,7 @@
                             <div class="qr-fallback" id="qrFallback">TOJI</div>
                         </div>
                         <h3 data-i18n="connect.scanTitle">Scan this profile</h3>
-                        <p data-i18n="connect.scanCopy">Open the same page on another phone, or save my contact card for later.</p>
+                        <p data-i18n="connect.scanCopy">Open the same page on another phone, save my contact card, or download the QR for later.</p>
                         <div class="utility-actions">
                             <button class="utility-btn" type="button" id="downloadContact">
                                 <i data-lucide="contact" aria-hidden="true"></i>
@@ -294,11 +293,11 @@
                                 <i data-lucide="image-down" aria-hidden="true"></i>
                                 <span data-i18n="connect.shareImage">Share Image</span>
                             </button>
-                            <a class="utility-btn" href="assets/toji-media-kit.zip" download>
+                            <a class="utility-btn" href="assets/toji-media-kit.zip" download="">
                                 <i data-lucide="archive" aria-hidden="true"></i>
                                 <span data-i18n="connect.mediaKit">Media Kit</span>
                             </a>
-                            <button class="utility-btn" type="button" id="installApp" hidden>
+                            <button class="utility-btn" type="button" id="installApp" hidden="">
                                 <i data-lucide="download" aria-hidden="true"></i>
                                 <span data-i18n="connect.installApp">Install App</span>
                             </button>
@@ -320,7 +319,7 @@
                             <select id="messageType">
                                 <option value="Personal profile" data-i18n="form.personal">Personal profile</option>
                                 <option value="Business page" data-i18n="form.business">Business page</option>
-                                <option value="Link hub" data-i18n="form.linkHub">Link hub</option>
+                                <option value="Link hub" data-i18n="form.linkHub">Admin edition</option>
                             </select>
                         </label>
                         <label class="form-wide">
@@ -339,6 +338,8 @@
                         <button class="accent-swatch cyan active" type="button" data-accent="cyan" aria-label="Cyan"></button>
                         <button class="accent-swatch orange" type="button" data-accent="orange" aria-label="Orange"></button>
                         <button class="accent-swatch green" type="button" data-accent="green" aria-label="Green"></button>
+                        <button class="accent-swatch violet" type="button" data-accent="violet" aria-label="Violet"></button>
+                        <button class="accent-swatch gold" type="button" data-accent="gold" aria-label="Gold"></button>
                     </div>
                     <div class="preset-row" aria-label="Theme presets" data-i18n-attr="aria-label:aria.themePresets">
                         <span data-i18n="preset.label">Theme</span>
@@ -346,6 +347,13 @@
                         <button class="preset-btn" type="button" data-preset="midnight" data-i18n="preset.midnight">Midnight</button>
                         <button class="preset-btn" type="button" data-preset="emerald" data-i18n="preset.emerald">Emerald</button>
                         <button class="preset-btn" type="button" data-preset="sunset" data-i18n="preset.sunset">Sunset</button>
+                        <button class="preset-btn" type="button" data-preset="aurora" data-i18n="preset.aurora">Aurora</button>
+                        <button class="preset-btn" type="button" data-preset="royal" data-i18n="preset.royal">Royal</button>
+                        <button class="preset-btn" type="button" data-preset="graphite" data-i18n="preset.graphite">Graphite</button>
+                        <button class="preset-btn preset-shuffle" type="button" id="randomVibe">
+                            <i data-lucide="sparkles" aria-hidden="true"></i>
+                            <span data-i18n="preset.shuffle">Shuffle</span>
+                        </button>
                     </div>
                 </div>
                 <button class="share-profile reveal-up delay-2" type="button" id="shareProfile">
@@ -354,6 +362,8 @@
                 </button>
             </div>
         </section>
+
+        <footer class="owner-credit" data-owner-credit=""><span>Website created by:</span><a href="https://www.instagram.com/mouhamedmostafffa" target="_blank" rel="noopener noreferrer">@mouhamedmostafffa</a></footer>
     </main>
 
     <div class="floating-dock-wrapper" aria-label="Quick navigation" data-i18n-attr="aria-label:aria.quickNav">
@@ -374,10 +384,19 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="config.js"></script>
-    <script src="status.js"></script>
-    <script src="script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js" async onload="window.tojiRenderQr && window.tojiRenderQr()"></script>
-    <script src="https://unpkg.com/lucide@latest" async onload="window.lucide && window.lucide.createIcons()"></script>
-</body>
-</html>
+    <script src="vendor/lucide.min.js?v=18"></script>
+    <script src="vendor/qrcode.min.js?v=18"></script>
+    <script src="config.js?v=18"></script>
+    <script src="status.js?v=18"></script>
+    <script src="script.js?v=18"></script>
+
+
+
+
+
+
+
+
+
+
+</body></html>

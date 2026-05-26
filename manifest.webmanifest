@@ -1,7 +1,7 @@
 {
     "name": "TOJI | Mohamed Mostafa",
     "short_name": "TOJI",
-    "description": "Mohamed Mostafa, TOJI. Personal portfolio, social links, and contact QR.",
+    "description": "Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details.",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",
