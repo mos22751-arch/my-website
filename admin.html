@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <title>TOJI Admin Studio</title>
+    <link rel="stylesheet" href="admin.css?v=18">
+</head>
+<body>
+    <main class="admin-shell">
+        <header class="topbar">
+            <div>
+                <p class="kicker">TOJI Studio</p>
+                <h1>لوحة تحكم موقع TOJI</h1>
+                <p class="hint">عدّل محتوى موقعك الشخصي وشوف مكان كل تعديل من اللايف ماب قبل الحفظ أو الرفع.</p>
+            </div>
+            <div class="actions">
+                <button id="connectFolderBtn" type="button">ربط مجلد المشروع</button>
+                <button id="saveFilesBtn" type="button">حفظ الملفات الفعلية</button>
+                <button id="downloadFilesBtn" type="button">تحميل الملفات المولدة</button>
+                <button id="exportClientZipBtn" type="button">تصدير الموقع ZIP</button>
+                <button id="exportDeveloperZipBtn" type="button">تصدير نسخة كاملة بالأدمن ZIP</button>
+                <button id="cleanFinalBtn" type="button">تنظيف المعاينة</button>
+                <button id="sanitizeOwnerBtn" type="button">استرجاع هوية TOJI</button>
+                <button id="resetBtn" type="button">رجوع لآخر نسخة محفوظة</button>
+                <a href="index.html?preview=1" target="_blank" rel="noopener">فتح المعاينة</a>
+            </div>
+        </header>
+
+        <section class="notice">
+            <strong>طريقة العمل:</strong>
+            التعديل يتعمل فوراً كمعاينة على نفس المتصفح. لو ربطت مجلد المشروع، الحفظ يكتب داخل
+            <code>content.js</code> و <code>config.js</code> و <code>manifest.webmanifest</code> و <code>index.html</code>.
+            لو المتصفح لا يدعم الربط، استخدم زر تحميل الملفات المولدة واستبدلها يدوياً.
+            زر تصدير ZIP يجهز فولدر كامل مضغوط للعميل مباشرة من لوحة الأدمن.
+        </section>
+
+        <div class="admin-workspace">
+            <div class="editor-column">
+                <section class="panel">
+                    <h2>1) الأساسيات والهوية</h2>
+                    <div class="subpanel">
+                        <h3>بيانات العميل والموقع</h3>
+                        <div class="grid" id="identityFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>إعدادات الموقع العامة</h3>
+                        <div class="grid" id="siteFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>اللغة والتنقل - English</h3>
+                        <div class="grid" id="navFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>اللغة والتنقل - عربي</h3>
+                        <div class="grid" id="navFieldsAr"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>2) بداية الصفحة Hero / Profile</h2>
+                    <div class="subpanel">
+                        <h3>نصوص الهيرو - English</h3>
+                        <div class="grid" id="heroFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>نصوص الهيرو - عربي</h3>
+                        <div class="grid" id="heroFieldsAr"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>3) قسم About</h2>
+                    <div class="subpanel">
+                        <h3>About - English</h3>
+                        <div class="grid" id="aboutFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>About - عربي</h3>
+                        <div class="grid" id="aboutFieldsAr"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>4) قسم Work</h2>
+                    <div class="subpanel">
+                        <h3>العنوان والتاجات - English</h3>
+                        <div class="grid" id="workFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>العنوان والتاجات - عربي</h3>
+                        <div class="grid" id="workFieldsAr"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>كروت الأعمال</h3>
+                        <p class="hint">كل سطر كارت واحد: banner|title EN|title AR|copy EN|copy AR|tags comma</p>
+                        <div class="grid" id="workBuilderFields"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>5) قسم Links / Contact</h2>
+                    <div class="subpanel">
+                        <h3>روابط الحسابات الأساسية</h3>
+                        <div class="grid" id="socialFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>النصوص والأزرار - English</h3>
+                        <div class="grid" id="connectFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>النصوص والأزرار - عربي</h3>
+                        <div class="grid" id="connectFieldsAr"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>روابط إضافية وأزرار CTA</h3>
+                        <p class="hint">كل مربع هنا بيعدل قائمة كاملة مرتبطة بقسم الروابط.</p>
+                        <div class="grid" id="connectBuilderFields"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>6) فورم واتساب</h2>
+                    <div class="subpanel">
+                        <h3>Form - English</h3>
+                        <div class="grid" id="formFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>Form - عربي</h3>
+                        <div class="grid" id="formFieldsAr"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>رسائل واتساب السريعة</h3>
+                        <p class="hint">كل سطر رسالة: value|label EN|label AR|message EN|message AR</p>
+                        <div class="grid" id="formBuilderFields"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>7) الأقسام الإضافية</h2>
+                    <div class="subpanel">
+                        <h3>Services</h3>
+                        <div class="grid" id="servicesBuilderFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>Pricing</h3>
+                        <div class="grid" id="pricingBuilderFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>Reviews</h3>
+                        <div class="grid" id="testimonialsBuilderFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>Gallery</h3>
+                        <div class="grid" id="galleryBuilderFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>FAQ</h3>
+                        <div class="grid" id="faqBuilderFields"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>8) الشكل وتشغيل الأقسام</h2>
+                    <div class="subpanel">
+                        <h3>تشغيل وإخفاء الأقسام</h3>
+                        <div class="grid" id="featureFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>الألوان والخطوط</h3>
+                        <div class="grid" id="designFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>نصوص الثيم - English</h3>
+                        <div class="grid" id="themeFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>نصوص الثيم - عربي</h3>
+                        <div class="grid" id="themeFieldsAr"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>9) الصور والملفات والمشاركة</h2>
+                    <div class="subpanel">
+                        <h3>ملفات وأيقونات</h3>
+                        <div class="grid" id="assetFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>رفع سريع للصور</h3>
+                        <div class="grid">
+                            <label>رفع صورة البروفايل<input id="profileUpload" type="file" accept="image/*"></label>
+                            <label>رفع صورة المشاركة<input id="previewUpload" type="file" accept="image/*"></label>
+                        </div>
+                        <p class="hint">لو لم تربط مجلد المشروع، سيتم حفظ الصورة كـ Data URL داخل المحتوى وتدخل في ZIP النهائي.</p>
+                    </div>
+                    <div class="subpanel">
+                        <h3>صورة المشاركة</h3>
+                        <div class="grid" id="shareFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>نصوص المشاركة - English</h3>
+                        <div class="grid" id="shareTextFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>نصوص المشاركة - عربي</h3>
+                        <div class="grid" id="shareTextFieldsAr"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>10) SEO والتحليلات ورسائل النظام</h2>
+                    <div class="subpanel">
+                        <h3>SEO وتحليلات</h3>
+                        <div class="grid" id="analyticsFields"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>Meta - English</h3>
+                        <div class="grid" id="metaFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>Meta - عربي</h3>
+                        <div class="grid" id="metaFieldsAr"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>رسائل التنبيه - English</h3>
+                        <div class="grid" id="toastFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>رسائل التنبيه - عربي</h3>
+                        <div class="grid" id="toastFieldsAr"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>ARIA وإتاحة الوصول - English</h3>
+                        <div class="grid" id="ariaFieldsEn"></div>
+                    </div>
+                    <div class="subpanel">
+                        <h3>ARIA وإتاحة الوصول - عربي</h3>
+                        <div class="grid" id="ariaFieldsAr"></div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>11) تحكم متقدم</h2>
+                    <label class="full-width">
+                        JSON كامل
+                        <textarea id="fullJson" rows="14" spellcheck="false"></textarea>
+                    </label>
+                    <div class="actions">
+                        <button id="loadFullBtn" type="button">تطبيق JSON الكامل</button>
+                        <button id="copyFullBtn" type="button">نسخ JSON</button>
+                    </div>
+                    <p id="msg" role="status" aria-live="polite"></p>
+                </section>
+            </div>
+
+            <aside class="preview-column" aria-label="معاينة أماكن التعديل">
+                <div class="preview-sticky">
+                    <div class="preview-toolbar">
+                        <div>
+                            <p class="kicker">Live Map</p>
+                            <h2>مكان التعديل في الموقع</h2>
+                        </div>
+                        <span id="previewLangBadge">EN</span>
+                    </div>
+                    <div class="preview-device">
+                        <div class="preview-device-bar" aria-hidden="true">
+                            <span></span>
+                        </div>
+                        <div class="site-preview" id="adminPreview"></div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script src="content.js?v=18"></script>
+    <script src="admin.js?v=18"></script>
+</body>
+</html>

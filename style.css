@@ -1085,7 +1085,7 @@ button.social-pill {
     position: relative;
     display: grid;
     place-items: center;
-    width: min(220px, 100%);
+    width: min(300px, 100%);
     aspect-ratio: 1;
     margin: 0 auto 1.1rem;
     padding: 0.75rem;

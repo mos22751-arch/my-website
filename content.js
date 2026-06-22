@@ -10,12 +10,12 @@ window.TOJI_CONTENT = {
         "robotsText": "User-agent: *\nAllow: /\nDisallow: /admin.html\nDisallow: /admin.js\nDisallow: /admin.css"
     },
     "sections": {
-        "about": true,
+        "about": false,
         "work": true,
-        "services": true,
+        "services": false,
         "pricing": true,
-        "testimonials": true,
-        "gallery": true,
+        "testimonials": false,
+        "gallery": false,
         "faq": true,
         "connect": true,
         "form": true,
@@ -51,7 +51,7 @@ window.TOJI_CONTENT = {
         "accent": "cyan",
         "status": {
             "en": "Available for custom pages and clean web builds",
-            "ar": "متاح لصفحات مخصصة ومواقع خفيفة وشكلها مميز"
+            "ar": "بعمل website ل اي حاجه تعوزها !!"
         },
         "socials": {
             "instagram": "https://instagram.com/mouhamedmostafffa",
@@ -292,7 +292,7 @@ window.TOJI_CONTENT = {
                         "en": "Landing Build",
                         "ar": "صفحة هبوط"
                     },
-                    "price": "Custom quote",
+                    "price": "DM for price",
                     "features": [
                         "Hero + sections",
                         "WhatsApp flow",
@@ -305,7 +305,7 @@ window.TOJI_CONTENT = {
                         "en": "Admin Edition",
                         "ar": "نسخة بأدمن"
                     },
-                    "price": "Custom quote",
+                    "price": "DM for price",
                     "features": [
                         "Editable content",
                         "Arabic + English",
@@ -466,8 +466,8 @@ window.TOJI_CONTENT = {
                 "description": "Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details."
             },
             "lang": {
-                "nextLabel": "عربي",
-                "switchLabel": "Switch to Arabic"
+                "nextLabel": "AR",
+                "switchLabel": "انزل بالترجمه"
             },
             "nav": {
                 "home": "Home",
@@ -487,7 +487,6 @@ window.TOJI_CONTENT = {
                 "personal profiles",
                 "mobile-first pages",
                 "QR contact flows",
-                "admin-ready templates",
                 "small details"
             ],
             "signals": {
@@ -651,7 +650,6 @@ window.TOJI_CONTENT = {
                 "بروفايلات شخصية",
                 "صفحات للموبايل",
                 "QR للتواصل",
-                "قوالب بأدمن",
                 "تفاصيل أحسن"
             ],
             "signals": {
