@@ -930,16 +930,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { preset: 'midnight', accent: 'violet' },
             { preset: 'emerald', accent: 'green' },
             { preset: 'sunset', accent: 'orange' },
-            { preset: 'neon', accent: 'cyan' },
-            { preset: 'cyberpunk', accent: 'cyan' },
-            { preset: 'ocean', accent: 'green' },
-            { preset: 'forest', accent: 'orange' },
-            { preset: 'desert', accent: 'orange' },
-            { preset: 'coral', accent: 'cyan' },
-            { preset: 'sunset-dark', accent: 'orange' },
-            { preset: 'midnight-plus', accent: 'cyan' },
-            { preset: 'synthwave', accent: 'violet' },
-            { preset: 'nature', accent: 'green' }
+            { preset: 'neon', accent: 'cyan' }
         ];
         const currentPreset = localStorage.getItem('toji_theme_preset') || 'neon';
         const currentAccent = localStorage.getItem('toji_accent') || 'cyan';
@@ -1049,32 +1040,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTheme(localStorage.getItem('toji_theme') === 'light' ? 'light' : 'dark');
 
-    // Hamburger Menu Toggle
-    const menuToggle = document.getElementById('menuToggle');
-    const navMenu = document.getElementById('navMenu');
-
-    menuToggle?.addEventListener('click', () => {
-        const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
-        menuToggle.setAttribute('aria-expanded', !isExpanded);
-        navMenu?.classList.toggle('active');
-    });
-
-    // Close menu when nav link is clicked
-    navMenu?.querySelectorAll('.nav-link').forEach((link) => {
-        link.addEventListener('click', () => {
-            menuToggle?.setAttribute('aria-expanded', 'false');
-            navMenu?.classList.remove('active');
-        });
-    });
-
-    // Close menu when clicking outside
-    document.addEventListener('click', (event) => {
-        if (!event.target.closest('.modern-nav')) {
-            menuToggle?.setAttribute('aria-expanded', 'false');
-            navMenu?.classList.remove('active');
-        }
-    });
-
     themeToggle?.addEventListener('click', () => {
         setTheme(body.classList.contains('dark-theme') ? 'light' : 'dark');
     });
@@ -1110,6 +1075,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (enableCustomCursor && cursorDot && cursorOutline && finePointer.matches && !reducedMotion.matches && !mobileViewport.matches) {
         let x = window.innerWidth / 2;
         let y = window.innerHeight / 2;
+        let outlineX = x;
+        let outlineY = y;
         let cursorFrame = 0;
 
         body.classList.add('cursor-ready');
@@ -1119,6 +1086,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const renderCursor = () => {
+            outlineX += (x - outlineX) * 0.16;
+            outlineY += (y - outlineY) * 0.16;
+            moveCursor(cursorOutline, outlineX, outlineY);
+            cursorFrame = Math.abs(x - outlineX) > 0.25 || Math.abs(y - outlineY) > 0.25
                 ? requestAnimationFrame(renderCursor)
                 : 0;
         };
@@ -1865,47 +1836,15 @@ document.addEventListener('DOMContentLoaded', () => {
     quickMessageForm?.addEventListener('submit', (event) => {
         event.preventDefault();
 
-        // Validation
-        const nameValue = messageName?.value.trim();
-        const messageValue = messageText?.value.trim();
-        
-        if (!nameValue) {
-            showToast('Please enter your name', 'error');
-            messageName?.focus();
-            return;
-        }
-
-        if (nameValue.length < 2) {
-            showToast('Name must be at least 2 characters', 'error');
-            messageName?.focus();
-            return;
-        }
-
-        if (!messageValue) {
-            showToast('Please enter a message', 'error');
-            messageText?.focus();
-            return;
-        }
-
-        if (messageValue.length < 5) {
-            showToast('Message must be at least 5 characters', 'error');
-            messageText?.focus();
-            return;
-        }
-
         const selectedOption = messageType?.selectedOptions[0];
         const parts = [
             selectedOption?.dataset.message || t('share.briefIntro'),
-            `${t('form.name')}: ${nameValue}`,
+            messageName?.value.trim() ? `${t('form.name')}: ${messageName.value.trim()}` : '',
             selectedOption?.textContent.trim() ? `${t('form.type')}: ${selectedOption.textContent.trim()}` : '',
-            `${t('form.message')}: ${messageValue}`
+            messageText?.value.trim() ? `${t('form.message')}: ${messageText.value.trim()}` : ''
         ].filter(Boolean);
 
         window.open(getWhatsappUrl(parts.join('\n')), '_blank', 'noopener,noreferrer');
-        
-        // Reset form
-        quickMessageForm?.reset();
-        showToast('Message sent successfully!', 'success');
     });
 
     let installPromptEvent;
@@ -1958,270 +1897,3 @@ document.addEventListener('DOMContentLoaded', () => {
         goToSection(ids[next]);
     });
 });
-
-// ========== CUSTOM CURSOR ==========
-const cursorDot = document.createElement('div');
-const cursorOutline = document.createElement('div');
-cursorDot.className = 'cursor-dot';
-cursorOutline.className = 'cursor-outline';
-document.body.appendChild(cursorDot);
-document.body.appendChild(cursorOutline);
-
-let mouseX = 0, mouseY = 0;
-
-document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    cursorDot.style.left = (mouseX - 4) + 'px';
-    cursorDot.style.top = (mouseY - 4) + 'px';
-});
-
-setInterval(() => {
-}, 30);
-
-// ========== RIPPLE EFFECT ==========
-document.addEventListener('click', (e) => {
-    if (e.target.closest('button, a, [role="button"], .social-pill, .action-btn')) {
-        const ripple = document.createElement('span');
-        ripple.className = 'ripple';
-        const rect = e.target.closest('button, a, [role="button"], .social-pill, .action-btn').getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        ripple.style.width = ripple.style.height = size + 'px';
-        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
-        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
-        e.target.closest('button, a, [role="button"], .social-pill, .action-btn').appendChild(ripple);
-        
-        setTimeout(() => ripple.remove(), 600);
-        
-        // Haptic feedback
-        if (navigator.vibrate) navigator.vibrate(10);
-    }
-});
-
-// ========== SCROLL ANIMATIONS ==========
-const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.classList.add('scroll-animate');
-            entry.target.style.animationDelay = (Array.from(entry.target.parentChildren).indexOf(entry.target) * 0.1) + 's';
-            observer.unobserve(entry.target);
-        }
-    });
-}, observerOptions);
-
-document.querySelectorAll('.hero-content, .section-title, .bento-item, .social-pill, .action-btn').forEach(el => {
-    observer.observe(el);
-});
-
-// ========== LOADING STATES ==========
-window.addEventListener('load', () => {
-    document.body.style.opacity = '1';
-});
-
-// ========== PROGRESS BAR ==========
-window.addEventListener('beforeunload', () => {
-    const progress = document.createElement('div');
-    progress.className = 'progress-bar';
-    document.body.appendChild(progress);
-});
-
-// ========== BUTTON LOADING STATE ==========
-function addLoadingState(button) {
-    const originalText = button.textContent;
-    button.textContent = '⏳ Loading...';
-    button.disabled = true;
-    button.style.opacity = '0.6';
-    return () => {
-        button.textContent = originalText;
-        button.disabled = false;
-        button.style.opacity = '1';
-    };
-}
-
-// ========== FORM VALIDATION FEEDBACK ==========
-document.querySelectorAll('input, textarea, select').forEach(input => {
-    input.addEventListener('focus', () => {
-        input.style.transform = 'scale(1.02)';
-    });
-    
-    input.addEventListener('blur', () => {
-        input.style.transform = 'scale(1)';
-        if (input.value) {
-            const success = document.createElement('div');
-            success.style.cssText = 'position: absolute; color: #5ee2a0; font-size: 0.8rem; animation: fadeInUp 0.3s ease;';
-            success.textContent = '✓ Valid';
-        }
-    });
-});
-
-// ========== AUDIO EFFECTS ==========
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-function playSound(freq = 400, duration = 100) {
-    const osc = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    osc.connect(gain);
-    gain.connect(audioContext.destination);
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
-    osc.start(audioContext.currentTime);
-    osc.stop(audioContext.currentTime + duration / 1000);
-}
-
-document.addEventListener('click', () => {
-    playSound(800, 50);
-});
-
-// ========== TOUCH SWIPE ==========
-let touchStartX = 0;
-document.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-});
-
-document.addEventListener('touchend', (e) => {
-    const touchEndX = e.changedTouches[0].clientX;
-    if (touchEndX < touchStartX - 50) {
-        console.log('Swiped left');
-    } else if (touchEndX > touchStartX + 50) {
-        console.log('Swiped right');
-    }
-});
-
-// ========== MAGNETIC EFFECT ==========
-document.querySelectorAll('button, a, [role="button"]').forEach(element => {
-    element.addEventListener('mousemove', (e) => {
-        const rect = element.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        const distance = Math.sqrt(x * x + y * y);
-        
-        if (distance < 100) {
-            const angle = Math.atan2(y, x);
-            const pull = (100 - distance) / 100 * 15;
-            element.style.transform = `translate(${Math.cos(angle) * pull}px, ${Math.sin(angle) * pull}px)`;
-        }
-    });
-    
-    element.addEventListener('mouseleave', () => {
-        element.style.transform = 'translate(0, 0)';
-    });
-});
-
-// ========== ANIMATED GRADIENT ==========
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes gradientShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    
-    .gradient-animate {
-        background-size: 200% 200%;
-        animation: gradientShift 15s ease infinite !important;
-    }
-`;
-document.head.appendChild(style);
-
-// ========== THEME COLOR TRANSITIONS ==========
-function animateColorChange(duration = 300) {
-    document.body.style.transition = `all ${duration}ms ease`;
-    setTimeout(() => {
-        document.body.style.transition = '';
-    }, duration);
-}
-
-// ========== PERFORMANCE OPTIMIZATION ==========
-if ('IntersectionObserver' in window) {
-    const lazyImages = document.querySelectorAll('img[data-lazy]');
-    lazyImages.forEach(img => {
-        const imgObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.src = entry.target.dataset.lazy;
-                    entry.target.removeAttribute('data-lazy');
-                    imgObserver.unobserve(entry.target);
-                }
-            });
-        });
-        imgObserver.observe(img);
-    });
-}
-
-
-// ========== SPECIAL GIFT BUTTON ==========
-const specialGift = document.getElementById('specialGift');
-const laughEmojis = ['😂', '😆', '🤣', '😄', '😁'];
-
-function getRandomEmoji() {
-    return laughEmojis[Math.floor(Math.random() * laughEmojis.length)];
-}
-
-function escapeButton(e) {
-    const randomX = (Math.random() - 0.5) * 400;
-    const randomY = (Math.random() - 0.5) * 400;
-    const randomRotate = Math.random() * 360;
-    
-    specialGift.style.setProperty('--escape-x', randomX + 'px');
-    specialGift.style.setProperty('--escape-y', randomY + 'px');
-    specialGift.style.setProperty('--escape-rotate', randomRotate + 'deg');
-    
-    // Laugh emoji
-    const emoji = document.createElement('div');
-    emoji.className = 'laugh-emoji';
-    emoji.textContent = getRandomEmoji();
-    emoji.style.left = e.clientX + 'px';
-    emoji.style.top = e.clientY + 'px';
-    emoji.style.setProperty('--float-x', (Math.random() - 0.5) * 200 + 'px');
-    emoji.style.setProperty('--float-y', -150 + 'px');
-    document.body.appendChild(emoji);
-    
-    setTimeout(() => emoji.remove(), 1000);
-    
-    // Sound
-    if (typeof playSound === 'function') {
-        playSound(1200, 100);
-    }
-}
-
-specialGift.addEventListener('mouseenter', escapeButton);
-specialGift.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    escapeButton(e.touches[0]);
-});
-
-// Prevent click
-specialGift.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    escapeButton(e);
-});
-
-// Prevent drag
-specialGift.addEventListener('dragstart', (e) => {
-    e.preventDefault();
-});
-
-// Keyboard prevention
-specialGift.addEventListener('keydown', (e) => {
-    e.preventDefault();
-});
-
-// Prevent context menu
-specialGift.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    escapeButton(e);
-});
-
-// Mobile swipe prevention
-let touchStartX = 0;
-specialGift.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-});
-
-specialGift.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-});
-
