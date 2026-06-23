@@ -589,6 +589,15 @@ window.TOJI_CONTENT = {
                 "aurora": "Aurora",
                 "royal": "Royal",
                 "graphite": "Graphite",
+                "cyberpunk": "Cyberpunk",
+                "ocean": "Ocean",
+                "forest": "Forest",
+                "desert": "Desert",
+                "coral": "Coral",
+                "sunsetDark": "Sunset Dark",
+                "midnightPlus": "Midnight+",
+                "synthwave": "Synthwave",
+                "nature": "Nature",
                 "shuffle": "Shuffle"
             },
             "aria": {
@@ -752,6 +761,15 @@ window.TOJI_CONTENT = {
                 "aurora": "أورورا",
                 "royal": "ملكي",
                 "graphite": "جرافيت",
+                "cyberpunk": "سايبر بانك",
+                "ocean": "محيط",
+                "forest": "غابة",
+                "desert": "صحراء",
+                "coral": "مرجان",
+                "sunsetDark": "غروب داكن",
+                "midnightPlus": "منتصف الليل+",
+                "synthwave": "سينث ويف",
+                "nature": "طبيعة",
                 "shuffle": "بدل الستايل"
             },
             "aria": {
