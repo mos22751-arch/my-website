@@ -22,7 +22,7 @@ window.TOJI_CONTENT = {
         "themeControls": true
     },
     "design": {
-        "fontFamily": "Outfit",
+        "fontFamily": "Caveat",
         "primaryColor": "#36d6ff",
         "accentColor": "#ff7a3d",
         "mintColor": "#6df6b2",

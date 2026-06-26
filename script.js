@@ -722,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (designConfig.mintColor) body.style.setProperty('--mint', designConfig.mintColor);
         if (designConfig.fontFamily) {
             document.documentElement.style.setProperty('--site-font', designConfig.fontFamily);
-            body.style.fontFamily = `${designConfig.fontFamily}, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+            body.style.fontFamily = `'${designConfig.fontFamily}', cursive, system-ui, -apple-system, sans-serif`;
         }
         ['personal', 'business', 'creator', 'clinic', 'restaurant'].forEach((name) => {
             body.classList.toggle(`demo-${name}`, designConfig.presets?.currentDemo === name);
@@ -948,6 +948,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.lang = lang;
         document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
         body.classList.toggle('lang-ar', lang === 'ar');
+
+        /* ── Font swap: Arabic = Aref Ruqaa handwriting | English = Caveat handwriting ── */
+        if (lang === 'ar') {
+            body.style.fontFamily = "'Aref Ruqaa', cursive";
+        } else {
+            const enFont = (window.TOJI_CONTENT?.design?.fontFamily) || 'Caveat';
+            body.style.fontFamily = `'${enFont}', cursive, system-ui, -apple-system, sans-serif`;
+        }
         document.title = t('meta.title');
         document.querySelector('meta[name="description"]')?.setAttribute('content', t('meta.description'));
         document.querySelector('meta[name="author"]')?.setAttribute('content', profileName);
@@ -1897,3 +1905,133 @@ document.addEventListener('DOMContentLoaded', () => {
         goToSection(ids[next]);
     });
 });
+
+// ========== ALL ENHANCEMENTS JS ==========
+
+// RIPPLE
+document.addEventListener('click', (e) => {
+    if (e.target.closest('button, a, [role="button"]')) {
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        const rect = e.target.closest('button, a, [role="button"]').getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+        e.target.closest('button, a, [role="button"]').appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+        if (navigator.vibrate) navigator.vibrate(10);
+    }
+});
+
+// SCROLL ANIMATIONS
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('scroll-animate');
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.hero-content, .section-title, .bento-item, .social-pill').forEach(el => {
+    observer.observe(el);
+});
+
+// FORM VALIDATION
+document.querySelectorAll('input, textarea').forEach(input => {
+    input.addEventListener('blur', () => {
+        if (input.value.length > 0 && input.checkValidity && input.checkValidity()) {
+            input.classList.add('valid');
+        }
+    });
+});
+
+// AUDIO CONTEXT
+try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    window.playSound = (freq = 400, duration = 100) => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+        osc.start(audioContext.currentTime);
+        osc.stop(audioContext.currentTime + duration / 1000);
+    };
+} catch(e) {}
+
+// TOUCH
+document.addEventListener('touchstart', (e) => {
+    if (e.target.closest('button, a')) {
+        e.target.closest('button, a').style.opacity = '0.8';
+    }
+});
+
+document.addEventListener('touchend', (e) => {
+    if (e.target.closest('button, a')) {
+        e.target.closest('button, a').style.opacity = '1';
+    }
+});
+
+// LAZY LOADING
+if ('IntersectionObserver' in window) {
+    const lazyImages = document.querySelectorAll('img[data-lazy]');
+    lazyImages.forEach(img => {
+        const imgObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.src = entry.target.dataset.lazy;
+                    entry.target.removeAttribute('data-lazy');
+                    imgObserver.unobserve(entry.target);
+                }
+            });
+        });
+        imgObserver.observe(img);
+    });
+}
+
+// SWIPE
+let touchStartX = 0;
+document.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+});
+
+document.addEventListener('touchend', (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    if (touchEndX < touchStartX - 50) {
+        // Swiped left
+    } else if (touchEndX > touchStartX + 50) {
+        // Swiped right
+    }
+});
+
+// MAGNETIC HOVER
+document.querySelectorAll('button, a').forEach(element => {
+    element.addEventListener('mousemove', (e) => {
+        const rect = element.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const distance = Math.sqrt(x * x + y * y);
+        
+        if (distance < 100) {
+            const angle = Math.atan2(y, x);
+            const pull = (100 - distance) / 100 * 10;
+            element.style.transform = `translate(${Math.cos(angle) * pull}px, ${Math.sin(angle) * pull}px)`;
+        }
+    });
+    
+    element.addEventListener('mouseleave', () => {
+        element.style.transform = 'translate(0, 0)';
+    });
+});
+
+// PROGRESS BAR ON PAGE LOAD
+window.addEventListener('beforeunload', () => {
+    const progress = document.createElement('div');
+    progress.className = 'progress-bar';
+    document.body.appendChild(progress);
+});
+

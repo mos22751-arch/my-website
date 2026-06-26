@@ -8,7 +8,7 @@ window.TOJI_CONFIG = {
     "accent": "cyan",
     "status": {
         "en": "Available for custom pages and clean web builds",
-        "ar": "بعمل website ل اي حاجه تعوزها !!"
+        "ar": "متاح لصفحات مخصصة ومواقع خفيفة وشكلها مميز"
     },
     "socials": {
         "instagram": "https://instagram.com/mouhamedmostafffa",
