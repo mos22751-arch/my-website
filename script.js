@@ -60,11 +60,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const previewMode = urlParams.get('preview') === '1';
     let savedContent = {};
+
     if (previewMode) {
+        // وضع المعاينة: يستخدم تعديلات localStorage الخاصة بالأدمن
         try {
             savedContent = JSON.parse(localStorage.getItem('toji_content_override') || '{}');
         } catch (error) {
             savedContent = {};
+        }
+    } else {
+        // الزوار العاديون: يستخدمون الـ config المباشر من السيرفر
+        // (المخزّن في localStorage من آخر جلب ناجح من الـ backend)
+        try {
+            savedContent = JSON.parse(localStorage.getItem('toji_live_config') || '{}');
+        } catch (error) {
+            savedContent = {};
+        }
+
+        // جيب أحدث config من الـ backend في الخلفية وحدّث الـ cache
+        // التغييرات ستظهر عند أقرب تحميل للصفحة
+        if (window.TojiAPI?.ConfigAPI) {
+            window.TojiAPI.ConfigAPI.get()
+                .then((response) => {
+                    if (response?.data) {
+                        const newConfig  = JSON.stringify(response.data);
+                        const oldCache   = localStorage.getItem('toji_live_config');
+                        if (newConfig !== oldCache) {
+                            localStorage.setItem('toji_live_config', newConfig);
+                            // لو مفيش cache قديم (أول زيارة) → reload لعرض المحتوى الحي فورًا
+                            if (!oldCache) window.location.reload();
+                        }
+                    }
+                })
+                .catch(() => {
+                    // السيرفر مش متاح → يفضل المحتوى الاستاتيك من content.js
+                });
         }
     }
     const contentOverrides = deepMerge(window.TOJI_CONTENT || {}, savedContent);
@@ -542,13 +572,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function renderWorkCards() {
+    function renderWorkCards(apiCards) {
         const grid = document.querySelector('.project-grid');
-        const cards = Array.isArray(contentOverrides.workCards) && contentOverrides.workCards.length ? contentOverrides.workCards : null;
+        // Priority: 1) API data  2) content.js overrides  3) leave static HTML
+        const cards = apiCards
+            || (Array.isArray(contentOverrides.workCards) && contentOverrides.workCards.length
+                ? contentOverrides.workCards
+                : null);
         if (!grid || !cards) return;
 
         grid.innerHTML = cards.map((card, index) => {
             const tags = (card.tags || []).map((tag) => `<span>${localized(tag)}</span>`).join('');
+            const liveBtn = card.liveUrl
+                ? `<a href="${card.liveUrl}" target="_blank" rel="noreferrer" class="project-live-link">View Project →</a>`
+                : '';
             return `
                 <article class="project-card glass-card reveal-up tilt-effect ${index ? `delay-${Math.min(index, 3)}` : ''}">
                     <div class="project-preview preview-${index % 3}" aria-hidden="true">
@@ -558,9 +595,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3>${localized(card.title)}</h3>
                     <p>${localized(card.copy)}</p>
                     <div class="project-tags">${tags}</div>
+                    ${liveBtn}
                 </article>
             `;
         }).join('');
+    }
+
+    // ---- Load projects from backend API (with graceful fallback) ----
+    async function loadProjectsFromAPI() {
+        if (!window.TojiAPI) return; // api.js not loaded
+        try {
+            const response = await window.TojiAPI.ProjectsAPI.getPublic();
+            if (response && Array.isArray(response.data) && response.data.length > 0) {
+                // Map MongoDB project schema → workCards shape expected by renderWorkCards
+                const apiCards = response.data.map((p) => ({
+                    banner: p.banner,
+                    title:  p.title,   // already { en, ar }
+                    copy:   p.copy,    // already { en, ar }
+                    tags:   p.tags || [],
+                    liveUrl: p.liveUrl || ''
+                }));
+                renderWorkCards(apiCards);
+                window.lucide?.createIcons(); // re-run icons in case new ones were added
+            }
+            // If DB is empty, the static HTML / content.js cards remain visible
+        } catch (_err) {
+            // Backend unreachable → silently keep static content, no error shown to visitors
+            console.warn('[TOJI] Projects API unavailable, using static content.');
+        }
     }
 
     function renderSocialLinks() {
@@ -999,6 +1061,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         renderTemplateFeatures();
+        // Fetch live projects from backend and overlay on static content
+        loadProjectsFromAPI();
         setThemePreset(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'neon');
         setAccent(localStorage.getItem('toji_accent') || profileConfig.accent || 'cyan');
         updateWhatsappLinks();
@@ -1841,18 +1905,59 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    quickMessageForm?.addEventListener('submit', (event) => {
+    quickMessageForm?.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const selectedOption = messageType?.selectedOptions[0];
+        const nameVal        = messageName?.value.trim();
+        const msgVal         = messageText?.value.trim();
+
+        // Basic client-side validation
+        if (!nameVal || !msgVal) {
+            // Light feedback — no big UI disruption
+            messageName?.reportValidity?.();
+            messageText?.reportValidity?.();
+            return;
+        }
+
+        // Disable submit button to prevent double sends
+        const submitBtn   = quickMessageForm.querySelector('button[type="submit"]');
+        const originalTxt = submitBtn?.textContent || 'إرسال';
+        if (submitBtn) {
+            submitBtn.disabled    = true;
+            submitBtn.textContent = '...';
+        }
+
+        // Build WhatsApp message parts (kept exactly as before)
         const parts = [
             selectedOption?.dataset.message || t('share.briefIntro'),
-            messageName?.value.trim() ? `${t('form.name')}: ${messageName.value.trim()}` : '',
-            selectedOption?.textContent.trim() ? `${t('form.type')}: ${selectedOption.textContent.trim()}` : '',
-            messageText?.value.trim() ? `${t('form.message')}: ${messageText.value.trim()}` : ''
+            nameVal ? `${t('form.name')}: ${nameVal}` : '',
+            selectedOption?.textContent?.trim() ? `${t('form.type')}: ${selectedOption.textContent.trim()}` : '',
+            msgVal ? `${t('form.message')}: ${msgVal}` : ''
         ].filter(Boolean);
 
+        // ---- Save to backend (fire-and-forget; never blocks WhatsApp) ----
+        if (window.TojiAPI) {
+            window.TojiAPI.MessagesAPI.send({
+                name:     nameVal,
+                pageType: selectedOption?.textContent?.trim() || 'Not specified',
+                message:  msgVal
+            }).catch((err) => {
+                // Silently log — visitor experience is not affected
+                console.warn('[TOJI] Message save failed:', err.message);
+            });
+        }
+
+        // ---- Open WhatsApp (original behaviour preserved) ----
         window.open(getWhatsappUrl(parts.join('\n')), '_blank', 'noopener,noreferrer');
+
+        // Reset form after opening WhatsApp
+        quickMessageForm.reset();
+
+        if (submitBtn) {
+            submitBtn.disabled    = false;
+            submitBtn.textContent = originalTxt;
+        }
     });
 
     let installPromptEvent;
