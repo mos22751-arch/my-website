@@ -1,19 +1,15 @@
 // ============================================================
 // TOJI Frontend - API Integration Module
-// احفظ الملف ده: api.js  (في نفس مجلد script.js)
 // ============================================================
 
-// ✅ Auto-detects environment: local dev vs. Railway production
+// Auto-detect environment
 const API_BASE_URL =
     window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:5000/api'                                          // Local development
-        : 'https://portfolio-backend-production-1901.up.railway.app/api';     // Railway production
+        ? 'http://localhost:5000/api'
+        : 'https://portfolio-backend-production-1901.up.railway.app/api';
 
 // ============================================================
 // Token Management
-// ✅ السبب: بنحفظ الـ JWT في sessionStorage مش localStorage
-//    عشان لو أغلقت المتصفح الـ Token بيتمسح تلقائي
-//    (أآمن لأنه مش بيفضل على الجهاز للأبد)
 // ============================================================
 const TokenManager = {
     get: () => sessionStorage.getItem('toji_admin_token'),
@@ -30,7 +26,6 @@ async function apiFetch(endpoint, options = {}) {
 
     const defaultHeaders = {
         'Content-Type': 'application/json',
-        // لو في Token، بنبعته في كل Request تلقائي
         ...(token && { Authorization: `Bearer ${token}` })
     };
 
@@ -42,7 +37,6 @@ async function apiFetch(endpoint, options = {}) {
 
         const data = await response.json();
 
-        // لو التوكن انتهى، طرد المستخدم
         if (response.status === 401) {
             TokenManager.remove();
             window.location.href = '/admin.html';
@@ -79,69 +73,58 @@ const AuthAPI = {
 // Projects API
 // ============================================================
 const ProjectsAPI = {
-    // جيب المشاريع الظاهرة (للعامة - بدون توكن)
     getPublic: () => apiFetch('/projects'),
 
-    // جيب كل المشاريع (أدمن فقط)
     getAll: () => apiFetch('/projects/all'),
 
-    // أضف مشروع جديد
     create: (projectData) =>
         apiFetch('/projects', {
             method: 'POST',
             body: JSON.stringify(projectData)
         }),
 
-    // عدّل مشروع
     update: (id, projectData) =>
         apiFetch(`/projects/${id}`, {
             method: 'PUT',
             body: JSON.stringify(projectData)
         }),
 
-    // احذف مشروع
     delete: (id) =>
-        apiFetch(`/projects/${id}`, { method: 'DELETE' })
+        apiFetch(`/projects/${id}`, {
+            method: 'DELETE'
+        })
 };
 
 // ============================================================
 // Messages API
 // ============================================================
 const MessagesAPI = {
-    // إرسال رسالة (للعامة - بدون توكن)
     send: (messageData) =>
         apiFetch('/messages', {
             method: 'POST',
             body: JSON.stringify(messageData)
         }),
 
-    // جيب كل الرسائل (أدمن فقط)
     getAll: () => apiFetch('/messages'),
 
-    // غيّر حالة الرسالة
     updateStatus: (id, status) =>
         apiFetch(`/messages/${id}/status`, {
             method: 'PATCH',
             body: JSON.stringify({ status })
         }),
 
-    // احذف رسالة
     delete: (id) =>
-        apiFetch(`/messages/${id}`, { method: 'DELETE' })
+        apiFetch(`/messages/${id}`, {
+            method: 'DELETE'
+        })
 };
 
-// تصدير للاستخدام في الملفات التانية
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI };
-
 // ============================================================
-// Config API — إعدادات الموقع الحية
-// ✅ الأدمن يحفظ الإعدادات هنا فتظهر للزوار فورًا
+// Config API
 // ============================================================
 const ConfigAPI = {
-    // جيب أحدث إعدادات الموقع من MongoDB (عام - بدون توكن)
     get: () => apiFetch('/config'),
 
-    // احفظ الإعدادات الجديدة في MongoDB (أدمن فقط - يحتاج توكن)
     save: (configData) =>
         apiFetch('/config', {
             method: 'POST',
@@ -149,5 +132,13 @@ const ConfigAPI = {
         })
 };
 
-// تصدير موحد لكل الـ APIs
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI };
+// ============================================================
+// Export APIs
+// ============================================================
+window.TojiAPI = {
+    TokenManager,
+    AuthAPI,
+    ProjectsAPI,
+    MessagesAPI,
+    ConfigAPI
+};
