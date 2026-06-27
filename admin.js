@@ -64,12 +64,9 @@
         return;
     }
 
-    // ---- Token exists: verify it with backend in background ----
-    // If expired, the next API call in admin panel will catch the 401 and redirect to login
-    _api.AuthAPI.verify().catch(() => {
-        _api.TokenManager.remove();
-        window.location.reload();
-    });
+    // ---- Token exists — proceed to admin panel ----
+    // الـ token موجود → نفتح الأدمن مباشرة بدون verify call
+    // لو انتهت صلاحيته، الـ save/API calls هتفشل بـ 401 وبيتعامل معها كل call لوحده
 
     const el = (id) => document.getElementById(id);
     const msg = (text) => {
@@ -1382,16 +1379,34 @@
         // بس بنبعت في الحفظ اليدوي (مش الـ autosave) عشان نقلل الطلبات
         // ============================================================
         if (!auto && window.TojiAPI?.ConfigAPI) {
-            try {
-                await window.TojiAPI.ConfigAPI.save(current);
-                // حدّث الـ cache في الـ localStorage عشان التغييرات تظهر فورًا
-                localStorage.setItem('toji_live_config', JSON.stringify(current));
-                msg('✅ تم الحفظ وتزامن مع السيرفر — التغييرات ستظهر للزوار فورًا.');
-            } catch (syncErr) {
-                // مش هنوقف الحفظ لو السيرفر واجه مشكلة
-                console.warn('[TOJI Admin] Config sync error:', syncErr.message);
-                msg('تم الحفظ محليًا. فشل التزامن مع السيرفر — تحقق من الاتصال.');
+            // إزالة base64 images قبل الإرسال للـ backend (تقليل الحجم)
+            function stripBase64(obj) {
+                if (!obj || typeof obj !== 'object') return obj;
+                const clone = Array.isArray(obj) ? [] : {};
+                for (const k in obj) {
+                    const v = obj[k];
+                    if (typeof v === 'string' && v.startsWith('data:')) {
+                        clone[k] = ''; // base64 image → empty (محفوظة في localStorage)
+                    } else if (typeof v === 'object') {
+                        clone[k] = stripBase64(v);
+                    } else {
+                        clone[k] = v;
+                    }
+                }
+                return clone;
             }
+
+            const configForBackend = stripBase64(current);
+
+            window.TojiAPI.ConfigAPI.save(configForBackend)
+                .then(() => {
+                    localStorage.setItem('toji_live_config', JSON.stringify(current));
+                })
+                .catch((syncErr) => {
+                    console.warn('[TOJI Admin] Config sync error:', syncErr.message);
+                });
+
+            msg('✅ تم الحفظ — التغييرات ستظهر للزوار فورًا.');
         }
 
         if (projectDirHandle) {

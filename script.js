@@ -61,41 +61,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewMode = urlParams.get('preview') === '1';
     let savedContent = {};
 
-    if (previewMode) {
-        // وضع المعاينة: يستخدم تعديلات localStorage الخاصة بالأدمن
-        try {
-            savedContent = JSON.parse(localStorage.getItem('toji_content_override') || '{}');
-        } catch (error) {
-            savedContent = {};
-        }
-    } else {
-        // الزوار العاديون: يستخدمون الـ config المباشر من السيرفر
-        // (المخزّن في localStorage من آخر جلب ناجح من الـ backend)
-        try {
-            savedContent = JSON.parse(localStorage.getItem('toji_live_config') || '{}');
-        } catch (error) {
-            savedContent = {};
-        }
+    // ---- تحميل المحتوى المحفوظ ----
+    // الأولوية: 1) تعديلات الأدمن (toji_content_override)
+    //            2) config من السيرفر (toji_live_config)
+    //            3) content.js الاستاتيك
+    try {
+        const adminSaved  = localStorage.getItem('toji_content_override');
+        const serverSaved = localStorage.getItem('toji_live_config');
+        const raw = adminSaved || serverSaved || '{}';
+        savedContent = JSON.parse(raw);
+    } catch (error) {
+        savedContent = {};
+    }
 
-        // جيب أحدث config من الـ backend في الخلفية وحدّث الـ cache
-        // التغييرات ستظهر عند أقرب تحميل للصفحة
-        if (window.TojiAPI?.ConfigAPI) {
-            window.TojiAPI.ConfigAPI.get()
-                .then((response) => {
-                    if (response?.data) {
-                        const newConfig  = JSON.stringify(response.data);
-                        const oldCache   = localStorage.getItem('toji_live_config');
-                        if (newConfig !== oldCache) {
-                            localStorage.setItem('toji_live_config', newConfig);
-                            // لو مفيش cache قديم (أول زيارة) → reload لعرض المحتوى الحي فورًا
-                            if (!oldCache) window.location.reload();
-                        }
-                    }
-                })
-                .catch(() => {
-                    // السيرفر مش متاح → يفضل المحتوى الاستاتيك من content.js
-                });
-        }
+    // جيب أحدث config من الـ backend في الخلفية وحدّث الـ cache
+    if (window.TojiAPI?.ConfigAPI) {
+        window.TojiAPI.ConfigAPI.get()
+            .then((response) => {
+                if (response?.data) {
+                    localStorage.setItem('toji_live_config', JSON.stringify(response.data));
+                }
+            })
+            .catch(() => {});
     }
     const contentOverrides = deepMerge(window.TOJI_CONTENT || {}, savedContent);
     const profileConfig = deepMerge(config, contentOverrides.profile || {});
@@ -2139,4 +2126,3 @@ window.addEventListener('beforeunload', () => {
     progress.className = 'progress-bar';
     document.body.appendChild(progress);
 });
-
