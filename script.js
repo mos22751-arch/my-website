@@ -74,15 +74,41 @@ document.addEventListener('DOMContentLoaded', () => {
         savedContent = {};
     }
 
-    // جيب أحدث config من الـ backend في الخلفية وحدّث الـ cache
+    // ============================================================
+    // جيب أحدث config من الـ backend
+    // ✅ الإصلاح: لو المحتوى اتغيّر عن اللي في cache
+    //    → احفظ + reload تلقائي (مرة واحدة في كل session)
+    // ============================================================
     if (window.TojiAPI?.ConfigAPI) {
+        const SESSION_FRESH_KEY = 'toji_config_checked';
+
         window.TojiAPI.ConfigAPI.get()
             .then((response) => {
+                sessionStorage.setItem(SESSION_FRESH_KEY, '1');
+
                 if (response?.data) {
-                    localStorage.setItem('toji_live_config', JSON.stringify(response.data));
+                    const incoming = JSON.stringify(response.data);
+                    const cached   = localStorage.getItem('toji_live_config');
+
+                    if (incoming !== cached) {
+                        // حفظ الـ config الجديد
+                        localStorage.setItem('toji_live_config', incoming);
+
+                        // لو الـ page اتعمل render من cache قديم (مش admin session)
+                        // → reload عشان الزائر يشوف أحدث محتوى
+                        const isAdmin = window.TojiAPI?.TokenManager?.isLoggedIn?.();
+                        if (!isAdmin) {
+                            location.reload();
+                        }
+                    }
+                } else if (response?.data === null) {
+                    // مفيش config في الـ backend بعد → مسح الـ cache القديم
+                    localStorage.removeItem('toji_live_config');
                 }
             })
-            .catch(() => {});
+            .catch(() => {
+                sessionStorage.setItem(SESSION_FRESH_KEY, '1');
+            });
     }
     const contentOverrides = deepMerge(window.TOJI_CONTENT || {}, savedContent);
     const profileConfig = deepMerge(config, contentOverrides.profile || {});
