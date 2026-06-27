@@ -1,765 +1,790 @@
-/* ========================================================
-   TOJI ENHANCEMENTS — JavaScript Layer  v1.0
-   Loaded AFTER all base scripts. Adds features without
-   touching or duplicating the existing script.js logic.
-   ======================================================== */
-
-(function () {
-    'use strict';
-
-    /* ── Utility helpers ──────────────────────────────────── */
-    const $ = (sel, root = document) => root.querySelector(sel);
-    const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const isMobile = () => window.matchMedia('(max-width: 720px)').matches;
-    const isFinePointer = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-
-    /* ======================================================
-       1. GRADIENT ORBS — Animated background depth layers
-       ====================================================== */
-    function initGradientOrbs() {
-        if (reducedMotion.matches) return;
-        [1, 2, 3].forEach((n) => {
-            const orb = document.createElement('div');
-            orb.className = `gradient-orb gradient-orb-${n}`;
-            orb.setAttribute('aria-hidden', 'true');
-            document.body.appendChild(orb);
-        });
-    }
-
-    /* ======================================================
-       2. SOUND SYSTEM — Toggle + Web Audio API tones
-       ====================================================== */
-    let soundEnabled = false;
-    let audioCtx = null;
-
-    function getAudioCtx() {
-        if (!audioCtx) {
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            } catch (e) {
-                return null;
-            }
+window.TOJI_CONTENT = {
+    "site": {
+        "defaultLang": "en",
+        "canonicalUrl": "./",
+        "robots": "index, follow",
+        "themeColor": "#050506",
+        "backgroundColor": "#050506",
+        "schemaType": "Person",
+        "sitemapUrl": "./sitemap.xml",
+        "robotsText": "User-agent: *\nAllow: /\nDisallow: /admin.html\nDisallow: /admin.js\nDisallow: /admin.css"
+    },
+    "sections": {
+        "about": false,
+        "work": true,
+        "services": false,
+        "pricing": true,
+        "testimonials": false,
+        "gallery": false,
+        "faq": true,
+        "connect": true,
+        "form": true,
+        "themeControls": true
+    },
+    "design": {
+        "fontFamily": "Caveat",
+        "primaryColor": "#36d6ff",
+        "accentColor": "#ff7a3d",
+        "mintColor": "#6df6b2",
+        "presets": {
+            "currentDemo": "personal",
+            "currentStyle": "neon"
         }
-        return audioCtx;
-    }
-
-    function playTone(freq = 440, duration = 80, type = 'sine', volume = 0.06) {
-        if (!soundEnabled) return;
-        const ctx = getAudioCtx();
-        if (!ctx) return;
-        if (ctx.state === 'suspended') ctx.resume();
-
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = type;
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(volume, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration / 1000);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + duration / 1000 + 0.02);
-    }
-
-    const Sounds = {
-        click: () => playTone(600, 70, 'sine', 0.06),
-        hover: () => playTone(900, 35, 'sine', 0.025),
-        success: () => {
-            playTone(520, 80, 'sine', 0.07);
-            setTimeout(() => playTone(660, 100, 'sine', 0.07), 85);
+    },
+    "analytics": {
+        "googleAnalyticsId": "",
+        "metaPixelId": "",
+        "utm": {
+            "enabled": true,
+            "source": "toji-website",
+            "medium": "profile",
+            "campaign": "personal-site"
+        }
+    },
+    "profile": {
+        "name": "Mohamed Mostafa",
+        "nickname": "TOJI",
+        "loaderMark": "TOJI",
+        "image": "assets/profile.webp",
+        "phone": "201102550730",
+        "themePreset": "neon",
+        "accent": "cyan",
+        "status": {
+            "en": "Available for custom pages and clean web builds",
+            "ar": "بعمل website ل اي حاجه تعوزها !!"
         },
-        error: () => playTone(220, 160, 'sawtooth', 0.05),
-        toggle: () => playTone(440, 90, 'triangle', 0.07),
-    };
-
-    function initSoundToggle() {
-        // Button already lives in the dock — just wire it up
-        const btn = document.getElementById('soundToggle');
-        if (!btn) return;
-
-        const iconMute = btn.querySelector('.icon-mute');
-        const iconOn   = btn.querySelector('.icon-on');
-
-        function updateUI() {
-            if (iconMute) iconMute.style.display = soundEnabled ? 'none'  : '';
-            if (iconOn)   iconOn.style.display   = soundEnabled ? ''      : 'none';
-            btn.classList.toggle('sound-on', soundEnabled);
-            btn.setAttribute('aria-label', soundEnabled ? 'Sound on — tap to mute' : 'Sound off — tap to enable');
+        "socials": {
+            "instagram": "https://instagram.com/mouhamedmostafffa",
+            "tiktok": "https://tiktok.com/@mouhamedmostafffa",
+            "snapchat": "https://www.snapchat.com/add/dr.toji",
+            "threads": "https://www.threads.net/@mouhamedmostafffa",
+            "facebook": "",
+            "youtube": "",
+            "x": "",
+            "linkedin": "",
+            "website": "./"
+        },
+        "assets": {
+            "favicon": "assets/favicon.svg",
+            "appleIcon": "assets/icon-192.png",
+            "icon192": "assets/icon-192.png",
+            "icon512": "assets/icon-512.png",
+            "socialPreview": "assets/social-preview.png",
+            "mediaKit": "assets/toji-media-kit.zip"
+        },
+        "shareImage": {
+            "title": "TOJI",
+            "subtitle": "Personal links, clean pages, QR, contact, and web details in one place.",
+            "handle": "@mouhamedmostafffa",
+            "scanLabel": "Scan to connect",
+            "filename": "TOJI-share-card.png"
         }
-
-        btn.addEventListener('click', () => {
-            soundEnabled = !soundEnabled;
-            updateUI();
-            if (soundEnabled) Sounds.toggle();
-        });
-
-        updateUI();
-
-        // Click sound on all interactive elements
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('button, a, [role="button"]')) Sounds.click();
-        }, { passive: true });
-
-        // Hover sounds on nav / dock
-        document.addEventListener('mouseover', (e) => {
-            if (e.target.closest('.dock-btn, .nav-link, .accent-swatch, .preset-btn')) Sounds.hover();
-        }, { passive: true });
-    }
-
-    /* ======================================================
-       3. IMPROVED RIPPLE — replaces the base ripple handler
-       (base handler is still active but we add a nicer one)
-       ====================================================== */
-    function initRipple() {
-        document.addEventListener('pointerdown', (e) => {
-            const host = e.target.closest('button, a, .utility-btn, .dock-btn');
-            if (!host) return;
-
-            // Position
-            const rect = host.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height) * 2;
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
-
-            const ripple = document.createElement('span');
-            ripple.className = 'toji-ripple';
-            ripple.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px;`;
-
-            // Ensure host has position:relative and overflow:hidden
-            if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
-
-            host.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 600);
-        }, { passive: true });
-    }
-
-    /* ======================================================
-       4. MAGNETIC BUTTONS — smooth pointer-pull effect
-          Only on desktop with fine pointer to avoid jank
-       ====================================================== */
-    function initMagneticEffect() {
-        if (!isFinePointer() || reducedMotion.matches) return;
-
-        const targets = $$('.action-btn, .share-profile, .theme-switch, .language-toggle, .nav-link, .dock-btn');
-
-        targets.forEach((el) => {
-            el.classList.add('magnetic-btn');
-
-            el.addEventListener('mousemove', (e) => {
-                const rect = el.getBoundingClientRect();
-                const cx = rect.left + rect.width / 2;
-                const cy = rect.top + rect.height / 2;
-                const dx = e.clientX - cx;
-                const dy = e.clientY - cy;
-                const dist = Math.hypot(dx, dy);
-                const maxDist = Math.max(rect.width, rect.height) * 0.7;
-                if (dist > maxDist) return;
-
-                const pull = (1 - dist / maxDist) * 8;
-                const nx = (dx / dist || 0) * pull;
-                const ny = (dy / dist || 0) * pull;
-
-                // Don't fight with tilt-effect transforms
-                if (!el.closest('.tilt-effect')) {
-                    el.style.transform = `translate(${nx}px, ${ny}px)`;
-                }
-            }, { passive: true });
-
-            el.addEventListener('mouseleave', () => {
-                if (!el.closest('.tilt-effect')) {
-                    el.style.transform = '';
-                }
-            }, { passive: true });
-        });
-    }
-
-    /* ======================================================
-       5. PARALLAX SCROLL — subtle hero depth on desktop
-       ====================================================== */
-    function initParallax() {
-        if (isMobile() || reducedMotion.matches) return;
-
-        const scrollRoot = $('#pageScroll');
-        if (!scrollRoot) return;
-
-        const layers = [
-            { el: $('.hero-content'), speed: 0.08 },
-            { el: $('.profile-panel'),speed: 0.05 },
-            { el: $('.mesh-bg'),      speed: 0.04 },
-        ];
-
-        let ticking = false;
-        scrollRoot.addEventListener('scroll', () => {
-            if (ticking) return;
-            ticking = true;
-            requestAnimationFrame(() => {
-                const st = scrollRoot.scrollTop;
-                layers.forEach(({ el, speed }) => {
-                    if (!el) return;
-                    el.style.transform = `translateY(${st * speed}px)`;
-                });
-                ticking = false;
-            });
-        }, { passive: true });
-    }
-
-    /* ======================================================
-       6. PROFILE CARD FLOAT — gentle bob when not tilting
-       ====================================================== */
-    function initProfileFloat() {
-        if (reducedMotion.matches) return;
-        const panel = $('.profile-panel');
-        if (!panel) return;
-
-        let floating = true;
-        panel.classList.add('float-animate');
-
-        panel.addEventListener('mouseenter', () => {
-            floating = false;
-            panel.classList.remove('float-animate');
-        });
-        panel.addEventListener('mouseleave', () => {
-            floating = true;
-            panel.classList.add('float-animate');
-        });
-    }
-
-    /* ======================================================
-       7. SWIPE NAVIGATION — actually navigates between sections
-       ====================================================== */
-    function initSwipeNavigation() {
-        if (!isMobile()) return;
-
-        const scrollRoot = $('#pageScroll');
-        if (!scrollRoot) return;
-
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchStartTime = 0;
-
-        scrollRoot.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            touchStartTime = Date.now();
-        }, { passive: true });
-
-        scrollRoot.addEventListener('touchend', (e) => {
-            const dx = e.changedTouches[0].clientX - touchStartX;
-            const dy = e.changedTouches[0].clientY - touchStartY;
-            const dt = Date.now() - touchStartTime;
-
-            // Only horizontal swipes, fast, not while scrolling vertically
-            if (dt > 350) return;
-            if (Math.abs(dy) > Math.abs(dx) * 1.5) return;
-            if (Math.abs(dx) < 55) return;
-
-            const activeDock = $('.dock-btn.active');
-            if (!activeDock) return;
-
-            const allDocks = $$('.dock-btn');
-            const currentIndex = allDocks.indexOf(activeDock);
-            const sections = $$('.screen').map((s) => s.id);
-
-            let nextIndex;
-            if (dx < 0) {
-                // Swipe left → next section
-                nextIndex = Math.min(currentIndex + 1, sections.length - 1);
-            } else {
-                // Swipe right → previous section
-                nextIndex = Math.max(currentIndex - 1, 0);
-            }
-
-            if (nextIndex === currentIndex) return;
-
-            const targetId = sections[nextIndex];
-            const target = document.getElementById(targetId);
-            if (!target) return;
-
-            scrollRoot.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
-
-            // Visual haptic
-            if (navigator.vibrate) navigator.vibrate(15);
-
-            // Update dock/nav active state
-            allDocks.forEach((b, i) => b.classList.toggle('active', i === nextIndex));
-            $$('.nav-link').forEach((l) => l.classList.toggle('active', l.dataset.target === targetId));
-        }, { passive: true });
-    }
-
-    /* ======================================================
-       8. FORM ENHANCED VALIDATION & FEEDBACK
-       ====================================================== */
-    function initFormEnhancements() {
-        const form = $('#quickMessageForm');
-        if (!form) return;
-
-        const inputs = $$('input, textarea', form);
-
-        // Real-time validation on input
-        inputs.forEach((input) => {
-            input.addEventListener('input', () => {
-                input.classList.remove('field-invalid', 'field-valid');
-                if (input.value.trim().length > 0) {
-                    input.classList.add('field-valid');
-                }
-            });
-
-            input.addEventListener('blur', () => {
-                if (input.required && input.value.trim() === '') {
-                    input.classList.add('field-invalid');
-                    input.classList.remove('field-valid');
-                    Sounds.error();
-                }
-            });
-
-            // Focus glow
-            input.addEventListener('focus', () => {
-                if (!reducedMotion.matches) {
-                    input.style.transition = 'border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease';
-                }
-            });
-        });
-
-        // Submit: show loading state → success flash
-        form.addEventListener('submit', (e) => {
-            const btn = form.querySelector('[type="submit"]');
-            if (btn) {
-                btn.classList.add('form-loading');
-                setTimeout(() => {
-                    btn.classList.remove('form-loading');
-                    form.classList.add('form-success');
-                    Sounds.success();
-                    setTimeout(() => form.classList.remove('form-success'), 600);
-                }, 400);
-            }
-        });
-    }
-
-    /* ======================================================
-       9. COUNTER ANIMATION — signal-row numbers count up
-       ====================================================== */
-    function initCounterAnimations() {
-        if (reducedMotion.matches) return;
-
-        const counters = $$('.signal-value[data-counter]');
-        if (!counters.length) return;
-
-        const animate = (el) => {
-            const end = parseFloat(el.dataset.counter);
-            const duration = 900;
-            const decimals = String(end).includes('.') ? 1 : 0;
-            let startTime = null;
-
-            const step = (timestamp) => {
-                if (!startTime) startTime = timestamp;
-                const progress = Math.min((timestamp - startTime) / duration, 1);
-                const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-                el.textContent = (eased * end).toFixed(decimals);
-                if (progress < 1) requestAnimationFrame(step);
-                else {
-                    el.textContent = end.toFixed(decimals);
-                    // Pop effect
-                    el.classList.add('counter-pop');
-                    setTimeout(() => el.classList.remove('counter-pop'), 300);
-                }
-            };
-            requestAnimationFrame(step);
-        };
-
-        const scrollRoot = $('#pageScroll');
-        const obs = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        animate(entry.target);
-                        obs.unobserve(entry.target);
-                    }
-                });
+    },
+    "socialLinks": [
+        {
+            "platform": "instagram",
+            "label": "Instagram",
+            "url": "https://instagram.com/mouhamedmostafffa",
+            "icon": "instagram",
+            "enabled": true
+        },
+        {
+            "platform": "tiktok",
+            "label": "TikTok",
+            "url": "https://tiktok.com/@mouhamedmostafffa",
+            "icon": "video",
+            "enabled": true
+        },
+        {
+            "platform": "snapchat",
+            "label": "Snapchat",
+            "url": "https://www.snapchat.com/add/dr.toji",
+            "icon": "ghost",
+            "enabled": true
+        },
+        {
+            "platform": "threads",
+            "label": "Threads",
+            "url": "https://www.threads.net/@mouhamedmostafffa",
+            "icon": "at-sign",
+            "enabled": true
+        },
+        {
+            "platform": "whatsapp",
+            "label": "WhatsApp",
+            "url": "https://wa.me/201102550730",
+            "icon": "message-circle",
+            "enabled": true
+        }
+    ],
+    "ctaButtons": [
+        {
+            "type": "start",
+            "label": {
+                "en": "Start a page",
+                "ar": "ابدأ صفحة"
             },
-            { root: scrollRoot, threshold: 0.5 }
-        );
-
-        counters.forEach((el) => obs.observe(el));
-    }
-
-    /* ======================================================
-       10. PROFILE IMAGE SKELETON LOADER
-       ====================================================== */
-    function initImageLoader() {
-        const img = $('#profilePhoto');
-        if (!img) return;
-
-        if (!img.complete) {
-            img.classList.add('img-loading');
-            img.parentElement?.classList.add('skeleton-shimmer');
-            img.addEventListener('load', () => {
-                img.classList.remove('img-loading');
-                img.classList.add('img-loaded');
-                img.parentElement?.classList.remove('skeleton-shimmer');
-            }, { once: true });
-            img.addEventListener('error', () => {
-                img.parentElement?.classList.remove('skeleton-shimmer');
-                img.classList.remove('img-loading');
-                img.classList.add('img-loaded');
-            }, { once: true });
-        } else {
-            img.classList.add('img-loaded');
-        }
-    }
-
-    /* ======================================================
-       11. HAPTIC FEEDBACK — visual + vibration on mobile
-       ====================================================== */
-    function initHapticFeedback() {
-        if (!isMobile()) return;
-
-        document.addEventListener('pointerdown', (e) => {
-            const target = e.target.closest('button, a, .accent-swatch, .preset-btn');
-            if (!target) return;
-
-            // Vibration API
-            if (navigator.vibrate) navigator.vibrate(8);
-
-            // Visual pulse
-            target.classList.add('haptic-feedback');
-            setTimeout(() => target.classList.remove('haptic-feedback'), 400);
-        }, { passive: true });
-    }
-
-    /* ======================================================
-       12. DOCK HIDE ON SCROLL (mobile) — dock hides while
-           user scrolls, reappears when they stop
-       ====================================================== */
-    function initDockAutoHide() {
-        if (!isMobile()) return;
-
-        const dock = $('.floating-dock-wrapper');
-        if (!dock) return;
-
-        const scrollRoot = $('#pageScroll');
-        if (!scrollRoot) return;
-
-        let lastSt = 0;
-        let hideTimer = null;
-
-        scrollRoot.addEventListener('scroll', () => {
-            const st = scrollRoot.scrollTop;
-            const delta = st - lastSt;
-
-            if (Math.abs(delta) > 4) {
-                dock.classList.add('dock-hidden');
-                clearTimeout(hideTimer);
-                hideTimer = setTimeout(() => dock.classList.remove('dock-hidden'), 800);
-            }
-
-            lastSt = st;
-        }, { passive: true });
-    }
-
-    /* ======================================================
-       13. BLUR ON SCROLL — hero content blurs as you scroll
-       ====================================================== */
-    function initScrollBlur() {
-        if (reducedMotion.matches || isMobile()) return;
-
-        const scrollRoot = $('#pageScroll');
-        const heroContent = $('.hero-content');
-        if (!scrollRoot || !heroContent) return;
-
-        heroContent.classList.add('scroll-blur');
-        const vh = window.innerHeight;
-
-        scrollRoot.addEventListener('scroll', () => {
-            const st = scrollRoot.scrollTop;
-            const progress = Math.min(st / (vh * 0.5), 1);
-
-            if (progress > 0.15) {
-                heroContent.classList.add('blurred');
-            } else {
-                heroContent.classList.remove('blurred');
-            }
-        }, { passive: true });
-    }
-
-    /* ======================================================
-       14. LIGHTBOX — gallery image zoom
-       ====================================================== */
-    function initLightbox() {
-        let box = null;
-
-        function createLightbox() {
-            if (box) return;
-            box = document.createElement('div');
-            box.className = 'toji-lightbox';
-            box.setAttribute('role', 'dialog');
-            box.setAttribute('aria-modal', 'true');
-            box.setAttribute('aria-label', 'Image viewer');
-
-            const img = document.createElement('img');
-            img.alt = '';
-
-            const close = document.createElement('button');
-            close.className = 'toji-lightbox-close';
-            close.type = 'button';
-            close.setAttribute('aria-label', 'Close image viewer');
-            close.innerHTML = '&times;';
-
-            box.appendChild(img);
-            box.appendChild(close);
-            document.body.appendChild(box);
-
-            close.addEventListener('click', closeLightbox);
-            box.addEventListener('click', (e) => { if (e.target === box) closeLightbox(); });
-            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
-        }
-
-        function openLightbox(src, alt) {
-            createLightbox();
-            const img = box.querySelector('img');
-            img.src = src;
-            img.alt = alt || '';
-            box.classList.add('open');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeLightbox() {
-            if (!box) return;
-            box.classList.remove('open');
-            document.body.style.overflow = '';
-        }
-
-        // Wire up gallery items
-        document.addEventListener('click', (e) => {
-            const item = e.target.closest('.gallery-item');
-            if (!item) return;
-            const img = item.querySelector('img');
-            if (img) openLightbox(img.src, img.alt);
-        });
-    }
-
-    /* ======================================================
-       15. TEXT REVEAL — animate eyebrow & title on reveal
-       ====================================================== */
-    function initTextReveal() {
-        if (reducedMotion.matches) return;
-
-        const scrollRoot = $('#pageScroll');
-        const elements = $$('.section-heading .eyebrow, .section-heading .section-title');
-
-        const obs = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('text-reveal-anim');
-                        obs.unobserve(entry.target);
-                    }
-                });
+            "url": "https://wa.me/201102550730?text=Hi%20TOJI%2C%20I%20want%20a%20custom%20page.",
+            "message": {
+                "en": "Hi TOJI, I want a custom page.",
+                "ar": "أهلا يا TOJI، عايز أعمل صفحة مخصصة."
             },
-            { root: scrollRoot, threshold: 0.2 }
-        );
-
-        elements.forEach((el) => obs.observe(el));
-    }
-
-    /* ======================================================
-       16. QR FRAME — add glow pulse on mobile when canvas ready
-       ====================================================== */
-    function initQREnhancements() {
-        const qrFrame = $('.qr-frame');
-        const canvas = $('#profileQr');
-        if (!qrFrame || !canvas) return;
-
-        // Watch for QR render completion
-        const mo = new MutationObserver(() => {
-            if (canvas.width > 0) {
-                qrFrame.style.transition = 'box-shadow 0.4s ease';
-                setTimeout(() => {
-                    qrFrame.style.boxShadow = '';
-                }, 100);
-            }
-        });
-        mo.observe(canvas, { attributes: true });
-    }
-
-    /* ======================================================
-       17. PRESET / ACCENT TRANSITION ANIMATION
-       ====================================================== */
-    function initThemeTransition() {
-        const style = document.createElement('style');
-        style.id = 'themeTransitionStyle';
-        style.textContent = `
-            body.theme-transitioning,
-            body.theme-transitioning *,
-            body.theme-transitioning *::before,
-            body.theme-transitioning *::after {
-                transition-duration: 0.35s !important;
-                transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1) !important;
-            }
-        `;
-        document.head.appendChild(style);
-
-        const swatches = $$('.accent-swatch, .preset-btn, #themeToggle');
-        swatches.forEach((el) => {
-            el.addEventListener('click', () => {
-                document.body.classList.add('theme-transitioning');
-                setTimeout(() => document.body.classList.remove('theme-transitioning'), 380);
-            });
-        });
-    }
-
-    /* ======================================================
-       18. ENHANCED DOCK BUTTON BOUNCE
-       ====================================================== */
-    function initDockBounce() {
-        if (reducedMotion.matches) return;
-
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.dock-btn');
-            if (!btn) return;
-
-            btn.style.transform = 'scale(0.85)';
-            setTimeout(() => {
-                btn.style.transform = '';
-            }, 180);
-        });
-    }
-
-    /* ======================================================
-       19. NAV LINK UNDERLINE SLIDE
-       ====================================================== */
-    function initNavEnhancements() {
-        const navLinks = $$('.nav-link');
-
-        navLinks.forEach((link) => {
-            link.addEventListener('click', () => {
-                navLinks.forEach((l) => l.classList.remove('active'));
-                link.classList.add('active');
-            });
-        });
-    }
-
-    /* ======================================================
-       20. PERFORMANCE — requestIdleCallback for non-critical
-       ====================================================== */
-    function initLazyFeatures() {
-        const run = typeof requestIdleCallback === 'function'
-            ? (cb) => requestIdleCallback(cb, { timeout: 2000 })
-            : (cb) => setTimeout(cb, 200);
-
-        run(() => {
-            initMagneticEffect();
-            initParallax();
-            initScrollBlur();
-            initTextReveal();
-            initLightbox();
-            initQREnhancements();
-        });
-    }
-
-    /* ======================================================
-       21. SERVICE WORKER PRE-CACHE PING
-       ====================================================== */
-    function initServiceWorkerEnhancements() {
-        if (!('serviceWorker' in navigator)) return;
-
-        navigator.serviceWorker.ready.then((reg) => {
-            // Update found — could show a "New version available" toast
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-                newWorker?.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        // Silently update — don't interrupt user
-                        console.info('[TOJI] New version cached.');
+            "enabled": true
+        },
+        {
+            "type": "instagram",
+            "label": {
+                "en": "DM on Instagram",
+                "ar": "كلمني إنستجرام"
+            },
+            "url": "https://instagram.com/mouhamedmostafffa",
+            "message": {
+                "en": "I saw your website and want to talk.",
+                "ar": "شوفت موقعك وعايز أتكلم معاك."
+            },
+            "enabled": true
+        }
+    ],
+    "workCards": [
+        {
+            "banner": "TOJI",
+            "title": {
+                "en": "Personal profile system",
+                "ar": "سيستم بروفايل شخصي"
+            },
+            "copy": {
+                "en": "A polished page for links, contact, QR, share image, and a first impression that feels intentional.",
+                "ar": "صفحة مرتبة للروابط والتواصل والـ QR وصورة المشاركة وانطباع أول شكله مقصود ومميز."
+            },
+            "tags": [
+                "Profile",
+                "Links",
+                "QR"
+            ]
+        },
+        {
+            "banner": "WEB",
+            "title": {
+                "en": "Custom landing pages",
+                "ar": "صفحات هبوط مخصصة"
+            },
+            "copy": {
+                "en": "Focused pages for services, offers, creators, or small brands with fast loading and clear actions.",
+                "ar": "صفحات مركزة لخدمة أو عرض أو براند صغير، تحميلها سريع وأزرارها واضحة."
+            },
+            "tags": [
+                "Landing",
+                "CTA",
+                "Mobile"
+            ]
+        },
+        {
+            "banner": "ADMIN",
+            "title": {
+                "en": "Editable admin-ready builds",
+                "ar": "مواقع قابلة للتعديل"
+            },
+            "copy": {
+                "en": "Content, social links, SEO, sections, QR actions, and theme controls can be managed from a clean admin page.",
+                "ar": "المحتوى والروابط والسيو والأقسام والـ QR والثيمات تتعدل من لوحة أدمن نظيفة."
+            },
+            "tags": [
+                "Admin",
+                "SEO",
+                "PWA"
+            ]
+        },
+        {
+            "banner": "DETAILS",
+            "title": {
+                "en": "Special details layer",
+                "ar": "طبقة تفاصيل مميزة"
+            },
+            "copy": {
+                "en": "Micro-interactions, share tools, install button, contact card, and a layout tuned for phones first.",
+                "ar": "حركات بسيطة وأدوات مشاركة وزر تثبيت وكارت اتصال وتصميم معمول للموبايل الأول."
+            },
+            "tags": [
+                "Motion",
+                "Share",
+                "Install"
+            ]
+        }
+    ],
+    "marketing": {
+        "services": {
+            "eyebrow": {
+                "en": "What I Build",
+                "ar": "بعمل إيه"
+            },
+            "title": {
+                "en": "Small web experiences with a lot of useful detail.",
+                "ar": "تجارب ويب صغيرة بس فيها تفاصيل كتير مفيدة."
+            },
+            "items": [
+                {
+                    "title": {
+                        "en": "Personal link hubs",
+                        "ar": "صفحات روابط شخصية"
+                    },
+                    "copy": {
+                        "en": "One page for your identity, socials, WhatsApp, QR, vCard, and share image.",
+                        "ar": "صفحة واحدة لهويتك وروابطك وواتساب وQR وكارت اتصال وصورة مشاركة."
                     }
-                });
-            });
-        }).catch(() => {});
-    }
-
-    /* ======================================================
-       22. KEYBOARD SHORTCUT HINTS
-       ====================================================== */
-    function initKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
-            // Arrow keys already handled by base script.js
-            // Add: "/" to focus search-like elements if present
-            if (e.key === '/' && !e.target.matches('input, textarea, select')) {
-                const firstInput = $('#messageName');
-                if (firstInput) {
-                    e.preventDefault();
-                    firstInput.focus();
-                    firstInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                },
+                {
+                    "title": {
+                        "en": "Portfolio sections",
+                        "ar": "أقسام بورتفوليو"
+                    },
+                    "copy": {
+                        "en": "Show your work, services, highlights, FAQs, and contact route without making the page heavy.",
+                        "ar": "اعرض شغلك وخدماتك ونقط قوتك والأسئلة والتواصل من غير ما الصفحة تتقل."
+                    }
+                },
+                {
+                    "title": {
+                        "en": "Admin-ready pages",
+                        "ar": "صفحات بأدمن"
+                    },
+                    "copy": {
+                        "en": "Content edits, Arabic and English text, links, sections, theme, SEO, and exports from one place.",
+                        "ar": "تعديل محتوى عربي وإنجليزي وروابط وأقسام وثيم وسيو وتصدير من مكان واحد."
+                    }
+                },
+                {
+                    "title": {
+                        "en": "Launch polish",
+                        "ar": "تجهيز الإطلاق"
+                    },
+                    "copy": {
+                        "en": "PWA install, manifest, sitemap, robots, social preview, contact card, and lightweight performance.",
+                        "ar": "تثبيت كتطبيق وmanifest وsitemap وrobots ومعاينة سوشيال وكارت اتصال وأداء خفيف."
+                    }
                 }
+            ]
+        },
+        "pricing": {
+            "eyebrow": {
+                "en": "Build Modes",
+                "ar": "طرق الشغل"
+            },
+            "title": {
+                "en": "Pick the level that fits the page.",
+                "ar": "اختار مستوى الشغل المناسب للصفحة."
+            },
+            "items": [
+                {
+                    "name": {
+                        "en": "Profile Sprint",
+                        "ar": "بروفايل سريع"
+                    },
+                    "price": "DM for price",
+                    "features": [
+                        "Single-page profile",
+                        "Social links",
+                        "QR + vCard",
+                        "Share card"
+                    ]
+                },
+                {
+                    "name": {
+                        "en": "Landing Build",
+                        "ar": "صفحة هبوط"
+                    },
+                    "price": "DM for price",
+                    "features": [
+                        "Hero + sections",
+                        "WhatsApp flow",
+                        "SEO setup",
+                        "Mobile polish"
+                    ]
+                },
+                {
+                    "name": {
+                        "en": "Admin Edition",
+                        "ar": "نسخة بأدمن"
+                    },
+                    "price": "DM for price",
+                    "features": [
+                        "Editable content",
+                        "Arabic + English",
+                        "Live preview map",
+                        "Export-ready files"
+                    ]
+                }
+            ]
+        },
+        "testimonials": {
+            "eyebrow": {
+                "en": "Why It Works",
+                "ar": "ليه الصفحة مفيدة"
+            },
+            "title": {
+                "en": "The page is built around real visitor behavior.",
+                "ar": "الصفحة مبنية على طريقة استخدام الزائر فعلا."
+            },
+            "items": [
+                {
+                    "name": "Fast decision",
+                    "quote": {
+                        "en": "People see who you are, what you do, and how to contact you without hunting around.",
+                        "ar": "الناس تعرف أنت مين وبتعمل إيه وتتواصل معاك من غير لف كتير."
+                    }
+                },
+                {
+                    "name": "Phone-first",
+                    "quote": {
+                        "en": "The layout is designed for Instagram, WhatsApp, TikTok, and quick mobile browsing.",
+                        "ar": "التصميم معمول لإنستجرام وواتساب وتيك توك والتصفح السريع من الموبايل."
+                    }
+                },
+                {
+                    "name": "Easy updates",
+                    "quote": {
+                        "en": "The admin page keeps the important text, links, and sections easy to edit later.",
+                        "ar": "صفحة الأدمن بتخلي النصوص والروابط والأقسام سهلة التعديل بعدين."
+                    }
+                }
+            ]
+        },
+        "gallery": {
+            "eyebrow": {
+                "en": "Showcase",
+                "ar": "معرض"
+            },
+            "title": {
+                "en": "A quick look at the TOJI system.",
+                "ar": "نظرة سريعة على سيستم TOJI."
+            },
+            "items": [
+                {
+                    "title": {
+                        "en": "Profile identity",
+                        "ar": "هوية البروفايل"
+                    },
+                    "image": "assets/profile.webp"
+                },
+                {
+                    "title": {
+                        "en": "Social preview",
+                        "ar": "معاينة السوشيال"
+                    },
+                    "image": "assets/social-preview.png"
+                },
+                {
+                    "title": {
+                        "en": "Installable site",
+                        "ar": "موقع قابل للتثبيت"
+                    },
+                    "image": "assets/icon-512.png"
+                }
+            ]
+        },
+        "faq": {
+            "eyebrow": {
+                "en": "FAQ",
+                "ar": "أسئلة"
+            },
+            "title": {
+                "en": "Quick answers before you message me.",
+                "ar": "إجابات سريعة قبل ما تبعتلي."
+            },
+            "items": [
+                {
+                    "question": {
+                        "en": "Can you make a page like this for me?",
+                        "ar": "ينفع تعمللي صفحة زي دي؟"
+                    },
+                    "answer": {
+                        "en": "Yes. Send me your links, photos, text, and the style you like, and I can shape it into a clean page.",
+                        "ar": "أيوه. ابعتلي روابطك وصورك والكلام والستايل اللي بتحبه وأنا أظبطه في صفحة نضيفة."
+                    }
+                },
+                {
+                    "question": {
+                        "en": "Can the page be Arabic and English?",
+                        "ar": "ينفع الصفحة تبقى عربي وإنجليزي؟"
+                    },
+                    "answer": {
+                        "en": "Yes. The system supports both languages and keeps both versions editable.",
+                        "ar": "أيوه. السيستم بيدعم اللغتين وبيخلي النسختين قابلين للتعديل."
+                    }
+                },
+                {
+                    "question": {
+                        "en": "Can I update it later?",
+                        "ar": "ينفع أعدلها بعدين؟"
+                    },
+                    "answer": {
+                        "en": "Yes. The admin editor can manage text, links, images, sections, and theme settings.",
+                        "ar": "أيوه. الأدمن يقدر يعدل النصوص والروابط والصور والأقسام والثيم."
+                    }
+                }
+            ]
+        }
+    },
+    "quickMessages": [
+        {
+            "value": "Personal profile",
+            "label": {
+                "en": "Personal profile",
+                "ar": "بروفايل شخصي"
+            },
+            "message": {
+                "en": "Hi TOJI, I want a personal profile page with my links.",
+                "ar": "أهلا يا TOJI، عايز صفحة بروفايل شخصي بروابطي."
             }
-        });
-    }
-
-    /* ======================================================
-       23. TOUCH FEEDBACK FIX — replace the base opacity hack
-       ====================================================== */
-    function initTouchFeedback() {
-        // Remove the opacity-toggle from base script (it conflicts with ripple)
-        // We handle it via CSS :active states instead
-        // The base script already added listeners; we add haptic enhancement
-        document.addEventListener('touchstart', () => {}, { passive: true });
-    }
-
-    /* ======================================================
-       INIT — run when DOM is ready
-       ====================================================== */
-    function init() {
-        initGradientOrbs();
-        initSoundToggle();
-        initRipple();
-        initProfileFloat();
-        initSwipeNavigation();
-        initFormEnhancements();
-        initCounterAnimations();
-        initImageLoader();
-        initHapticFeedback();
-        initDockAutoHide();
-        initDockBounce();
-        initNavEnhancements();
-        initThemeTransition();
-        initTouchFeedback();
-        initServiceWorkerEnhancements();
-        initKeyboardShortcuts();
-
-        // Non-critical features after idle
-        initLazyFeatures();
-    }
-
-    /* ── Attach signal-value counters to existing DOM numbers ── */
-    function attachCounterData() {
-        // The signal row has text values (UI, JS, QR) — these are labels not numbers
-        // So we instead animate a subtle scale pop to show life
-        const signalValues = $$('.signal-value');
-        signalValues.forEach((el) => {
-            const text = el.textContent.trim();
-            const num = parseFloat(text);
-            if (!isNaN(num) && num > 1) {
-                el.setAttribute('data-counter', num);
-                el.textContent = '0';
+        },
+        {
+            "value": "Business page",
+            "label": {
+                "en": "Business page",
+                "ar": "صفحة بيزنس"
+            },
+            "message": {
+                "en": "Hi TOJI, I want a landing page for my service or brand.",
+                "ar": "أهلا يا TOJI، عايز صفحة هبوط لخدمة أو براند."
             }
-        });
+        },
+        {
+            "value": "Admin edition",
+            "label": {
+                "en": "Admin edition",
+                "ar": "نسخة بأدمن"
+            },
+            "message": {
+                "en": "Hi TOJI, I want an editable page with an admin panel.",
+                "ar": "أهلا يا TOJI، عايز صفحة قابلة للتعديل بلوحة أدمن."
+            }
+        }
+    ],
+    "translations": {
+        "en": {
+            "meta": {
+                "title": "TOJI | Mohamed Mostafa",
+                "description": "Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details."
+            },
+            "lang": {
+                "nextLabel": "AR",
+                "switchLabel": "انزل بالترجمه"
+            },
+            "nav": {
+                "home": "Home",
+                "about": "About",
+                "work": "Work",
+                "links": "Links"
+            },
+            "hero": {
+                "eyebrow": "Mohamed Mostafa / TOJI",
+                "title": "I build clean personal pages, link hubs, and small web experiences.",
+                "working": "Focused on",
+                "copy": "This is my personal web base: links, work ideas, QR contact, share tools, theme controls, and the kind of details I like to put into every page.",
+                "status": "Available for custom pages and clean web builds",
+                "openLinks": "Open Links"
+            },
+            "typewriter": [
+                "personal profiles",
+                "mobile-first pages",
+                "QR contact flows",
+                "small details"
+            ],
+            "signals": {
+                "valueUi": "UI",
+                "valueJs": "JS",
+                "valueGym": "QR",
+                "ui": "Clean screens",
+                "js": "Useful details",
+                "gym": "Easy contact"
+            },
+            "profile": {
+                "live": "TOJI is live",
+                "caption": "Code, training, links, and better details.",
+                "mobile": "Mobile-first",
+                "fast": "Fast",
+                "personal": "Personal"
+            },
+            "about": {
+                "title": "The page is built to feel personal, fast, and useful.",
+                "card1": {
+                    "title": "First impression",
+                    "copy": "The hero says who I am quickly, then gives people a clear route to links, WhatsApp, and work ideas."
+                },
+                "card2": {
+                    "title": "Clean front-end",
+                    "copy": "Simple HTML, CSS, and JavaScript with enough structure to keep the page editable and easy to improve."
+                },
+                "card3": {
+                    "title": "Phone first",
+                    "copy": "Most people open profiles from social apps, so the mobile view, buttons, QR, and sharing flow matter most."
+                },
+                "card4": {
+                    "title": "Built like a system",
+                    "copy": "The personal site now has content controls, optional sections, PWA setup, share tools, and an admin map."
+                }
+            },
+            "work": {
+                "title": "Pages and systems I can build or improve.",
+                "banner1": "TOJI",
+                "banner2": "WEB",
+                "banner3": "ADMIN",
+                "card1": {
+                    "title": "Personal portfolio",
+                    "copy": "A clean page for your name, links, work, and the first impression you want people to get."
+                },
+                "card2": {
+                    "title": "Business landing page",
+                    "copy": "A focused page for a service, offer, creator, or shop with clear buttons and no extra noise."
+                },
+                "card3": {
+                    "title": "Creator link hub",
+                    "copy": "One place for social accounts, WhatsApp, QR code, contact card, and share actions that actually help."
+                }
+            },
+            "tags": {
+                "profile": "Profile",
+                "links": "Links",
+                "mobile": "Mobile",
+                "share": "Share"
+            },
+            "connect": {
+                "eyebrow": "Connect",
+                "title": "My links are here.",
+                "copyNumber": "Copy Number",
+                "scanTitle": "Scan this profile",
+                "scanCopy": "Open the same page on another phone, save my contact card, or download the QR for later.",
+                "saveContact": "Save Contact",
+                "downloadQr": "Download QR",
+                "copyLink": "Copy Link",
+                "shareImage": "Share Image",
+                "mediaKit": "Media Kit",
+                "installApp": "Install App",
+                "shareProfile": "Share Profile"
+            },
+            "qr": {
+                "profile": "Profile"
+            },
+            "form": {
+                "eyebrow": "Quick Message",
+                "title": "Send a WhatsApp brief.",
+                "name": "Name",
+                "type": "Page type",
+                "message": "Message",
+                "namePlaceholder": "Your name",
+                "messagePlaceholder": "Tell me what you want to build",
+                "personal": "Personal profile",
+                "business": "Business page",
+                "linkHub": "Admin edition",
+                "send": "Open WhatsApp"
+            },
+            "accent": {
+                "label": "Accent"
+            },
+            "preset": {
+                "label": "Theme",
+                "neon": "Neon",
+                "midnight": "Midnight",
+                "emerald": "Emerald",
+                "sunset": "Sunset",
+                "aurora": "Aurora",
+                "royal": "Royal",
+                "graphite": "Graphite",
+                "shuffle": "Shuffle"
+            },
+            "aria": {
+                "scrollAbout": "Scroll to about section",
+                "contactCard": "Profile QR and contact actions",
+                "quickNav": "Quick navigation",
+                "accentColors": "Accent colors",
+                "themePresets": "Theme presets"
+            },
+            "share": {
+                "whatsappMessage": "Hi TOJI, I saw your profile and wanted to ask about a custom page.",
+                "profileText": "TOJI profile, links, QR, and web page details.",
+                "briefIntro": "Hi TOJI, I want to build a page."
+            },
+            "toast": {
+                "numberCopied": "Number copied",
+                "copyFailed": "Copy failed",
+                "copyManual": "Copy manually:",
+                "contactDownloaded": "Contact card downloaded",
+                "qrLoading": "QR is still loading",
+                "qrDownloadFailed": "QR download failed",
+                "qrDownloaded": "QR downloaded",
+                "shared": "Shared",
+                "profileCopied": "Profile link copied",
+                "shareFailed": "Share failed",
+                "accentSaved": "Accent saved",
+                "presetSaved": "Theme saved",
+                "shareImageReady": "Share image downloaded"
+            },
+            "theme": {
+                "toLight": "Switch to light theme",
+                "toDark": "Switch to dark theme"
+            }
+        },
+        "ar": {
+            "meta": {
+                "title": "TOJI | محمد مصطفى",
+                "description": "محمد مصطفى، TOJI. بروفايل شخصي وروابط وQR للتواصل وصفحات ويب خفيفة بتفاصيل نظيفة."
+            },
+            "lang": {
+                "nextLabel": "EN",
+                "switchLabel": "التبديل إلى الإنجليزية"
+            },
+            "nav": {
+                "home": "الرئيسية",
+                "about": "عني",
+                "work": "شغلي",
+                "links": "الروابط"
+            },
+            "hero": {
+                "eyebrow": "محمد مصطفى / TOJI",
+                "title": "ببني صفحات شخصية وروابط وتجارب ويب صغيرة بشكل نضيف.",
+                "working": "مركز على",
+                "copy": "دي نسختي الشخصية من الموقع: روابط، أفكار شغل، QR للتواصل، أدوات مشاركة، ثيمات، وتفاصيل بحب أحطها في كل صفحة.",
+                "status": "متاح لصفحات مخصصة ومواقع خفيفة وشكلها مميز",
+                "openLinks": "افتح الروابط"
+            },
+            "typewriter": [
+                "بروفايلات شخصية",
+                "صفحات للموبايل",
+                "QR للتواصل",
+                "تفاصيل أحسن"
+            ],
+            "signals": {
+                "valueUi": "UI",
+                "valueJs": "JS",
+                "valueGym": "QR",
+                "ui": "شاشات نظيفة",
+                "js": "تفاصيل مفيدة",
+                "gym": "تواصل سهل"
+            },
+            "profile": {
+                "live": "TOJI شغال",
+                "caption": "كود، تمرين، روابط، وتفاصيل أحسن.",
+                "mobile": "موبايل الأول",
+                "fast": "سريع",
+                "personal": "شخصي"
+            },
+            "about": {
+                "title": "الصفحة معمولة عشان تحس إنها شخصية وسريعة ومفيدة.",
+                "card1": {
+                    "title": "انطباع أول",
+                    "copy": "الهيرو بيقول أنا مين بسرعة وبعدها يدي الزائر طريق واضح للروابط وواتساب وأفكار الشغل."
+                },
+                "card2": {
+                    "title": "فرونت إند نضيف",
+                    "copy": "HTML وCSS وJavaScript بشكل بسيط ومنظم يخلي الصفحة سهلة التعديل والتطوير."
+                },
+                "card3": {
+                    "title": "الموبايل الأول",
+                    "copy": "معظم الناس بتفتح البروفايلات من تطبيقات السوشيال، فشكل الموبايل والأزرار والـ QR والمشاركة أهم حاجة."
+                },
+                "card4": {
+                    "title": "مبنية كسيستم",
+                    "copy": "الموقع الشخصي بقى فيه تحكم محتوى وأقسام اختيارية وPWA وأدوات مشاركة وخريطة أدمن."
+                }
+            },
+            "work": {
+                "title": "صفحات وسيستمات أقدر أبنيها أو أطورها.",
+                "banner1": "TOJI",
+                "banner2": "WEB",
+                "banner3": "ADMIN",
+                "card1": {
+                    "title": "بورتفوليو شخصي",
+                    "copy": "صفحة نضيفة لاسمك وروابطك وشغلك والانطباع اللي عايز توصله."
+                },
+                "card2": {
+                    "title": "صفحة بيزنس أو خدمة",
+                    "copy": "صفحة مركزة لخدمة أو عرض أو صانع محتوى أو شوب بأزرار واضحة ومن غير زحمة."
+                },
+                "card3": {
+                    "title": "تجميعة روابط",
+                    "copy": "مكان واحد للسوشيال وواتساب وQR وكارت الاتصال وأزرار مشاركة مفيدة فعلا."
+                }
+            },
+            "tags": {
+                "profile": "بروفايل",
+                "links": "روابط",
+                "mobile": "موبايل",
+                "share": "مشاركة"
+            },
+            "connect": {
+                "eyebrow": "تواصل",
+                "title": "روابطي كلها هنا.",
+                "copyNumber": "نسخ الرقم",
+                "scanTitle": "امسح البروفايل",
+                "scanCopy": "افتح نفس الصفحة على موبايل تاني أو احفظ كارت الاتصال أو حمل الـ QR بعدين.",
+                "saveContact": "حفظ جهة الاتصال",
+                "downloadQr": "تحميل QR",
+                "copyLink": "نسخ الرابط",
+                "shareImage": "صورة مشاركة",
+                "mediaKit": "ميديا كيت",
+                "installApp": "تثبيت الموقع",
+                "shareProfile": "مشاركة البروفايل"
+            },
+            "qr": {
+                "profile": "البروفايل"
+            },
+            "form": {
+                "eyebrow": "رسالة سريعة",
+                "title": "ابعتلي Brief على واتساب.",
+                "name": "الاسم",
+                "type": "نوع الصفحة",
+                "message": "الرسالة",
+                "namePlaceholder": "اسمك",
+                "messagePlaceholder": "قولي عايز تبني إيه",
+                "personal": "بروفايل شخصي",
+                "business": "صفحة بيزنس",
+                "linkHub": "نسخة بأدمن",
+                "send": "افتح واتساب"
+            },
+            "accent": {
+                "label": "اللون"
+            },
+            "preset": {
+                "label": "الثيم",
+                "neon": "نيون",
+                "midnight": "منتصف الليل",
+                "emerald": "أخضر",
+                "sunset": "غروب",
+                "aurora": "أورورا",
+                "royal": "ملكي",
+                "graphite": "جرافيت",
+                "shuffle": "بدل الستايل"
+            },
+            "aria": {
+                "scrollAbout": "انزل لقسم عني",
+                "contactCard": "QR وإجراءات التواصل",
+                "quickNav": "تنقل سريع",
+                "accentColors": "ألوان الموقع",
+                "themePresets": "ثيمات الموقع"
+            },
+            "share": {
+                "whatsappMessage": "أهلا يا TOJI، شوفت بروفايلك وعايز أسأل عن صفحة مخصصة.",
+                "profileText": "بروفايل TOJI وروابطه وQR وتفاصيل صفحات الويب.",
+                "briefIntro": "أهلا يا TOJI، عايز أعمل صفحة."
+            },
+            "toast": {
+                "numberCopied": "اتنسخ الرقم",
+                "copyFailed": "النسخ فشل",
+                "copyManual": "انسخ يدويًا:",
+                "contactDownloaded": "تم تحميل جهة الاتصال",
+                "qrLoading": "الـ QR لسه بيجهز",
+                "qrDownloadFailed": "تحميل الـ QR فشل",
+                "qrDownloaded": "تم تحميل الـ QR",
+                "shared": "اتشاركت",
+                "profileCopied": "اتنسخ رابط البروفايل",
+                "shareFailed": "المشاركة فشلت",
+                "accentSaved": "اتحفظ اللون",
+                "presetSaved": "اتحفظ الثيم",
+                "shareImageReady": "تم تحميل صورة المشاركة"
+            },
+            "theme": {
+                "toLight": "التبديل للثيم الفاتح",
+                "toDark": "التبديل للثيم الداكن"
+            }
+        }
     }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            attachCounterData();
-            init();
-        });
-    } else {
-        attachCounterData();
-        // Slight delay to ensure base script.js has fully initialised
-        setTimeout(init, 120);
-    }
-
-    /* ======================================================
-       EXPOSE helpers for debugging
-       ====================================================== */
-    window.TOJI_ENH = { Sounds, playTone };
-
-})();
-
+};

@@ -502,7 +502,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function t(path) {
-        return path.split('.').reduce((value, key) => value?.[key], translations[currentLang]) ?? path;
+        const fromLang = path.split('.').reduce((v, k) => v?.[k], translations[currentLang]);
+        if (fromLang) return fromLang;
+        // Fallback: English default
+        const fromEn = path.split('.').reduce((v, k) => v?.[k], translations.en);
+        if (fromEn) return fromEn;
+        // Last resort: return the key itself
+        return path;
     }
 
     function localized(value) {
@@ -587,54 +593,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderWorkCards(apiCards) {
         const grid = document.querySelector('.project-grid');
-        // Priority: 1) API data  2) content.js overrides  3) leave static HTML
-        const cards = apiCards
-            || (Array.isArray(contentOverrides.workCards) && contentOverrides.workCards.length
-                ? contentOverrides.workCards
-                : null);
-        if (!grid || !cards) return;
+        if (!grid) return;
+
+        // Priority 1: Backend API projects (always wins)
+        // Priority 2: Admin workCards (only if they have real content)
+        // Priority 3: Keep static HTML as-is
+        let cards = null;
+
+        if (apiCards && apiCards.length) {
+            cards = apiCards;
+        } else {
+            const wc = contentOverrides.workCards;
+            if (Array.isArray(wc) && wc.length) {
+                // فقط الكروت اللي عندها محتوى حقيقي
+                const validCards = wc.filter((c) => {
+                    const hasTitle = c.title?.en || c.title?.ar || (typeof c.title === 'string' && c.title);
+                    const hasCopy  = c.copy?.en  || c.copy?.ar  || (typeof c.copy  === 'string' && c.copy);
+                    return hasTitle && hasCopy;
+                });
+                if (validCards.length) cards = validCards;
+            }
+        }
+
+        // لو مفيش داتا حقيقية → اترك الـ static HTML زي ما هو
+        if (!cards) return;
 
         grid.innerHTML = cards.map((card, index) => {
             const tags = (card.tags || []).map((tag) => `<span>${localized(tag)}</span>`).join('');
             const liveBtn = card.liveUrl
                 ? `<a href="${card.liveUrl}" target="_blank" rel="noreferrer" class="project-live-link">View Project →</a>`
                 : '';
+            const banner = localized(card.banner) || card.banner || String(index + 1).padStart(2, '0');
             return `
                 <article class="project-card glass-card reveal-up tilt-effect ${index ? `delay-${Math.min(index, 3)}` : ''}">
                     <div class="project-preview preview-${index % 3}" aria-hidden="true">
-                        <span>${localized(card.banner) || String(index + 1).padStart(2, '0')}</span>
+                        <span>${banner}</span>
                     </div>
                     <span class="project-number">${String(index + 1).padStart(2, '0')}</span>
-                    <h3>${localized(card.title)}</h3>
-                    <p>${localized(card.copy)}</p>
+                    <h3>${localized(card.title) || ''}</h3>
+                    <p>${localized(card.copy) || ''}</p>
                     <div class="project-tags">${tags}</div>
                     ${liveBtn}
                 </article>
             `;
         }).join('');
+
+        // إعادة تفعيل الـ animations والـ icons
+        refreshDomCollections();
+        if (window.lucide) window.lucide.createIcons();
     }
 
     // ---- Load projects from backend API (with graceful fallback) ----
     async function loadProjectsFromAPI() {
-        if (!window.TojiAPI) return; // api.js not loaded
+        if (!window.TojiAPI) return;
         try {
             const response = await window.TojiAPI.ProjectsAPI.getPublic();
             if (response && Array.isArray(response.data) && response.data.length > 0) {
-                // Map MongoDB project schema → workCards shape expected by renderWorkCards
                 const apiCards = response.data.map((p) => ({
-                    banner: p.banner,
-                    title:  p.title,   // already { en, ar }
-                    copy:   p.copy,    // already { en, ar }
-                    tags:   p.tags || [],
+                    banner:  p.banner,
+                    title:   p.title,
+                    copy:    p.copy,
+                    tags:    p.tags || [],
                     liveUrl: p.liveUrl || ''
                 }));
                 renderWorkCards(apiCards);
-                window.lucide?.createIcons(); // re-run icons in case new ones were added
+                console.info(`[TOJI] ✅ Loaded ${apiCards.length} projects from backend.`);
+            } else {
+                // مفيش projects في الباك اند → اعرض الـ static HTML
+                console.info('[TOJI] No backend projects yet — using static content.');
             }
-            // If DB is empty, the static HTML / content.js cards remain visible
-        } catch (_err) {
-            // Backend unreachable → silently keep static content, no error shown to visitors
-            console.warn('[TOJI] Projects API unavailable, using static content.');
+        } catch (err) {
+            // الباك اند مش متاح → الـ static HTML يفضل ظاهر
+            console.warn('[TOJI] Projects API unavailable, using static content.', err.message);
         }
     }
 

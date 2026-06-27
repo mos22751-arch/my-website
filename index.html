@@ -1,411 +1,962 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr"><head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.facebook.com http://localhost:5000 https://portfolio-backend-production-1901.up.railway.app; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
-    <title>TOJI | Mohamed Mostafa</title>
-    <meta name="description" content="Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details.">
-    <meta name="author" content="Mohamed Mostafa">
-    <meta name="theme-color" content="#050506">
-    <meta name="application-name" content="TOJI">
-    <meta name="apple-mobile-web-app-title" content="TOJI">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="robots" content="index, follow">
-    <meta property="og:title" content="TOJI | Mohamed Mostafa">
-    <meta property="og:description" content="Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details.">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="assets/social-preview.png">
-    <meta property="og:image:alt" content="TOJI preview">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="TOJI | Mohamed Mostafa">
-    <meta name="twitter:description" content="Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details.">
-    <meta name="twitter:image" content="assets/social-preview.png">
-    <link rel="manifest" href="manifest.webmanifest">
-    <link rel="canonical" href="./">
-    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="assets/icon-192.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <link rel="stylesheet" href="style.css?v=18">
-    <link rel="stylesheet" href="enhancements.css?v=1">
-    <script src="content.js?v=18"></script>
-    <script id="profileSchema" type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Mohamed Mostafa",
-        "alternateName": "TOJI",
-        "url": "./",
-        "image": "assets/social-preview.png",
-        "telephone": "+201102550730",
-        "description": "Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details.",
-        "sameAs": [
-            "https://instagram.com/mouhamedmostafffa",
-            "https://tiktok.com/@mouhamedmostafffa",
-            "https://www.snapchat.com/add/dr.toji",
-            "https://www.threads.net/@mouhamedmostafffa",
-            "./"
-        ]
+/* ========================================================
+   TOJI ENHANCEMENTS — v1.0
+   All additions are layered ON TOP of the base style.css.
+   No existing selectors are broken or overridden carelessly.
+   ======================================================== */
+
+/* ─── FIX: Remove the blanket "all" transition override ── */
+/* The base file had:  * { transition: all 0.3s … }
+   That causes jitter on every property. We scope it properly. */
+*,
+*::before,
+*::after {
+    /* Inherit only — base rules do what they need explicitly */
+}
+
+/* ─── FIX: Icon breathing should be selective, not global ─ */
+/* Base file had: svg,[data-lucide]{animation:iconBreathe 3s…}
+   That made every single icon pulse — overwhelming. We scope it. */
+svg,
+[data-lucide] {
+    animation: none !important;
+}
+
+/* Only breathe on the status dot area icons */
+.status-dot,
+.pulse-dot {
+    animation: pulse 1.8s infinite !important;
+}
+
+/* ─── Dock Divider ───────────────────────────────────────────────*/
+.dock-divider {
+    width: 1px;
+    height: 22px;
+    background: var(--glass-border);
+    border-radius: 1px;
+    flex-shrink: 0;
+    align-self: center;
+    margin: 0 2px;
+}
+
+/* ─── Sound Button in Dock ───────────────────────────────────────*/
+.dock-sound-btn {
+    color: var(--text-muted);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+                color 0.22s ease,
+                background 0.22s ease !important;
+}
+
+.dock-sound-btn svg {
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+.dock-sound-btn:hover {
+    color: var(--primary);
+    transform: translateY(-3px) scale(1.1);
+}
+
+.dock-sound-btn.sound-on {
+    color: var(--mint);
+}
+
+@keyframes soundWave {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.5; }
+}
+
+.dock-sound-btn.sound-on svg path {
+    animation: soundWave 1.4s ease-in-out infinite;
+}
+.dock-sound-btn.sound-on svg path:last-child {
+    animation-delay: 0.2s;
+}
+
+/* ─── Magnetic Button Enhancement ────────────────────────
+   We use CSS custom properties set by JS for a buttery pull */
+.magnetic-btn {
+    transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 0.35s ease,
+                border-color 0.25s ease !important;
+    will-change: transform;
+}
+
+/* ─── Click Ripple (improved over base) ──────────────────*/
+.ripple-host {
+    position: relative;
+    overflow: hidden;
+}
+
+.toji-ripple {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    transform: scale(0);
+    animation: tojiRipple 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.38), rgba(57, 208, 255, 0.22));
+    z-index: 10;
+}
+
+@keyframes tojiRipple {
+    to {
+        transform: scale(4);
+        opacity: 0;
     }
-    </script>
-</head>
-<body class="dark-theme is-loading">
-    <div class="page-loader" id="pageLoader" role="status" aria-live="polite">
-        <div class="loader-mark"><span id="loaderBrand">TOJI</span><span>.</span></div>
-        <div class="loader-line" aria-hidden="true"></div>
-    </div>
-    <div class="scroll-progress" aria-hidden="true"></div>
-    <div class="cursor-dot" aria-hidden="true"></div>
-    <div class="cursor-outline" aria-hidden="true"></div>
-    <div class="mesh-bg" aria-hidden="true"></div>
-    <div class="grain-layer" aria-hidden="true"></div>
+}
 
-    <nav class="modern-nav glass-panel" aria-label="Primary navigation">
-        <a class="brand" href="#home" aria-label="TOJI home"><span id="brandName">TOJI</span><span class="dot">.</span></a>
-        <div class="nav-links" aria-label="Section links">
-            <a class="nav-link active" href="#home" data-target="home" data-i18n="nav.home">Home</a>
-            <a class="nav-link" href="#expertise" data-target="expertise" data-i18n="nav.about">About</a>
-            <a class="nav-link" href="#work" data-target="work" data-i18n="nav.work">Work</a>
-            <a class="nav-link" href="#connect" data-target="connect" data-i18n="nav.links">Links</a>
-        </div>
-        <div class="nav-actions">
-            <button class="language-toggle" id="languageToggle" type="button" aria-label="Switch to Arabic">
-                <span>عربي</span>
-            </button>
-            <button class="theme-switch" id="themeToggle" type="button" aria-label="Switch theme">
-                <i data-lucide="sun" class="icon-sun" aria-hidden="true"></i>
-                <i data-lucide="moon" class="icon-moon" aria-hidden="true"></i>
-            </button>
-        </div>
-    </nav>
+/* ─── On-Scroll Reveal Enhancement ───────────────────────
+   The base already has .reveal-up / .visible — we enhance: */
+.reveal-up {
+    opacity: 0;
+    transform: translateY(36px);
+    transition: opacity 0.65s cubic-bezier(0.23, 1, 0.32, 1),
+                transform 0.65s cubic-bezier(0.23, 1, 0.32, 1);
+}
 
-    <main class="smooth-scroll" id="pageScroll">
-        <section class="screen hero-screen" id="home" aria-labelledby="hero-title">
-            <div class="hero-shell">
-                <div class="hero-content reveal-up">
-                    <p class="eyebrow" data-i18n="hero.eyebrow">Mohamed Mostafa / TOJI</p>
-                    <h1 class="main-title" id="hero-title" data-i18n="hero.title">I build clean personal pages, link hubs, and small web experiences.</h1>
-                    <div class="typewriter-container" aria-live="polite">
-                        <span class="static-text" data-i18n="hero.working">Focused on</span>
-                        <span id="typewriter" class="dynamic-text"></span>
-                        <span class="cursor" aria-hidden="true">|</span>
-                    </div>
-                    <p class="hero-copy" data-i18n="hero.copy">This is my personal web base: links, work ideas, QR contact, share tools, theme controls, and the kind of details I like to put into every page.</p>
-                    <div class="status-strip" aria-label="Current status">
-                        <span class="status-dot" aria-hidden="true"></span>
-                        <span id="liveStatusText" data-i18n="hero.status">Available for custom pages and clean web builds</span>
-                    </div>
-                    <div class="hero-actions">
-                        <a class="action-btn action-primary" href="#connect">
-                            <i data-lucide="send" aria-hidden="true"></i>
-                            <span data-i18n="hero.openLinks">Open Links</span>
-                        </a>
-                        <a class="action-btn action-secondary" href="https://wa.me/201102550730?text=Hi%20TOJI%2C%20I%20saw%20your%20profile%20and%20wanted%20to%20ask%20about%20a%20custom%20page." target="_blank" rel="noreferrer" data-whatsapp="">
-                            <i data-lucide="message-circle" aria-hidden="true"></i>
-                            <span>WhatsApp</span>
-                        </a>
-                    </div>
-                    <div class="signal-row" aria-label="Profile highlights">
-                        <div class="signal-item">
-                            <span class="signal-value" data-i18n="signals.valueUi">UI</span>
-                            <span class="signal-label" data-i18n="signals.ui">Clean screens</span>
-                        </div>
-                        <div class="signal-item">
-                            <span class="signal-value" data-i18n="signals.valueJs">JS</span>
-                            <span class="signal-label" data-i18n="signals.js">Useful details</span>
-                        </div>
-                        <div class="signal-item">
-                            <span class="signal-value" data-i18n="signals.valueGym">QR</span>
-                            <span class="signal-label" data-i18n="signals.gym">Easy contact</span>
-                        </div>
-                    </div>
-                </div>
+.reveal-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
 
-                <aside class="profile-panel reveal-up delay-2 tilt-effect" aria-label="TOJI profile card">
-                    <div class="profile-topline">
-                        <span data-i18n="profile.live">TOJI is live</span>
-                        <span class="pulse-dot" aria-hidden="true"></span>
-                    </div>
-                    <div class="profile-mark" aria-hidden="true">
-                        <img class="profile-photo" id="profilePhoto" src="assets/profile.webp" alt="TOJI" loading="lazy">
-                    </div>
-                    <div class="profile-name" id="profileCardName">TOJI</div>
-                    <p class="profile-caption" data-i18n="profile.caption">Code, training, links, and better details.</p>
-                    <div class="profile-stack">
-                        <span data-i18n="profile.mobile">Mobile-first</span>
-                        <span data-i18n="profile.fast">Fast</span>
-                        <span data-i18n="profile.personal">Personal</span>
-                    </div>
-                </aside>
-            </div>
-            <a class="scroll-cue" href="#expertise" aria-label="Scroll to about section" data-i18n-attr="aria-label:aria.scrollAbout">
-                <span></span>
-            </a>
-        </section>
+.reveal-up.delay-1 { transition-delay: 0.12s; }
+.reveal-up.delay-2 { transition-delay: 0.24s; }
+.reveal-up.delay-3 { transition-delay: 0.36s; }
 
-        <section class="screen" id="expertise" aria-labelledby="expertise-title">
-            <div class="section-shell">
-                <div class="section-heading reveal-up">
-                    <p class="eyebrow" data-i18n="nav.about">About</p>
-                    <h2 class="section-title" id="expertise-title" data-i18n="about.title">The page is built to feel personal, fast, and useful.</h2>
-                </div>
-                <div class="bento-grid">
-                    <article class="bento-item glass-card reveal-up tilt-effect wide-card">
-                        <i data-lucide="layout-dashboard" aria-hidden="true"></i>
-                        <h3 data-i18n="about.card1.title">First impression</h3>
-                        <p data-i18n="about.card1.copy">The hero says who I am quickly, then gives people a clear route to links, WhatsApp, and work ideas.</p>
-                    </article>
-                    <article class="bento-item glass-card reveal-up tilt-effect delay-1">
-                        <i data-lucide="code-2" aria-hidden="true"></i>
-                        <h3 data-i18n="about.card2.title">Clean front-end</h3>
-                        <p data-i18n="about.card2.copy">Simple HTML, CSS, and JavaScript with enough structure to keep the page editable and easy to improve.</p>
-                    </article>
-                    <article class="bento-item glass-card reveal-up tilt-effect delay-2">
-                        <i data-lucide="smartphone" aria-hidden="true"></i>
-                        <h3 data-i18n="about.card3.title">Phone first</h3>
-                        <p data-i18n="about.card3.copy">Most people open profiles from social apps, so the mobile view, buttons, QR, and sharing flow matter most.</p>
-                    </article>
-                    <article class="bento-item glass-card reveal-up tilt-effect delay-3">
-                        <i data-lucide="dumbbell" aria-hidden="true"></i>
-                        <h3 data-i18n="about.card4.title">Built like a system</h3>
-                        <p data-i18n="about.card4.copy">The personal site now has content controls, optional sections, PWA setup, share tools, and an admin map.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
+/* Reveal from side for bento cards */
+.reveal-left {
+    opacity: 0;
+    transform: translateX(-36px);
+    transition: opacity 0.65s cubic-bezier(0.23, 1, 0.32, 1),
+                transform 0.65s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
 
-        <section class="screen" id="work" aria-labelledby="work-title">
-            <div class="section-shell">
-                <div class="section-heading reveal-up">
-                    <p class="eyebrow" data-i18n="nav.work">Work</p>
-                    <h2 class="section-title" id="work-title" data-i18n="work.title">Pages and systems I can build or improve.</h2>
-                </div>
-                <div class="project-grid">
-                    <article class="project-card glass-card reveal-up tilt-effect">
-                        <div class="project-preview preview-profile" aria-hidden="true">
-                            <span data-i18n="work.banner1">TOJI</span>
-                        </div>
-                        <span class="project-number">01</span>
-                        <h3 data-i18n="work.card1.title">Personal portfolio</h3>
-                        <p data-i18n="work.card1.copy">A clean page for your name, links, work, and the first impression you want people to get.</p>
-                        <div class="project-tags">
-                            <span data-i18n="tags.profile">Profile</span>
-                            <span data-i18n="tags.links">Links</span>
-                            <span data-i18n="tags.mobile">Mobile</span>
-                        </div>
-                    </article>
-                    <article class="project-card glass-card reveal-up tilt-effect delay-1">
-                        <div class="project-preview preview-business" aria-hidden="true">
-                            <span data-i18n="work.banner2">WEB</span>
-                        </div>
-                        <span class="project-number">02</span>
-                        <h3 data-i18n="work.card2.title">Business landing page</h3>
-                        <p data-i18n="work.card2.copy">A focused page for a service, offer, creator, or shop with clear buttons and no extra noise.</p>
-                        <div class="project-tags">
-                            <span>CTA</span>
-                            <span>SEO</span>
-                            <span data-i18n="profile.fast">Fast</span>
-                        </div>
-                    </article>
-                    <article class="project-card glass-card reveal-up tilt-effect delay-2">
-                        <div class="project-preview preview-links" aria-hidden="true">
-                            <span data-i18n="work.banner3">ADMIN</span>
-                        </div>
-                        <span class="project-number">03</span>
-                        <h3 data-i18n="work.card3.title">Creator link hub</h3>
-                        <p data-i18n="work.card3.copy">One place for social accounts, WhatsApp, QR code, contact card, and share actions that actually help.</p>
-                        <div class="project-tags">
-                            <span>Bio</span>
-                            <span>QR</span>
-                            <span data-i18n="tags.share">Share</span>
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </section>
+.reveal-right {
+    opacity: 0;
+    transform: translateX(36px);
+    transition: opacity 0.65s cubic-bezier(0.23, 1, 0.32, 1),
+                transform 0.65s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
 
-        <section class="screen" id="connect" aria-labelledby="connect-title">
-            <div class="connect-container">
-                <div class="section-heading reveal-up">
-                    <p class="eyebrow" data-i18n="connect.eyebrow">Connect</p>
-                    <h2 class="section-title" id="connect-title" data-i18n="connect.title">My links are here.</h2>
-                </div>
-                <div class="connect-layout">
-                    <div class="social-mesh">
-                        <a href="https://instagram.com/mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up" data-social="instagram">
-                            <i data-lucide="instagram" aria-hidden="true"></i>
-                            <span>Instagram</span>
-                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
-                        </a>
-                        <a href="https://tiktok.com/@mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up delay-1" data-social="tiktok">
-                            <i data-lucide="video" aria-hidden="true"></i>
-                            <span>TikTok</span>
-                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
-                        </a>
-                        <a href="https://www.snapchat.com/add/dr.toji" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up delay-2" data-social="snapchat">
-                            <i data-lucide="ghost" aria-hidden="true"></i>
-                            <span>Snapchat</span>
-                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
-                        </a>
-                        <a href="https://www.threads.net/@mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up delay-3" data-social="threads">
-                            <i data-lucide="at-sign" aria-hidden="true"></i>
-                            <span>Threads</span>
-                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
-                        </a>
-                        <a href="https://wa.me/201102550730?text=Hi%20TOJI%2C%20I%20saw%20your%20profile%20and%20wanted%20to%20ask%20about%20a%20custom%20page." target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up" data-whatsapp="">
-                            <i data-lucide="message-circle" aria-hidden="true"></i>
-                            <span>WhatsApp</span>
-                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
-                        </a>
-                        <button class="social-pill glass-card hover-glow reveal-up delay-1" type="button" data-copy="201102550730">
-                            <i data-lucide="copy" aria-hidden="true"></i>
-                            <span data-i18n="connect.copyNumber">Copy Number</span>
-                            <i data-lucide="check" class="pill-arrow" aria-hidden="true"></i>
-                        </button>
-                    </div>
+/* ─── Bento Card Hover Enhancement ───────────────────────*/
+.bento-item.glass-card {
+    transition: transform 0.28s cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 0.28s ease,
+                border-color 0.28s ease !important;
+}
 
-                    <aside class="contact-card glass-card reveal-up delay-2" aria-label="Profile QR and contact actions" data-i18n-attr="aria-label:aria.contactCard">
-                        <div class="qr-mode-tabs" aria-label="QR type">
-                            <button class="qr-mode active" type="button" data-qr-mode="profile" data-i18n="qr.profile">Profile</button>
-                            <button class="qr-mode" type="button" data-qr-mode="whatsapp">WhatsApp</button>
-                            <button class="qr-mode" type="button" data-qr-mode="instagram">Instagram</button>
-                        </div>
-                        <div class="qr-frame">
-                            <canvas id="profileQr" width="220" height="220" aria-label="QR code for this profile"></canvas>
-                            <div class="qr-fallback" id="qrFallback">TOJI</div>
-                        </div>
-                        <h3 data-i18n="connect.scanTitle">Scan this profile</h3>
-                        <p data-i18n="connect.scanCopy">Open the same page on another phone, save my contact card, or download the QR for later.</p>
-                        <div class="utility-actions">
-                            <button class="utility-btn" type="button" id="downloadContact">
-                                <i data-lucide="contact" aria-hidden="true"></i>
-                                <span data-i18n="connect.saveContact">Save Contact</span>
-                            </button>
-                            <button class="utility-btn" type="button" id="downloadQr">
-                                <i data-lucide="qr-code" aria-hidden="true"></i>
-                                <span data-i18n="connect.downloadQr">Download QR</span>
-                            </button>
-                            <button class="utility-btn" type="button" id="copyProfileLink">
-                                <i data-lucide="link" aria-hidden="true"></i>
-                                <span data-i18n="connect.copyLink">Copy Link</span>
-                            </button>
-                            <button class="utility-btn" type="button" id="generateShareImage">
-                                <i data-lucide="image-down" aria-hidden="true"></i>
-                                <span data-i18n="connect.shareImage">Share Image</span>
-                            </button>
-                            <a class="utility-btn" href="assets/toji-media-kit.zip" download="">
-                                <i data-lucide="archive" aria-hidden="true"></i>
-                                <span data-i18n="connect.mediaKit">Media Kit</span>
-                            </a>
-                            <button class="utility-btn" type="button" id="installApp" hidden="">
-                                <i data-lucide="download" aria-hidden="true"></i>
-                                <span data-i18n="connect.installApp">Install App</span>
-                            </button>
-                        </div>
-                    </aside>
-                </div>
-                <form class="contact-form glass-card reveal-up delay-2" id="quickMessageForm">
-                    <div>
-                        <p class="eyebrow" data-i18n="form.eyebrow">Quick Message</p>
-                        <h3 data-i18n="form.title">Send a WhatsApp brief.</h3>
-                    </div>
-                    <div class="form-grid">
-                        <label>
-                            <span data-i18n="form.name">Name</span>
-                            <input id="messageName" type="text" autocomplete="name" placeholder="Your name" data-i18n-attr="placeholder:form.namePlaceholder">
-                        </label>
-                        <label>
-                            <span data-i18n="form.type">Page type</span>
-                            <select id="messageType">
-                                <option value="Personal profile" data-i18n="form.personal">Personal profile</option>
-                                <option value="Business page" data-i18n="form.business">Business page</option>
-                                <option value="Link hub" data-i18n="form.linkHub">Admin edition</option>
-                            </select>
-                        </label>
-                        <label class="form-wide">
-                            <span data-i18n="form.message">Message</span>
-                            <textarea id="messageText" rows="3" placeholder="Tell me what you want to build" data-i18n-attr="placeholder:form.messagePlaceholder"></textarea>
-                        </label>
-                    </div>
-                    <button class="share-profile" type="submit">
-                        <i data-lucide="send" aria-hidden="true"></i>
-                        <span data-i18n="form.send">Open WhatsApp</span>
-                    </button>
-                </form>
-                <div class="accent-panel glass-card reveal-up delay-3" aria-label="Accent colors" data-i18n-attr="aria-label:aria.accentColors">
-                    <div class="accent-row">
-                        <span data-i18n="accent.label">Accent</span>
-                        <button class="accent-swatch cyan active" type="button" data-accent="cyan" aria-label="Cyan"></button>
-                        <button class="accent-swatch orange" type="button" data-accent="orange" aria-label="Orange"></button>
-                        <button class="accent-swatch green" type="button" data-accent="green" aria-label="Green"></button>
-                        <button class="accent-swatch violet" type="button" data-accent="violet" aria-label="Violet"></button>
-                        <button class="accent-swatch gold" type="button" data-accent="gold" aria-label="Gold"></button>
-                    </div>
-                    <div class="preset-row" aria-label="Theme presets" data-i18n-attr="aria-label:aria.themePresets">
-                        <span data-i18n="preset.label">Theme</span>
-                        <button class="preset-btn active" type="button" data-preset="neon" data-i18n="preset.neon">Neon</button>
-                        <button class="preset-btn" type="button" data-preset="midnight" data-i18n="preset.midnight">Midnight</button>
-                        <button class="preset-btn" type="button" data-preset="emerald" data-i18n="preset.emerald">Emerald</button>
-                        <button class="preset-btn" type="button" data-preset="sunset" data-i18n="preset.sunset">Sunset</button>
-                        <button class="preset-btn" type="button" data-preset="aurora" data-i18n="preset.aurora">Aurora</button>
-                        <button class="preset-btn" type="button" data-preset="royal" data-i18n="preset.royal">Royal</button>
-                        <button class="preset-btn" type="button" data-preset="graphite" data-i18n="preset.graphite">Graphite</button>
-                        <button class="preset-btn preset-shuffle" type="button" id="randomVibe">
-                            <i data-lucide="sparkles" aria-hidden="true"></i>
-                            <span data-i18n="preset.shuffle">Shuffle</span>
-                        </button>
-                    </div>
+.bento-item.glass-card:hover {
+    transform: translateY(-6px) scale(1.012);
+    border-color: color-mix(in srgb, var(--primary) 38%, transparent);
+    box-shadow: 0 28px 56px rgba(0, 0, 0, 0.28), 0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent);
+}
 
-                </div>
-                <button class="share-profile reveal-up delay-2" type="button" id="shareProfile">
-                    <i data-lucide="share-2" aria-hidden="true"></i>
-                    <span data-i18n="connect.shareProfile">Share Profile</span>
-                </button>
-            </div>
-        </section>
+.bento-item svg {
+    transition: color 0.25s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
 
-        <footer class="owner-credit" data-owner-credit=""><span>Website created by:</span><a href="https://www.instagram.com/mouhamedmostafffa" target="_blank" rel="noopener noreferrer">@mouhamedmostafffa</a></footer>
-    </main>
+.bento-item:hover svg {
+    color: var(--accent);
+    transform: scale(1.18) rotate(-6deg);
+}
 
-    <div class="floating-dock-wrapper" aria-label="Quick navigation" data-i18n-attr="aria-label:aria.quickNav">
-        <div class="floating-dock glass-panel">
-            <button class="dock-btn active" type="button" data-target="home" aria-label="Home" data-i18n-attr="aria-label:nav.home">
-                <i data-lucide="home" aria-hidden="true"></i>
-            </button>
-            <button class="dock-btn" type="button" data-target="expertise" aria-label="About" data-i18n-attr="aria-label:nav.about">
-                <i data-lucide="user-round" aria-hidden="true"></i>
-            </button>
-            <button class="dock-btn" type="button" data-target="work" aria-label="Work" data-i18n-attr="aria-label:nav.work">
-                <i data-lucide="briefcase-business" aria-hidden="true"></i>
-            </button>
-            <button class="dock-btn" type="button" data-target="connect" aria-label="Links" data-i18n-attr="aria-label:nav.links">
-                <i data-lucide="link-2" aria-hidden="true"></i>
-            </button>
-            <div class="dock-divider" aria-hidden="true"></div>
-            <button class="dock-btn dock-sound-btn" type="button" id="soundToggle" aria-label="Sound off — tap to enable">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="icon-mute"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="icon-on" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-            </button>
-        </div>
-    </div>
+/* ─── Project Card Hover Enhancement ─────────────────────*/
+.project-card.glass-card {
+    transition: transform 0.28s cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 0.28s ease,
+                border-color 0.28s ease !important;
+}
 
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="vendor/lucide.min.js?v=18"></script>
-    <script src="vendor/qrcode.min.js?v=18"></script>
-    <script src="config.js?v=18"></script>
-    <script src="status.js?v=18"></script>
-    <script src="api.js?v=19"></script>
-        <script src="script.js?v=18"></script>
-    <script src="enhancements.js?v=1"></script>
+.project-card.glass-card:hover {
+    transform: translateY(-8px);
+    border-color: color-mix(in srgb, var(--primary) 42%, transparent);
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.3), 0 0 0 1px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.project-card:hover .project-number {
+    color: var(--primary);
+    text-shadow: 0 0 24px var(--glow-color);
+}
+
+/* ─── Social Pill Enhanced Hover ─────────────────────────*/
+.social-pill.glass-card {
+    overflow: hidden;
+    transition: transform 0.28s cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 0.28s ease,
+                border-color 0.28s ease,
+                background 0.28s ease !important;
+}
+
+.social-pill.glass-card:hover {
+    transform: translateX(6px) translateY(-2px);
+    border-color: color-mix(in srgb, var(--primary) 48%, transparent);
+    box-shadow: 0 12px 36px var(--glow-color);
+}
+
+.social-pill svg {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.social-pill:hover svg:first-child {
+    transform: scale(1.2) rotate(-8deg);
+}
+
+/* ─── Action Button Enhanced Hover ───────────────────────*/
+.action-btn,
+.share-profile {
+    overflow: hidden;
+    transition: transform 0.28s cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 0.28s ease,
+                border-color 0.25s ease,
+                background 0.25s ease !important;
+}
+
+.action-primary:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 50px var(--glow-color), 0 0 0 1px var(--primary);
+    background: linear-gradient(135deg, rgba(57, 208, 255, 0.32), rgba(94, 226, 160, 0.22)) !important;
+}
+
+.action-secondary:hover,
+.share-profile:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
+    box-shadow: 0 14px 38px var(--glow-color);
+    background: var(--glass-strong) !important;
+}
+
+/* ─── Nav Button Hover ────────────────────────────────────*/
+.nav-link {
+    position: relative;
+    overflow: hidden;
+    transition: color 0.25s ease, background 0.25s ease !important;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--primary);
+    transform: translateX(-50%) scale(0);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-link.active::after {
+    transform: translateX(-50%) scale(1);
+}
+
+/* ─── Form Enhanced Focus & Validation ───────────────────*/
+.contact-form label {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.contact-form input,
+.contact-form textarea,
+.contact-form select {
+    border: 1.5px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.97rem;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease !important;
+    outline: none;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus,
+.contact-form select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.contact-form input.field-valid,
+.contact-form textarea.field-valid {
+    border-color: var(--mint) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mint) 15%, transparent);
+}
+
+.contact-form input.field-invalid,
+.contact-form textarea.field-invalid {
+    border-color: #ff6b6b !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.15);
+    animation: fieldShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes fieldShake {
+    0%, 100% { transform: translateX(0); }
+    15%       { transform: translateX(-6px); }
+    30%       { transform: translateX(5px); }
+    45%       { transform: translateX(-4px); }
+    60%       { transform: translateX(3px); }
+    75%       { transform: translateX(-2px); }
+}
+
+/* Form submit button loading state */
+.contact-form .share-profile.form-loading {
+    pointer-events: none;
+    opacity: 0.75;
+}
+
+.contact-form .share-profile.form-loading::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: var(--text-main);
+    border-radius: 50%;
+    animation: formSpinner 0.6s linear infinite;
+    margin-right: 6px;
+}
+
+@keyframes formSpinner {
+    to { transform: rotate(360deg); }
+}
+
+/* Form success feedback flash */
+.contact-form.form-success {
+    animation: formSuccess 0.5s ease;
+}
+
+@keyframes formSuccess {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mint) 40%, transparent); }
+    50%  { box-shadow: 0 0 0 16px color-mix(in srgb, var(--mint) 0%, transparent); }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+/* ─── Animated Gradient Background (enhanced mesh) ───────*/
+@keyframes meshDrift1 {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    33%  { transform: translate3d(2rem, -1.5rem, 0) scale(1.04); }
+    66%  { transform: translate3d(-1.5rem, 1rem, 0) scale(0.97); }
+    100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes meshDrift2 {
+    0%   { transform: translate3d(0, 0, 0) scale(1.02); }
+    50%  { transform: translate3d(-2rem, 2rem, 0) scale(1.06); }
+    100% { transform: translate3d(0, 0, 0) scale(1.02); }
+}
+
+.mesh-bg {
+    animation: meshDrift1 28s ease-in-out infinite alternate !important;
+}
+
+/* Extra animated gradient orb behind hero */
+.gradient-orb {
+    position: fixed;
+    pointer-events: none;
+    z-index: -3;
+    border-radius: 50%;
+    filter: blur(72px);
+    will-change: transform;
+    animation: orbFloat 18s ease-in-out infinite alternate;
+}
+
+.gradient-orb-1 {
+    width: 420px;
+    height: 420px;
+    top: -10%;
+    left: -8%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--primary) 24%, transparent), transparent 65%);
+    animation-duration: 22s;
+}
+
+.gradient-orb-2 {
+    width: 320px;
+    height: 320px;
+    top: 30%;
+    right: -5%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent), transparent 65%);
+    animation-duration: 17s;
+    animation-direction: alternate-reverse;
+}
+
+.gradient-orb-3 {
+    width: 280px;
+    height: 280px;
+    bottom: 10%;
+    left: 25%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--mint) 18%, transparent), transparent 65%);
+    animation-duration: 25s;
+}
+
+@keyframes orbFloat {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    50%  { transform: translate3d(30px, -20px, 0) scale(1.08); }
+    100% { transform: translate3d(-15px, 15px, 0) scale(0.95); }
+}
+
+/* ─── Float Animation for Profile Card ───────────────────*/
+@keyframes profileFloat {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-8px); }
+}
+
+.profile-panel.float-animate {
+    animation: profileFloat 4.5s ease-in-out infinite;
+}
+
+/* ─── Parallax Hero Elements ─────────────────────────────*/
+.hero-parallax {
+    will-change: transform;
+    transition: transform 0.1s linear;
+}
+
+/* ─── Text Reveal Animation ──────────────────────────────*/
+@keyframes textRevealClip {
+    0%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+    100% { opacity: 1; clip-path: inset(0 0% 0 0); }
+}
+
+.text-reveal-anim {
+    animation: textRevealClip 0.85s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+/* ─── Counter Number Animation ────────────────────────────*/
+.signal-value[data-counter] {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.signal-value[data-counter].counter-pop {
+    transform: scale(1.28);
+}
+
+/* ─── Skeleton Loader ─────────────────────────────────────*/
+@keyframes skeletonShimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.skeleton-shimmer {
+    background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.05) 25%,
+        rgba(255,255,255,0.13) 50%,
+        rgba(255,255,255,0.05) 75%
+    );
+    background-size: 800px 100%;
+    animation: skeletonShimmer 1.4s ease-in-out infinite;
+}
+
+.profile-photo.img-loading {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.profile-photo.img-loaded {
+    opacity: 1;
+}
+
+/* ─── Scroll-Blur Effect ─────────────────────────────────*/
+.scroll-blur {
+    transition: filter 0.2s ease !important;
+}
+
+.scroll-blur.blurred {
+    filter: blur(3px);
+    opacity: 0.6;
+}
+
+/* ─── Section Transition ─────────────────────────────────*/
+.screen {
+    transition: opacity 0.3s ease;
+}
+
+/* ─── Dock Mobile Enhancements ───────────────────────────*/
+@media (max-width: 720px) {
+    .floating-dock-wrapper {
+        bottom: 14px;
+        left: 50%;
+        transform: translateX(-50%) translateY(0);
+        width: auto;
+        max-width: calc(100vw - 20px);
+        transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+                    opacity 0.3s ease;
+    }
+
+    .floating-dock-wrapper.dock-hidden {
+        transform: translateX(-50%) translateY(110%);
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .floating-dock {
+        justify-content: center;
+        width: 100%;
+        min-height: 56px;
+        padding: 0.45rem;
+        gap: 0.35rem;
+        border-radius: 22px;
+        box-shadow: 0 -2px 32px rgba(0, 0, 0, 0.3), var(--shadow);
+    }
+
+    .dock-btn {
+        flex: 1;
+        min-width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+                    background 0.22s ease,
+                    color 0.22s ease !important;
+    }
+
+    .dock-btn:active {
+        transform: scale(0.88);
+    }
+
+    .dock-btn.active {
+        transform: scale(1.1);
+        background: var(--glass-strong);
+        color: var(--primary);
+    }
+
+    /* Toast above dock */
+    .toast {
+        bottom: 86px !important;
+        right: 14px !important;
+    }
+
+
+}
+
+/* ─── Swipe Visual Hint ──────────────────────────────────*/
+.swipe-hint {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 500;
+}
+
+.swipe-hint.visible {
+    opacity: 1;
+}
+
+/* ─── Haptic Feedback Visual Pulse ──────────────────────*/
+@keyframes hapticPulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent); }
+    70%  { box-shadow: 0 0 0 10px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.haptic-feedback {
+    animation: hapticPulse 0.35s ease !important;
+}
+
+/* ─── Accent Swatch Hover ─────────────────────────────────*/
+.accent-swatch {
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.22s ease !important;
+}
+
+.accent-swatch:hover {
+    transform: scale(1.22);
+}
+
+.accent-swatch.active {
+    transform: scale(1.18);
+    box-shadow: 0 0 0 3px var(--text-main), 0 0 0 5px var(--primary);
+}
+
+/* ─── Utility Buttons Enhanced ───────────────────────────*/
+.utility-btn {
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+                border-color 0.22s ease,
+                box-shadow 0.22s ease,
+                background 0.22s ease !important;
+}
+
+.utility-btn:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+    box-shadow: 0 8px 24px var(--glow-color);
+}
+
+.utility-btn:active {
+    transform: translateY(-1px) scale(0.97);
+}
+
+/* ─── QR Frame Glow on Mobile ─────────────────────────────*/
+.qr-frame {
+    position: relative;
+    transition: box-shadow 0.3s ease;
+}
+
+.qr-frame:hover,
+.qr-frame:focus-within {
+    box-shadow: 0 0 0 2px var(--primary), 0 0 32px var(--glow-color);
+    border-radius: 12px;
+}
+
+/* ─── Profile Photo Hover ─────────────────────────────────*/
+.profile-mark {
+    transition: box-shadow 0.3s ease, transform 0.3s cubic-bezier(0.23, 1, 0.32, 1) !important;
+}
+
+.profile-panel:hover .profile-mark {
+    box-shadow: 0 0 0 3px var(--primary), 0 0 40px var(--glow-color);
+    transform: scale(1.03);
+}
+
+/* ─── Loader Enhancement ──────────────────────────────────*/
+.loader-mark {
+    animation: loaderPulse 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes loaderPulse {
+    0%   { text-shadow: none; }
+    100% { text-shadow: 0 0 40px var(--glow-color); }
+}
+
+/* ─── Page Transition ─────────────────────────────────────*/
+body.page-transitioning .screen:not(.hero-screen) {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+}
+
+/* ─── QR Mode Tabs Enhanced ──────────────────────────────*/
+.qr-mode {
+    transition: background 0.22s ease,
+                color 0.22s ease,
+                transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.qr-mode:hover {
+    background: var(--glass-strong);
+    color: var(--text-main);
+}
+
+.qr-mode.active {
+    transform: scale(1.04);
+}
+
+/* ─── Preset Button Enhanced ──────────────────────────────*/
+.preset-btn {
+    transition: background 0.22s ease,
+                color 0.22s ease,
+                border-color 0.22s ease,
+                transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.preset-btn:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+}
+
+.preset-btn.active {
+    box-shadow: 0 4px 16px var(--glow-color);
+}
+
+/* ─── Theme Toggle Spin ───────────────────────────────────*/
+.theme-switch:hover {
+    transform: translateY(-2px) rotate(15deg) !important;
+}
+
+/* ─── Language Toggle Bounce ──────────────────────────────*/
+.language-toggle:hover {
+    transform: translateY(-2px) scale(1.05) !important;
+}
+
+/* ─── Scroll Progress Glow ────────────────────────────────*/
+.scroll-progress {
+    box-shadow: 0 0 8px var(--glow-color);
+}
+
+/* ─── Status Strip Pulse ──────────────────────────────────*/
+@keyframes statusGlow {
+    0%, 100% { box-shadow: none; }
+    50%       { box-shadow: 0 0 16px color-mix(in srgb, var(--mint) 28%, transparent); }
+}
+
+.status-strip {
+    animation: statusGlow 3s ease-in-out infinite;
+}
+
+/* ─── Brand Hover ─────────────────────────────────────────*/
+.brand {
+    transition: opacity 0.2s ease, text-shadow 0.2s ease !important;
+}
+
+.brand:hover {
+    text-shadow: 0 0 28px var(--glow-color);
+}
+
+/* ─── Scroll Cue Enhanced ─────────────────────────────────*/
+.scroll-cue {
+    transition: opacity 0.3s ease, transform 0.3s ease !important;
+}
+
+.scroll-cue:hover {
+    transform: translateX(-50%) scale(1.12);
+    border-color: var(--primary);
+}
+
+/* ─── Video Background Support ────────────────────────────*/
+.video-bg-wrapper {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    border-radius: inherit;
+}
+
+.video-bg-wrapper video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.35;
+}
+
+/* ─── Lightbox ────────────────────────────────────────────*/
+.toji-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 8000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 5, 6, 0.9);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.toji-lightbox.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.toji-lightbox img {
+    max-width: min(90vw, 900px);
+    max-height: 85vh;
+    border-radius: 10px;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+    animation: lightboxZoom 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes lightboxZoom {
+    from { transform: scale(0.84); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+
+.toji-lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    background: var(--glass-bg);
+    color: var(--text-main);
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.toji-lightbox-close:hover {
+    transform: scale(1.12) rotate(90deg);
+    background: var(--glass-strong);
+}
+
+/* ─── Gallery Grid ────────────────────────────────────────*/
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.gallery-item {
+    cursor: zoom-in;
+    overflow: hidden;
+    border-radius: 8px;
+    transition: transform 0.28s cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 0.28s ease !important;
+}
+
+.gallery-item:hover {
+    transform: scale(1.04);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease !important;
+}
+
+.gallery-item:hover img {
+    transform: scale(1.08);
+}
+
+/* ─── Dock Active Indicator ──────────────────────────────*/
+.dock-btn {
+    position: relative;
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+                background 0.22s ease,
+                color 0.22s ease !important;
+}
+
+.dock-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--primary);
+    transform: translateX(-50%) scale(0);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dock-btn.active::after {
+    transform: translateX(-50%) scale(1);
+}
+
+.dock-btn:hover:not(.active) {
+    transform: translateY(-3px);
+    color: var(--primary);
+}
+
+/* ─── Floating Profile Badge ──────────────────────────────*/
+@keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mint) 50%, transparent); }
+    50%       { box-shadow: 0 0 0 8px color-mix(in srgb, var(--mint) 0%, transparent); }
+}
+
+.profile-topline .pulse-dot {
+    animation: badgePulse 2s ease-in-out infinite !important;
+}
+
+/* ─── Focus & Accessibility Enhanced ─────────────────────*/
+:focus-visible {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 3px !important;
+    border-radius: 4px;
+}
+
+/* ─── Prefers Reduced Motion Override ────────────────────*/
+@media (prefers-reduced-motion: reduce) {
+    .gradient-orb,
+    .mesh-bg,
+    .loader-mark,
+    .status-strip,
+    .profile-panel.float-animate,
+    .toji-ripple,
+    .reveal-up,
+    .reveal-left,
+    .reveal-right {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .reveal-up,
+    .reveal-left,
+    .reveal-right {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+/* ─── RTL Adjustments ────────────────────────────────────*/
+[dir="rtl"] .social-pill.glass-card:hover {
+    transform: translateX(-6px) translateY(-2px);
+}
 
 
 
+/* ─── High-Contrast Mode ─────────────────────────────────*/
+@media (prefers-contrast: more) {
+    .glass-card,
+    .glass-panel {
+        border-width: 2px !important;
+    }
+}
 
+/* ─── Lightbox Responsive ────────────────────────────────*/
+@media (max-width: 600px) {
+    .toji-lightbox img {
+        max-width: 95vw;
+        max-height: 70vh;
+    }
+}
 
+/* ================================================================
+   FONTS — EN: Caveat handwriting | AR: iOS SF Arabic → Cairo
+   Both applied via script.js inline style (content.js fontFamily).
+   CSS here is the fallback safety net + Arabic override.
+   ================================================================ */
 
+/* ── Safety net before script.js fires ──────────────────────────*/
+body {
+    font-family: 'Caveat', cursive, system-ui, -apple-system, sans-serif;
+}
 
+/* ── Arabic: Aref Ruqaa — Ruqʿah handwriting script ─────────────*/
+body.lang-ar,
+body.lang-ar input,
+body.lang-ar textarea,
+body.lang-ar select,
+body.lang-ar button {
+    font-family: 'Aref Ruqaa', cursive !important;
+}
 
+/* ── Size compensation: Caveat reads smaller than Outfit ─────────*/
+.main-title       { font-size: clamp(3.4rem, 8.5vw, 5.25rem); line-height: 1.0;  letter-spacing: -0.01em; }
+.section-title    { font-size: clamp(2.3rem, 5vw,   3.35rem);                     letter-spacing: -0.01em; }
+.typewriter-container { font-size: clamp(1.3rem, 3vw, 1.65rem); }
+.loader-mark      { font-size: clamp(2.8rem, 9vw,   5.5rem); }
+.profile-name     { font-size: 2.4rem;  letter-spacing: 0.01em; }
+.eyebrow          { font-size: 0.88rem; letter-spacing: 0.04em; }
+.nav-link         { font-size: 1.02rem; }
+.bento-item h3    { font-size: 1.45rem; }
+.project-card h3  { font-size: 1.25rem; }
 
+@media (max-width: 600px) {
+    .main-title { font-size: clamp(3rem, 10vw, 4.5rem); }
+}
 
-</body></html>
+/* ── Arabic resets sizes (Cairo has its own metrics) ─────────────*/
+body.lang-ar .main-title,
+body.lang-ar .section-title,
+body.lang-ar .typewriter-container,
+body.lang-ar .loader-mark,
+body.lang-ar .profile-name,
+body.lang-ar .nav-link,
+body.lang-ar .bento-item h3,
+body.lang-ar .project-card h3 {
+    font-size: revert;
+    letter-spacing: revert;
+    line-height: revert;
+}
