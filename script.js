@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sectionConfig = {
         about: true,
         work: true,
+        projects: false,   // يتفعّل تلقائياً لما يكون في مشاريع في الباك اند
         services: false,
         pricing: false,
         testimonials: false,
@@ -657,6 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     liveUrl: p.liveUrl || ''
                 }));
                 renderWorkCards(apiCards);
+                renderProjectsSection(apiCards);
                 console.info(`[TOJI] ✅ Loaded ${apiCards.length} projects from backend.`);
             } else {
                 // مفيش projects في الباك اند → اعرض الـ static HTML
@@ -666,6 +668,43 @@ document.addEventListener('DOMContentLoaded', () => {
             // الباك اند مش متاح → الـ static HTML يفضل ظاهر
             console.warn('[TOJI] Projects API unavailable, using static content.', err.message);
         }
+    }
+
+    // ---- Render the dedicated #projects section ----
+    function renderProjectsSection(cards) {
+        const section  = document.getElementById('projects');
+        const grid     = document.getElementById('projectsGrid');
+        const dockBtn  = document.getElementById('dockProjects');
+        const navLink  = document.getElementById('navProjects');
+
+        if (!section || !grid || !cards || !cards.length) return;
+
+        // إخفاء/إظهار حسب إعداد الأدمن
+        const isEnabled = sectionConfig.projects !== false;
+        section.hidden  = !isEnabled;
+        if (dockBtn) dockBtn.hidden = !isEnabled;
+        if (navLink) navLink.hidden = !isEnabled;
+        if (!isEnabled) return;
+
+        grid.innerHTML = cards.map((card, i) => {
+            const title = localized(card.title) || '';
+            const copy  = localized(card.copy)  || '';
+            const tags  = (card.tags || []).map((t) => `<span>${t}</span>`).join('');
+            const link  = card.liveUrl
+                ? `<a href="${card.liveUrl}" target="_blank" rel="noreferrer" class="live-project-link">View Project →</a>`
+                : '';
+            return `
+                <article class="live-project-card reveal-up ${i ? `delay-${Math.min(i, 3)}` : ''}">
+                    <span class="live-project-banner">${card.banner || String(i+1).padStart(2,'0')}</span>
+                    <h3>${title}</h3>
+                    <p>${copy}</p>
+                    <div class="live-project-tags">${tags}</div>
+                    ${link}
+                </article>`;
+        }).join('');
+
+        refreshDomCollections();
+        if (window.lucide) window.lucide.createIcons();
     }
 
     function renderSocialLinks() {

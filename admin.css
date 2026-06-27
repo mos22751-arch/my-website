@@ -1204,3 +1204,82 @@ code {
     .project-form-grid label:nth-child(5),
     .project-form-grid label:nth-child(6) { grid-column: 1; }
 }
+
+/* ============================================================
+   Projects Section — Live Site
+   ============================================================ */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+.live-project-card {
+    background: var(--glass-strong, rgba(255,255,255,0.04));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+
+.live-project-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+}
+
+.live-project-banner {
+    display: inline-block;
+    background: var(--accent);
+    color: #000;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    padding: 3px 10px;
+    border-radius: 5px;
+    align-self: flex-start;
+}
+
+.live-project-card h3 {
+    font-size: 1rem;
+    margin: 0;
+    color: var(--fg);
+}
+
+.live-project-card p {
+    font-size: 0.84rem;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.6;
+    flex: 1;
+}
+
+.live-project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.live-project-tags span {
+    font-size: 0.72rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    color: var(--muted);
+}
+
+.live-project-link {
+    font-size: 0.8rem;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    align-self: flex-start;
+    transition: opacity 0.2s;
+}
+
+.live-project-link:hover { opacity: 0.75; }

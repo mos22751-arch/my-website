@@ -212,6 +212,7 @@
     const featureFields = [
         { label: 'إظهار About', path: 'sections.about', type: 'checkbox' },
         { label: 'إظهار Work', path: 'sections.work', type: 'checkbox' },
+        { label: '📦 إظهار Projects (من الباك اند)', path: 'sections.projects', type: 'checkbox' },
         { label: 'إظهار Services', path: 'sections.services', type: 'checkbox' },
         { label: 'إظهار Pricing', path: 'sections.pricing', type: 'checkbox' },
         { label: 'إظهار Reviews', path: 'sections.testimonials', type: 'checkbox' },

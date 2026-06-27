@@ -67,6 +67,7 @@
             <a class="nav-link active" href="#home" data-target="home" data-i18n="nav.home">Home</a>
             <a class="nav-link" href="#expertise" data-target="expertise" data-i18n="nav.about">About</a>
             <a class="nav-link" href="#work" data-target="work" data-i18n="nav.work">Work</a>
+            <a class="nav-link" href="#projects" data-target="projects" id="navProjects" hidden>Projects</a>
             <a class="nav-link" href="#connect" data-target="connect" data-i18n="nav.links">Links</a>
         </div>
         <div class="nav-actions">
@@ -225,6 +226,19 @@
             </div>
         </section>
 
+        <!-- ==================== PROJECTS (Backend) ==================== -->
+        <section class="screen" id="projects" aria-labelledby="projects-title" hidden>
+            <div class="section-shell">
+                <div class="section-heading reveal-up">
+                    <p class="eyebrow">Projects</p>
+                    <h2 class="section-title" id="projects-title">My work, up close.</h2>
+                </div>
+                <div class="projects-grid" id="projectsGrid">
+                    <!-- يتملى من الـ backend -->
+                </div>
+            </div>
+        </section>
+
         <section class="screen" id="connect" aria-labelledby="connect-title">
             <div class="connect-container">
                 <div class="section-heading reveal-up">
@@ -378,6 +392,9 @@
             </button>
             <button class="dock-btn" type="button" data-target="work" aria-label="Work" data-i18n-attr="aria-label:nav.work">
                 <i data-lucide="briefcase-business" aria-hidden="true"></i>
+            </button>
+            <button class="dock-btn" type="button" data-target="projects" aria-label="Projects" id="dockProjects" hidden>
+                <i data-lucide="layout-grid" aria-hidden="true"></i>
             </button>
             <button class="dock-btn" type="button" data-target="connect" aria-label="Links" data-i18n-attr="aria-label:nav.links">
                 <i data-lucide="link-2" aria-hidden="true"></i>
