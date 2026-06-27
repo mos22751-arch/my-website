@@ -11,30 +11,45 @@
 <body>
     <main class="admin-shell">
         <header class="topbar">
-            <div>
+            <div class="topbar-brand">
                 <p class="kicker">TOJI Studio</p>
                 <h1>لوحة تحكم موقع TOJI</h1>
-                <p class="hint">عدّل محتوى موقعك الشخصي وشوف مكان كل تعديل من اللايف ماب قبل الحفظ أو الرفع.</p>
+                <div class="server-status" id="serverStatus">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">جارٍ التحقق من الاتصال...</span>
+                </div>
             </div>
             <div class="actions">
-                <button id="connectFolderBtn" type="button">ربط مجلد المشروع</button>
-                <button id="saveFilesBtn" type="button">حفظ الملفات الفعلية</button>
-                <button id="downloadFilesBtn" type="button">تحميل الملفات المولدة</button>
-                <button id="exportClientZipBtn" type="button">تصدير الموقع ZIP</button>
-                <button id="exportDeveloperZipBtn" type="button">تصدير نسخة كاملة بالأدمن ZIP</button>
-                <button id="cleanFinalBtn" type="button">تنظيف المعاينة</button>
-                <button id="sanitizeOwnerBtn" type="button">استرجاع هوية TOJI</button>
-                <button id="resetBtn" type="button">رجوع لآخر نسخة محفوظة</button>
-                <a href="index.html?preview=1" target="_blank" rel="noopener">فتح المعاينة</a>
+                <div class="action-group primary-actions">
+                    <button id="saveServerBtn" type="button" class="btn-primary">
+                        <span class="btn-icon">☁️</span> حفظ على السيرفر
+                    </button>
+                    <button id="pullServerBtn" type="button" class="btn-secondary">
+                        <span class="btn-icon">⬇️</span> مزامنة من السيرفر
+                    </button>
+                </div>
+                <div class="action-group secondary-actions">
+                    <a href="index.html" target="_blank" rel="noopener" class="btn-link">
+                        <span class="btn-icon">🌐</span> فتح الموقع
+                    </a>
+                    <button id="resetBtn" type="button" class="btn-ghost">
+                        <span class="btn-icon">↺</span> إعادة تعيين
+                    </button>
+                    <button id="cleanFinalBtn" type="button" class="btn-danger">
+                        <span class="btn-icon">🚪</span> تسجيل خروج
+                    </button>
+                </div>
             </div>
         </header>
 
+        <div class="sync-banner" id="syncBanner" hidden>
+            <span id="syncBannerText"></span>
+        </div>
+
         <section class="notice">
             <strong>طريقة العمل:</strong>
-            التعديل يتعمل فوراً كمعاينة على نفس المتصفح. لو ربطت مجلد المشروع، الحفظ يكتب داخل
-            <code>content.js</code> و <code>config.js</code> و <code>manifest.webmanifest</code> و <code>index.html</code>.
-            لو المتصفح لا يدعم الربط، استخدم زر تحميل الملفات المولدة واستبدلها يدوياً.
-            زر تصدير ZIP يجهز فولدر كامل مضغوط للعميل مباشرة من لوحة الأدمن.
+            عدّل أي حاجة في الفورم → اضغط <strong>حفظ على السيرفر</strong> → التغيير يظهر فوراً لكل الزوار.
+            الـ autosave بيحفظ محلياً كل 30 ثانية. السيرفر بيتحدّث بس لما تضغط الزر يدوياً.
         </section>
 
         <div class="admin-workspace">
@@ -242,8 +257,74 @@
                     </div>
                 </section>
 
-                <section class="panel">
-                    <h2>11) تحكم متقدم</h2>
+                <section class="panel" id="projectsPanel">
+                    <h2>📦 إدارة المشاريع (Backend)</h2>
+
+                    <div class="projects-toolbar">
+                        <button id="loadProjectsBtn" type="button" class="btn-secondary">
+                            <span>🔄</span> تحميل المشاريع
+                        </button>
+                        <button id="addProjectBtn" type="button" class="btn-primary">
+                            <span>+</span> إضافة مشروع جديد
+                        </button>
+                    </div>
+
+                    <!-- فورم الإضافة / التعديل -->
+                    <div class="project-form" id="projectForm" hidden>
+                        <h3 id="projectFormTitle">مشروع جديد</h3>
+                        <input type="hidden" id="projectId">
+                        <div class="project-form-grid">
+                            <label>
+                                البانر (مثال: WEB، APP، BRAND)
+                                <input type="text" id="pBanner" placeholder="WEB" maxlength="20">
+                            </label>
+                            <label>
+                                العنوان — English
+                                <input type="text" id="pTitleEn" placeholder="Project Title">
+                            </label>
+                            <label>
+                                العنوان — عربي
+                                <input type="text" id="pTitleAr" placeholder="اسم المشروع">
+                            </label>
+                            <label>
+                                الوصف — English
+                                <textarea id="pCopyEn" rows="3" placeholder="Project description..."></textarea>
+                            </label>
+                            <label>
+                                الوصف — عربي
+                                <textarea id="pCopyAr" rows="3" placeholder="وصف المشروع..."></textarea>
+                            </label>
+                            <label>
+                                التاجز (مفصولة بفاصلة)
+                                <input type="text" id="pTags" placeholder="Design, Development, Branding">
+                            </label>
+                            <label>
+                                رابط المشروع (اختياري)
+                                <input type="url" id="pLiveUrl" placeholder="https://...">
+                            </label>
+                            <label>
+                                الترتيب
+                                <input type="number" id="pOrder" value="0" min="0">
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="pVisible" checked>
+                                ظاهر على الموقع
+                            </label>
+                        </div>
+                        <div class="project-form-actions">
+                            <button id="saveProjectBtn" type="button" class="btn-primary">💾 حفظ المشروع</button>
+                            <button id="cancelProjectBtn" type="button" class="btn-ghost">إلغاء</button>
+                        </div>
+                        <p id="projectFormMsg" class="form-msg"></p>
+                    </div>
+
+                    <!-- قائمة المشاريع -->
+                    <div id="projectsList">
+                        <p class="projects-hint">اضغط "تحميل المشاريع" لعرض المشاريع الحالية من السيرفر.</p>
+                    </div>
+                </section>
+
+
                     <label class="full-width">
                         JSON كامل
                         <textarea id="fullJson" rows="14" spellcheck="false"></textarea>

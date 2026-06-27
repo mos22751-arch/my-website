@@ -816,3 +816,391 @@ code {
         display: none;
     }
 }
+
+/* ============================================================
+   Toolbar — New Backend-Focused Design
+   ============================================================ */
+
+.topbar {
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 20px;
+}
+
+.topbar-brand .kicker {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 4px;
+}
+
+.topbar-brand h1 {
+    font-size: 1.1rem;
+    margin: 0 0 8px;
+}
+
+/* Server Status Indicator */
+.server-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #555;
+    flex-shrink: 0;
+    transition: background 0.3s;
+}
+
+.status-dot.online  { background: #4ade80; box-shadow: 0 0 6px #4ade8088; }
+.status-dot.offline { background: #f87171; box-shadow: 0 0 6px #f8717188; }
+.status-dot.syncing { background: #facc15; box-shadow: 0 0 6px #facc1588;
+                      animation: pulse-dot 1s infinite; }
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+}
+
+/* Action Groups */
+.topbar .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+    max-width: none;
+}
+
+.action-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* Button Variants */
+.btn-primary, .btn-secondary, .btn-ghost, .btn-danger, .btn-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.btn-icon { font-size: 0.9rem; }
+
+.btn-primary {
+    background: var(--accent);
+    color: #000;
+    min-width: 150px;
+    justify-content: center;
+}
+.btn-primary:hover   { filter: brightness(1.15); transform: translateY(-1px); }
+.btn-primary:active  { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+.btn-secondary {
+    background: rgba(110, 198, 255, 0.12);
+    color: var(--accent);
+    border: 1px solid rgba(110, 198, 255, 0.3);
+}
+.btn-secondary:hover { background: rgba(110, 198, 255, 0.22); }
+
+.btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.06); color: var(--fg); }
+
+.btn-danger {
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.25);
+}
+.btn-danger:hover { background: rgba(248, 113, 113, 0.22); }
+
+.btn-link {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+}
+.btn-link:hover { color: var(--fg); background: rgba(255,255,255,0.06); }
+
+/* Sync Banner */
+.sync-banner {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid;
+}
+
+.sync-banner.success {
+    background: rgba(74, 222, 128, 0.1);
+    border-color: rgba(74, 222, 128, 0.3);
+    color: #4ade80;
+}
+
+.sync-banner.error {
+    background: rgba(248, 113, 113, 0.1);
+    border-color: rgba(248, 113, 113, 0.3);
+    color: #f87171;
+}
+
+.sync-banner.info {
+    background: rgba(250, 204, 21, 0.1);
+    border-color: rgba(250, 204, 21, 0.3);
+    color: #facc15;
+}
+
+@media (max-width: 700px) {
+    .topbar { flex-direction: column; align-items: stretch; }
+    .topbar .actions { align-items: stretch; }
+    .action-group { justify-content: stretch; }
+    .btn-primary, .btn-secondary, .btn-ghost, .btn-danger, .btn-link {
+        flex: 1; justify-content: center;
+    }
+}
+
+/* ============================================================
+   Projects Manager
+   ============================================================ */
+
+.projects-toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Project Form */
+.project-form {
+    background: rgba(110, 198, 255, 0.05);
+    border: 1px solid rgba(110, 198, 255, 0.2);
+    border-radius: 10px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.project-form h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--accent);
+}
+
+.project-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.project-form-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.project-form-grid label:nth-child(4),
+.project-form-grid label:nth-child(5),
+.project-form-grid label:nth-child(6) {
+    grid-column: 1 / -1;
+}
+
+.project-form-grid input,
+.project-form-grid textarea {
+    background: var(--input-bg, rgba(255,255,255,0.05));
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: var(--fg);
+    font-size: 0.85rem;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.project-form-grid input:focus,
+.project-form-grid textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.checkbox-label {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px !important;
+    color: var(--fg) !important;
+    font-size: 0.85rem !important;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+}
+
+.project-form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.form-msg {
+    font-size: 0.82rem;
+    margin: 0;
+    min-height: 1.2em;
+}
+
+.form-msg.error { color: #f87171; }
+.form-msg.success { color: #4ade80; }
+
+/* Project Cards List */
+#projectsList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.project-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 0.2s;
+}
+
+.project-card:hover {
+    border-color: rgba(110, 198, 255, 0.3);
+}
+
+.project-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.project-badge {
+    background: var(--accent);
+    color: #000;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.project-card-title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.project-card-title strong {
+    font-size: 0.88rem;
+    color: var(--fg);
+}
+
+.project-card-title span {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.project-visibility {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    flex-shrink: 0;
+}
+
+.project-visibility.visible {
+    background: rgba(74, 222, 128, 0.1);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+.project-visibility.hidden {
+    background: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(248, 113, 113, 0.25);
+}
+
+.project-card-copy {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.project-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tag {
+    font-size: 0.72rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    color: var(--muted);
+}
+
+.tag-link {
+    color: var(--accent);
+    text-decoration: none;
+    border-color: rgba(110, 198, 255, 0.3);
+}
+
+.project-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.btn-sm {
+    padding: 5px 12px !important;
+    font-size: 0.78rem !important;
+    min-width: unset !important;
+}
+
+.projects-hint {
+    color: var(--muted);
+    font-size: 0.83rem;
+    text-align: center;
+    padding: 20px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+}
+
+.projects-hint.error { color: #f87171; border-color: rgba(248,113,113,0.3); }
+
+@media (max-width: 600px) {
+    .project-form-grid { grid-template-columns: 1fr; }
+    .project-form-grid label:nth-child(4),
+    .project-form-grid label:nth-child(5),
+    .project-form-grid label:nth-child(6) { grid-column: 1; }
+}

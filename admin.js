@@ -1377,50 +1377,9 @@
         // ✅ مزامنة الإعدادات مع الـ Backend (MongoDB)
         // لما الأدمن يحفظ → الزوار يشوفوا التغييرات من أول تحميل
         // بس بنبعت في الحفظ اليدوي (مش الـ autosave) عشان نقلل الطلبات
-        // ============================================================
-        if (!auto && window.TojiAPI?.ConfigAPI) {
-            // إزالة base64 images قبل الإرسال للـ backend (تقليل الحجم)
-            function stripBase64(obj) {
-                if (!obj || typeof obj !== 'object') return obj;
-                const clone = Array.isArray(obj) ? [] : {};
-                for (const k in obj) {
-                    const v = obj[k];
-                    if (typeof v === 'string' && v.startsWith('data:')) {
-                        clone[k] = ''; // base64 image → empty (محفوظة في localStorage)
-                    } else if (typeof v === 'object') {
-                        clone[k] = stripBase64(v);
-                    } else {
-                        clone[k] = v;
-                    }
-                }
-                return clone;
-            }
-
-            const configForBackend = stripBase64(current);
-
-            window.TojiAPI.ConfigAPI.save(configForBackend)
-                .then(() => {
-                    localStorage.setItem('toji_live_config', JSON.stringify(current));
-                })
-                .catch((syncErr) => {
-                    console.warn('[TOJI Admin] Config sync error:', syncErr.message);
-                });
-
-            msg('✅ تم الحفظ — التغييرات ستظهر للزوار فورًا.');
-        }
-
-        if (projectDirHandle) {
-            const results = await writeProjectFiles();
-            if (!auto) {
-                msg(allWritten(results)
-                    ? '✅ تم حفظ الملفات الفعلية + تزامن مع السيرفر'
-                    : 'تم حفظ بعض الملفات، لكن حصل خطأ في ملف أو أكثر. راجع صلاحيات المجلد.');
-            }
-            return;
-        }
-
+        // الـ server save اتنقل لزرار "حفظ على السيرفر" بشكل صريح
         if (!auto) {
-            // msg was already set above if sync happened
+            msg('✅ تم الحفظ محلياً — اضغط "حفظ على السيرفر" لرفع التغييرات.');
         }
     }
 
@@ -1817,99 +1776,334 @@ Do not resell the customized public version as a separate template unless your s
         });
     }
 
-    el('connectFolderBtn').addEventListener('click', async () => {
-        try {
-            if (!window.showDirectoryPicker) {
-                msg('المتصفح الحالي لا يدعم ربط المجلد. استخدم Chrome أو Edge على localhost، أو زر تحميل الملفات المولدة.');
-                return;
-            }
-            projectDirHandle = await window.showDirectoryPicker();
-            const results = await writeProjectFiles();
-            msg(allWritten(results)
-                ? 'تم ربط المجلد وحفظ الملفات. أي تعديل جديد هيحفظ في الملفات تلقائياً.'
-                : 'تم ربط المجلد لكن حصل خطأ أثناء كتابة بعض الملفات.');
-        } catch (error) {
-            msg('تم إلغاء ربط المجلد.');
-        }
-    });
+    // ============================================================
+    // 🔘 TOOLBAR — Backend-Focused Buttons
+    // ============================================================
 
-    el('saveFilesBtn').addEventListener('click', async () => {
-        if (!projectDirHandle) {
-            msg('اربط مجلد المشروع الأول، أو استخدم زر تحميل الملفات المولدة.');
+    // --- حالة الاتصال بالسيرفر ---
+    async function checkServerStatus() {
+        const dot  = el('statusDot');
+        const text = el('statusText');
+        dot.className = 'status-dot syncing';
+        text.textContent = 'جارٍ التحقق...';
+        try {
+            const res = await fetch(`${window.TojiAPI ? API_BASE_URL.replace('/api','') : 'https://portfolio-backend-production-1901.up.railway.app'}/health`);
+            if (res.ok) {
+                dot.className  = 'status-dot online';
+                text.textContent = '🟢 السيرفر متصل';
+            } else {
+                throw new Error();
+            }
+        } catch {
+            dot.className  = 'status-dot offline';
+            text.textContent = '🔴 السيرفر غير متاح';
+        }
+    }
+
+    // --- بنر الحالة ---
+    function showBanner(message, type = 'info', duration = 4000) {
+        const banner = el('syncBanner');
+        banner.className = `sync-banner ${type}`;
+        el('syncBannerText').textContent = message;
+        banner.hidden = false;
+        if (duration > 0) setTimeout(() => { banner.hidden = true; }, duration);
+    }
+
+    // تحقق من الاتصال فور فتح الأدمن
+    checkServerStatus();
+    setInterval(checkServerStatus, 30000); // تحديث كل 30 ثانية
+
+    // ============================================================
+    // ☁️ حفظ على السيرفر (الزر الرئيسي)
+    // ============================================================
+    el('saveServerBtn').addEventListener('click', async () => {
+        if (!window.TojiAPI?.ConfigAPI) {
+            showBanner('❌ api.js غير محمّل — تأكد من إعدادات الصفحة.', 'error');
             return;
         }
-        await persist(false);
-    });
 
-    el('downloadFilesBtn').addEventListener('click', async () => {
-        const files = await makeGeneratedFiles();
-        Object.entries(files).forEach(([filename, text]) => {
-            const type = filename.endsWith('.json') || filename.endsWith('.webmanifest')
-                ? 'application/json;charset=utf-8'
-                : filename.endsWith('.html')
-                    ? 'text/html;charset=utf-8'
-                    : 'application/javascript;charset=utf-8';
-            downloadText(filename, text, type);
-        });
-        msg('تم تحميل الملفات المولدة. استبدل الملفات القديمة بنفس الأسماء داخل فولدر المشروع.');
-    });
+        const btn = el('saveServerBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="btn-icon">⏳</span> جارٍ الحفظ...';
+        el('statusDot').className = 'status-dot syncing';
 
-    el('exportClientZipBtn').addEventListener('click', async () => {
-        msg('جاري تجهيز ZIP نسخة العميل...');
+        collectForm();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+
+        // إزالة base64 قبل الإرسال
+        function stripBase64(obj) {
+            if (!obj || typeof obj !== 'object') return obj;
+            const clone = Array.isArray(obj) ? [] : {};
+            for (const k in obj) {
+                const v = obj[k];
+                if (typeof v === 'string' && v.startsWith('data:')) clone[k] = '';
+                else if (typeof v === 'object') clone[k] = stripBase64(v);
+                else clone[k] = v;
+            }
+            return clone;
+        }
+
         try {
-            const zip = await makeWebsitePackage(false);
-            downloadBlob(`${makeSlug(safeNickname(current))}-public-site.zip`, zip);
-            msg('تم تحميل ZIP نسخة العميل. هذه النسخة لا تحتوي ملفات الأدمن.');
-        } catch (error) {
-            msg('حصل خطأ أثناء تجهيز ZIP نسخة العميل. تأكد أنك فاتح الموقع من localhost وليس file://.');
+            await window.TojiAPI.ConfigAPI.save(stripBase64(current));
+            localStorage.setItem('toji_live_config', JSON.stringify(current));
+
+            el('statusDot').className = 'status-dot online';
+            const now = new Date().toLocaleTimeString('ar-EG');
+            el('statusText').textContent = `🟢 آخر حفظ: ${now}`;
+            showBanner('✅ تم الحفظ على السيرفر — التغييرات ستظهر للزوار فوراً.', 'success');
+        } catch (err) {
+            el('statusDot').className = 'status-dot offline';
+            el('statusText').textContent = '🔴 فشل الحفظ';
+            showBanner(`❌ فشل الحفظ: ${err.message || 'تحقق من الاتصال أو سجّل دخول مجدداً.'}`, 'error', 7000);
+            console.error('[TOJI] Save failed:', err);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="btn-icon">☁️</span> حفظ على السيرفر';
         }
     });
 
-    el('exportDeveloperZipBtn').addEventListener('click', async () => {
-        msg('جاري تجهيز ZIP نسخة المطور...');
+    // ============================================================
+    // ⬇️ مزامنة من السيرفر (جيب آخر config من MongoDB)
+    // ============================================================
+    el('pullServerBtn').addEventListener('click', async () => {
+        if (!window.TojiAPI?.ConfigAPI) {
+            showBanner('❌ api.js غير محمّل.', 'error');
+            return;
+        }
+
+        const btn = el('pullServerBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="btn-icon">⏳</span> جارٍ المزامنة...';
+
         try {
-            const zip = await makeWebsitePackage(true);
-            downloadBlob(`${makeSlug(safeNickname(current))}-developer-site.zip`, zip);
-            msg('تم تحميل ZIP نسخة المطور وفيها ملفات الأدمن.');
-        } catch (error) {
-            msg('حصل خطأ أثناء تجهيز ZIP نسخة المطور. تأكد أنك فاتح الموقع من localhost وليس file://.');
+            const response = await window.TojiAPI.ConfigAPI.get();
+            if (response?.data) {
+                current = deepMerge(defaults, response.data);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+                localStorage.setItem('toji_live_config', JSON.stringify(current));
+                fillForm();
+                showBanner('✅ تمت المزامنة من السيرفر — تعديلاتك الأخيرة تظهر الآن.', 'success');
+            } else {
+                showBanner('ℹ️ السيرفر ليس فيه config محفوظ بعد — يظهر المحتوى الافتراضي.', 'info');
+            }
+        } catch (err) {
+            showBanner(`❌ فشلت المزامنة: ${err.message}`, 'error', 6000);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="btn-icon">⬇️</span> مزامنة من السيرفر';
         }
     });
 
+    // ============================================================
+    // ↺ إعادة تعيين (رجوع لآخر نسخة محفوظة)
+    // ============================================================
+    el('resetBtn').addEventListener('click', () => {
+        if (!window.confirm('سيتم حذف تعديلاتك الحالية والرجوع لآخر نسخة محفوظة. متابعة؟')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        current = clone(defaults);
+        fillForm();
+        showBanner('↺ تم الرجوع للنسخة المحفوظة.', 'info');
+    });
+
+    // ============================================================
+    // 🚪 تسجيل خروج
+    // ============================================================
     el('cleanFinalBtn').addEventListener('click', () => {
+        if (!window.confirm('هل تريد تسجيل الخروج؟ سيتم مسح الجلسة.')) return;
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem('toji_lang');
         localStorage.removeItem('toji_theme');
         localStorage.removeItem('toji_theme_preset');
         localStorage.removeItem('toji_accent');
         localStorage.removeItem('toji_qr_mode');
-        localStorage.removeItem('toji_live_config');   // مسح الـ cache الخاص بالـ config الحي
-        // Clear JWT token (replaces old ADMIN_SESSION_KEY)
+        localStorage.removeItem('toji_live_config');
         window.TojiAPI?.TokenManager?.remove?.();
-        msg('تم تنظيف بيانات المعاينة من المتصفح. استخدم زر تصدير الموقع ZIP لو عايز نسخة نهائية بدون ملفات الأدمن.');
+        window.location.href = 'admin.html';
     });
 
-    el('sanitizeOwnerBtn').addEventListener('click', async () => {
-        sanitizeOwnerData();
-        await persist(false);
-        msg('تم استرجاع بيانات TOJI الأساسية داخل الأدمن. احفظ الملفات لو عايز تثبت التغيير.');
+    // ============================================================
+    // 📦 PROJECTS MANAGER — إدارة المشاريع من الباك اند
+    // ============================================================
+
+    let editingProjectId = null;
+
+    // --- تحميل وعرض المشاريع ---
+    async function loadProjects() {
+        const list = el('projectsList');
+        list.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+
+        try {
+            const res = await window.TojiAPI.ProjectsAPI.getAll();
+            const projects = res?.data || [];
+
+            if (!projects.length) {
+                list.innerHTML = '<p class="projects-hint">لا توجد مشاريع بعد. أضف أول مشروع!</p>';
+                return;
+            }
+
+            list.innerHTML = projects.map((p) => `
+                <div class="project-card" data-id="${p._id}">
+                    <div class="project-card-header">
+                        <span class="project-badge">${p.banner}</span>
+                        <div class="project-card-title">
+                            <strong>${p.title?.en || ''}</strong>
+                            <span>${p.title?.ar || ''}</span>
+                        </div>
+                        <span class="project-visibility ${p.isVisible ? 'visible' : 'hidden'}">
+                            ${p.isVisible ? '👁 ظاهر' : '🚫 مخفي'}
+                        </span>
+                    </div>
+                    <p class="project-card-copy">${p.copy?.en || ''}</p>
+                    <div class="project-card-tags">
+                        ${(p.tags || []).map((t) => `<span class="tag">${t}</span>`).join('')}
+                        ${p.liveUrl ? `<a href="${p.liveUrl}" target="_blank" class="tag tag-link">🔗 رابط</a>` : ''}
+                    </div>
+                    <div class="project-card-actions">
+                        <button class="btn-secondary btn-sm" onclick="editProject('${p._id}')">✏️ تعديل</button>
+                        <button class="btn-danger btn-sm"   onclick="deleteProject('${p._id}', '${(p.title?.en || '').replace(/'/g, '')}')">🗑 حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            list.innerHTML = `<p class="projects-hint error">❌ فشل التحميل: ${err.message}</p>`;
+        }
+    }
+
+    // --- فتح فورم إضافة ---
+    function openAddForm() {
+        editingProjectId = null;
+        el('projectFormTitle').textContent = 'مشروع جديد';
+        el('projectId').value = '';
+        el('pBanner').value = '';
+        el('pTitleEn').value = '';
+        el('pTitleAr').value = '';
+        el('pCopyEn').value = '';
+        el('pCopyAr').value = '';
+        el('pTags').value = '';
+        el('pLiveUrl').value = '';
+        el('pOrder').value = '0';
+        el('pVisible').checked = true;
+        el('projectFormMsg').textContent = '';
+        el('projectForm').hidden = false;
+        el('projectForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // --- فتح فورم تعديل ---
+    window.editProject = async function(id) {
+        try {
+            const res = await window.TojiAPI.ProjectsAPI.getAll();
+            const project = (res?.data || []).find((p) => p._id === id);
+            if (!project) return;
+
+            editingProjectId = id;
+            el('projectFormTitle').textContent = 'تعديل المشروع';
+            el('projectId').value = id;
+            el('pBanner').value = project.banner || '';
+            el('pTitleEn').value = project.title?.en || '';
+            el('pTitleAr').value = project.title?.ar || '';
+            el('pCopyEn').value = project.copy?.en || '';
+            el('pCopyAr').value = project.copy?.ar || '';
+            el('pTags').value = (project.tags || []).join(', ');
+            el('pLiveUrl').value = project.liveUrl || '';
+            el('pOrder').value = project.order ?? 0;
+            el('pVisible').checked = project.isVisible !== false;
+            el('projectFormMsg').textContent = '';
+            el('projectForm').hidden = false;
+            el('projectForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (err) {
+            alert('فشل تحميل بيانات المشروع: ' + err.message);
+        }
+    };
+
+    // --- حذف مشروع ---
+    window.deleteProject = async function(id, name) {
+        if (!window.confirm(`حذف المشروع "${name}"؟ العملية لا يمكن التراجع عنها.`)) return;
+
+        try {
+            await window.TojiAPI.ProjectsAPI.delete(id);
+            await loadProjects();
+            showBanner('✅ تم حذف المشروع بنجاح.', 'success');
+        } catch (err) {
+            showBanner('❌ فشل الحذف: ' + err.message, 'error');
+        }
+    };
+
+    // --- حفظ (إضافة أو تعديل) ---
+    el('saveProjectBtn').addEventListener('click', async () => {
+        const btn = el('saveProjectBtn');
+        const msgEl = el('projectFormMsg');
+
+        const banner  = el('pBanner').value.trim();
+        const titleEn = el('pTitleEn').value.trim();
+        const titleAr = el('pTitleAr').value.trim();
+        const copyEn  = el('pCopyEn').value.trim();
+        const copyAr  = el('pCopyAr').value.trim();
+
+        if (!banner || !titleEn || !titleAr || !copyEn || !copyAr) {
+            msgEl.textContent = '⚠️ يرجى ملء جميع الحقول المطلوبة.';
+            msgEl.className = 'form-msg error';
+            return;
+        }
+
+        const projectData = {
+            banner,
+            title: { en: titleEn, ar: titleAr },
+            copy:  { en: copyEn,  ar: copyAr  },
+            tags:  el('pTags').value.split(',').map((t) => t.trim()).filter(Boolean),
+            liveUrl:   el('pLiveUrl').value.trim(),
+            order:     parseInt(el('pOrder').value) || 0,
+            isVisible: el('pVisible').checked
+        };
+
+        btn.disabled = true;
+        btn.textContent = '⏳ جارٍ الحفظ...';
+        msgEl.textContent = '';
+
+        try {
+            if (editingProjectId) {
+                await window.TojiAPI.ProjectsAPI.update(editingProjectId, projectData);
+                showBanner('✅ تم تعديل المشروع بنجاح.', 'success');
+            } else {
+                await window.TojiAPI.ProjectsAPI.create(projectData);
+                showBanner('✅ تم إضافة المشروع بنجاح.', 'success');
+            }
+
+            el('projectForm').hidden = true;
+            editingProjectId = null;
+            await loadProjects();
+        } catch (err) {
+            msgEl.textContent = '❌ ' + (err.message || 'حدث خطأ. حاول مجدداً.');
+            msgEl.className = 'form-msg error';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '💾 حفظ المشروع';
+        }
     });
 
-    el('resetBtn').addEventListener('click', () => {
-        if (!window.confirm('سيتم حذف تعديلات المعاينة والرجوع للنسخة المحفوظة في content.js. هل تريد المتابعة؟')) return;
-        localStorage.removeItem(STORAGE_KEY);
-        current = clone(defaults);
-        fillForm();
-        msg('تم الرجوع لآخر نسخة محفوظة في content.js.');
+    el('addProjectBtn').addEventListener('click', openAddForm);
+
+    el('cancelProjectBtn').addEventListener('click', () => {
+        el('projectForm').hidden = true;
+        editingProjectId = null;
     });
 
+    el('loadProjectsBtn').addEventListener('click', loadProjects);
+
+    // تحميل المشاريع تلقائياً عند فتح الأدمن
+    if (window.TojiAPI?.ProjectsAPI) {
+        loadProjects();
+    }
+
+    // ============================================================
+    // JSON Panel Buttons (بدون تغيير)
+    // ============================================================
     el('copyFullBtn').addEventListener('click', async () => {
         collectForm();
         try {
             await navigator.clipboard.writeText(JSON.stringify(current, null, 4));
-            msg('تم نسخ JSON الحقيقي بالكامل، شامل الصور المرفوعة.');
-        } catch (error) {
-            msg('النسخ فشل. صندوق JSON يعرض الصور مختصرة، جرّب النسخ مرة أخرى من زر نسخ JSON.');
+            msg('تم نسخ JSON الكامل.');
+        } catch {
+            msg('النسخ فشل — جرّب مرة أخرى.');
         }
     });
 
@@ -1919,9 +2113,8 @@ Do not resell the customized public version as a separate template unless your s
             current = deepMerge(defaults, parsed);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
             fillForm();
-            await persist(false);
-            msg('تم تطبيق JSON وحفظ المعاينة.');
-        } catch (error) {
+            showBanner('✅ تم تطبيق JSON — اضغط "حفظ على السيرفر" لرفعه.', 'info');
+        } catch {
             msg('JSON غير صالح. راجع الأقواس والفواصل.');
         }
     });

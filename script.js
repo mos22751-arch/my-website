@@ -1990,6 +1990,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if ('serviceWorker' in navigator && /^https?:$/.test(window.location.protocol)) {
+        // ✅ مسح الـ cache القديم (v18) فورًا قبل ما نسجّل الـ SW الجديد
+        caches.keys().then((keys) => {
+            keys.forEach((key) => {
+                if (key !== 'toji-site-v20') caches.delete(key);
+            });
+        });
         navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
