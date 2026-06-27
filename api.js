@@ -1,364 +1,147 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow, noarchive">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://portfolio-backend-production-1901.up.railway.app http://localhost:5000; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
-    <title>TOJI Admin Studio</title>
-    <link rel="stylesheet" href="admin.css?v=18">
-</head>
-<body>
-    <main class="admin-shell">
-        <header class="topbar">
-            <div class="topbar-brand">
-                <p class="kicker">TOJI Studio</p>
-                <h1>لوحة تحكم موقع TOJI</h1>
-                <div class="server-status" id="serverStatus">
-                    <span class="status-dot" id="statusDot"></span>
-                    <span id="statusText">جارٍ التحقق من الاتصال...</span>
-                </div>
-            </div>
-            <div class="actions">
-                <div class="action-group primary-actions">
-                    <button id="saveServerBtn" type="button" class="btn-primary">
-                        <span class="btn-icon">☁️</span> حفظ على السيرفر
-                    </button>
-                    <button id="pullServerBtn" type="button" class="btn-secondary">
-                        <span class="btn-icon">⬇️</span> مزامنة من السيرفر
-                    </button>
-                </div>
-                <div class="action-group secondary-actions">
-                    <a href="index.html" target="_blank" rel="noopener" class="btn-link">
-                        <span class="btn-icon">🌐</span> فتح الموقع
-                    </a>
-                    <button id="resetBtn" type="button" class="btn-ghost">
-                        <span class="btn-icon">↺</span> إعادة تعيين
-                    </button>
-                    <button id="cleanFinalBtn" type="button" class="btn-danger">
-                        <span class="btn-icon">🚪</span> تسجيل خروج
-                    </button>
-                </div>
-            </div>
-        </header>
+// ============================================================
+// TOJI Frontend - API Integration Module
+// احفظ الملف ده: api.js  (في نفس مجلد script.js)
+// ============================================================
 
-        <div class="sync-banner" id="syncBanner" hidden>
-            <span id="syncBannerText"></span>
-        </div>
+// ✅ Auto-detects environment: local dev vs. Railway production
+const API_BASE_URL =
+    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5000/api'                                          // Local development
+        : 'https://portfolio-backend-production-1901.up.railway.app/api';     // Railway production
 
-        <section class="notice">
-            <strong>طريقة العمل:</strong>
-            عدّل أي حاجة في الفورم → اضغط <strong>حفظ على السيرفر</strong> → التغيير يظهر فوراً لكل الزوار.
-            الـ autosave بيحفظ محلياً كل 30 ثانية. السيرفر بيتحدّث بس لما تضغط الزر يدوياً.
-        </section>
+// ============================================================
+// Token Management
+// ✅ السبب: بنحفظ الـ JWT في sessionStorage مش localStorage
+//    عشان لو أغلقت المتصفح الـ Token بيتمسح تلقائي
+//    (أآمن لأنه مش بيفضل على الجهاز للأبد)
+// ============================================================
+const TokenManager = {
+    get: () => sessionStorage.getItem('toji_admin_token'),
+    set: (token) => sessionStorage.setItem('toji_admin_token', token),
+    remove: () => sessionStorage.removeItem('toji_admin_token'),
+    isLoggedIn: () => !!sessionStorage.getItem('toji_admin_token')
+};
 
-        <div class="admin-workspace">
-            <div class="editor-column">
-                <section class="panel">
-                    <h2>1) الأساسيات والهوية</h2>
-                    <div class="subpanel">
-                        <h3>بيانات العميل والموقع</h3>
-                        <div class="grid" id="identityFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>إعدادات الموقع العامة</h3>
-                        <div class="grid" id="siteFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>اللغة والتنقل - English</h3>
-                        <div class="grid" id="navFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>اللغة والتنقل - عربي</h3>
-                        <div class="grid" id="navFieldsAr"></div>
-                    </div>
-                </section>
+// ============================================================
+// Base Fetch Helper
+// ============================================================
+async function apiFetch(endpoint, options = {}) {
+    const token = TokenManager.get();
 
-                <section class="panel">
-                    <h2>2) بداية الصفحة Hero / Profile</h2>
-                    <div class="subpanel">
-                        <h3>نصوص الهيرو - English</h3>
-                        <div class="grid" id="heroFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>نصوص الهيرو - عربي</h3>
-                        <div class="grid" id="heroFieldsAr"></div>
-                    </div>
-                </section>
+    const defaultHeaders = {
+        'Content-Type': 'application/json',
+        // لو في Token، بنبعته في كل Request تلقائي
+        ...(token && { Authorization: `Bearer ${token}` })
+    };
 
-                <section class="panel">
-                    <h2>3) قسم About</h2>
-                    <div class="subpanel">
-                        <h3>About - English</h3>
-                        <div class="grid" id="aboutFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>About - عربي</h3>
-                        <div class="grid" id="aboutFieldsAr"></div>
-                    </div>
-                </section>
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            ...options,
+            headers: { ...defaultHeaders, ...options.headers }
+        });
 
-                <section class="panel">
-                    <h2>4) قسم Work</h2>
-                    <div class="subpanel">
-                        <h3>العنوان والتاجات - English</h3>
-                        <div class="grid" id="workFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>العنوان والتاجات - عربي</h3>
-                        <div class="grid" id="workFieldsAr"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>كروت الأعمال</h3>
-                        <p class="hint">كل سطر كارت واحد: banner|title EN|title AR|copy EN|copy AR|tags comma</p>
-                        <div class="grid" id="workBuilderFields"></div>
-                    </div>
-                </section>
+        const data = await response.json();
 
-                <section class="panel">
-                    <h2>5) قسم Links / Contact</h2>
-                    <div class="subpanel">
-                        <h3>روابط الحسابات الأساسية</h3>
-                        <div class="grid" id="socialFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>النصوص والأزرار - English</h3>
-                        <div class="grid" id="connectFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>النصوص والأزرار - عربي</h3>
-                        <div class="grid" id="connectFieldsAr"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>روابط إضافية وأزرار CTA</h3>
-                        <p class="hint">كل مربع هنا بيعدل قائمة كاملة مرتبطة بقسم الروابط.</p>
-                        <div class="grid" id="connectBuilderFields"></div>
-                    </div>
-                </section>
+        // لو التوكن انتهى، طرد المستخدم
+        if (response.status === 401) {
+            TokenManager.remove();
+            window.location.href = '/admin.html';
+            return;
+        }
 
-                <section class="panel">
-                    <h2>6) فورم واتساب</h2>
-                    <div class="subpanel">
-                        <h3>Form - English</h3>
-                        <div class="grid" id="formFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Form - عربي</h3>
-                        <div class="grid" id="formFieldsAr"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>رسائل واتساب السريعة</h3>
-                        <p class="hint">كل سطر رسالة: value|label EN|label AR|message EN|message AR</p>
-                        <div class="grid" id="formBuilderFields"></div>
-                    </div>
-                </section>
+        if (!response.ok) {
+            throw new Error(data.message || 'حدث خطأ في السيرفر');
+        }
 
-                <section class="panel">
-                    <h2>7) الأقسام الإضافية</h2>
-                    <div class="subpanel">
-                        <h3>Services</h3>
-                        <div class="grid" id="servicesBuilderFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Pricing</h3>
-                        <div class="grid" id="pricingBuilderFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Reviews</h3>
-                        <div class="grid" id="testimonialsBuilderFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Gallery</h3>
-                        <div class="grid" id="galleryBuilderFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>FAQ</h3>
-                        <div class="grid" id="faqBuilderFields"></div>
-                    </div>
-                </section>
+        return data;
+    } catch (error) {
+        console.error('API Error:', error.message);
+        throw error;
+    }
+}
 
-                <section class="panel">
-                    <h2>8) الشكل وتشغيل الأقسام</h2>
-                    <div class="subpanel">
-                        <h3>تشغيل وإخفاء الأقسام</h3>
-                        <div class="grid" id="featureFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>الألوان والخطوط</h3>
-                        <div class="grid" id="designFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>نصوص الثيم - English</h3>
-                        <div class="grid" id="themeFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>نصوص الثيم - عربي</h3>
-                        <div class="grid" id="themeFieldsAr"></div>
-                    </div>
-                </section>
+// ============================================================
+// Auth API
+// ============================================================
+const AuthAPI = {
+    login: (email, password) =>
+        apiFetch('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ email, password })
+        }),
 
-                <section class="panel">
-                    <h2>9) الصور والملفات والمشاركة</h2>
-                    <div class="subpanel">
-                        <h3>ملفات وأيقونات</h3>
-                        <div class="grid" id="assetFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>رفع سريع للصور</h3>
-                        <div class="grid">
-                            <label>رفع صورة البروفايل<input id="profileUpload" type="file" accept="image/*"></label>
-                            <label>رفع صورة المشاركة<input id="previewUpload" type="file" accept="image/*"></label>
-                        </div>
-                        <p class="hint">لو لم تربط مجلد المشروع، سيتم حفظ الصورة كـ Data URL داخل المحتوى وتدخل في ZIP النهائي.</p>
-                    </div>
-                    <div class="subpanel">
-                        <h3>صورة المشاركة</h3>
-                        <div class="grid" id="shareFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>نصوص المشاركة - English</h3>
-                        <div class="grid" id="shareTextFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>نصوص المشاركة - عربي</h3>
-                        <div class="grid" id="shareTextFieldsAr"></div>
-                    </div>
-                </section>
+    verify: () => apiFetch('/auth/verify'),
 
-                <section class="panel">
-                    <h2>10) SEO والتحليلات ورسائل النظام</h2>
-                    <div class="subpanel">
-                        <h3>SEO وتحليلات</h3>
-                        <div class="grid" id="analyticsFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Meta - English</h3>
-                        <div class="grid" id="metaFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Meta - عربي</h3>
-                        <div class="grid" id="metaFieldsAr"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>رسائل التنبيه - English</h3>
-                        <div class="grid" id="toastFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>رسائل التنبيه - عربي</h3>
-                        <div class="grid" id="toastFieldsAr"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>ARIA وإتاحة الوصول - English</h3>
-                        <div class="grid" id="ariaFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>ARIA وإتاحة الوصول - عربي</h3>
-                        <div class="grid" id="ariaFieldsAr"></div>
-                    </div>
-                </section>
+    logout: () => TokenManager.remove()
+};
 
-                <section class="panel" id="projectsPanel">
-                    <h2>📦 إدارة المشاريع (Backend)</h2>
+// ============================================================
+// Projects API
+// ============================================================
+const ProjectsAPI = {
+    // جيب المشاريع الظاهرة (للعامة - بدون توكن)
+    getPublic: () => apiFetch('/projects'),
 
-                    <div class="projects-toolbar">
-                        <button id="loadProjectsBtn" type="button" class="btn-secondary">
-                            <span>🔄</span> تحميل المشاريع
-                        </button>
-                        <button id="addProjectBtn" type="button" class="btn-primary">
-                            <span>+</span> إضافة مشروع جديد
-                        </button>
-                    </div>
+    // جيب كل المشاريع (أدمن فقط)
+    getAll: () => apiFetch('/projects/all'),
 
-                    <!-- فورم الإضافة / التعديل -->
-                    <div class="project-form" id="projectForm" hidden>
-                        <h3 id="projectFormTitle">مشروع جديد</h3>
-                        <input type="hidden" id="projectId">
-                        <div class="project-form-grid">
-                            <label>
-                                البانر (مثال: WEB، APP، BRAND)
-                                <input type="text" id="pBanner" placeholder="WEB" maxlength="20">
-                            </label>
-                            <label>
-                                العنوان — English
-                                <input type="text" id="pTitleEn" placeholder="Project Title">
-                            </label>
-                            <label>
-                                العنوان — عربي
-                                <input type="text" id="pTitleAr" placeholder="اسم المشروع">
-                            </label>
-                            <label>
-                                الوصف — English
-                                <textarea id="pCopyEn" rows="3" placeholder="Project description..."></textarea>
-                            </label>
-                            <label>
-                                الوصف — عربي
-                                <textarea id="pCopyAr" rows="3" placeholder="وصف المشروع..."></textarea>
-                            </label>
-                            <label>
-                                التاجز (مفصولة بفاصلة)
-                                <input type="text" id="pTags" placeholder="Design, Development, Branding">
-                            </label>
-                            <label>
-                                رابط المشروع (اختياري)
-                                <input type="url" id="pLiveUrl" placeholder="https://...">
-                            </label>
-                            <label>
-                                الترتيب
-                                <input type="number" id="pOrder" value="0" min="0">
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="pVisible" checked>
-                                ظاهر على الموقع
-                            </label>
-                        </div>
-                        <div class="project-form-actions">
-                            <button id="saveProjectBtn" type="button" class="btn-primary">💾 حفظ المشروع</button>
-                            <button id="cancelProjectBtn" type="button" class="btn-ghost">إلغاء</button>
-                        </div>
-                        <p id="projectFormMsg" class="form-msg"></p>
-                    </div>
+    // أضف مشروع جديد
+    create: (projectData) =>
+        apiFetch('/projects', {
+            method: 'POST',
+            body: JSON.stringify(projectData)
+        }),
 
-                    <!-- قائمة المشاريع -->
-                    <div id="projectsList">
-                        <p class="projects-hint">اضغط "تحميل المشاريع" لعرض المشاريع الحالية من السيرفر.</p>
-                    </div>
-                </section>
+    // عدّل مشروع
+    update: (id, projectData) =>
+        apiFetch(`/projects/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(projectData)
+        }),
 
+    // احذف مشروع
+    delete: (id) =>
+        apiFetch(`/projects/${id}`, { method: 'DELETE' })
+};
 
-                    <label class="full-width">
-                        JSON كامل
-                        <textarea id="fullJson" rows="14" spellcheck="false"></textarea>
-                    </label>
-                    <div class="actions">
-                        <button id="loadFullBtn" type="button">تطبيق JSON الكامل</button>
-                        <button id="copyFullBtn" type="button">نسخ JSON</button>
-                    </div>
-                    <p id="msg" role="status" aria-live="polite"></p>
-                </section>
-            </div>
+// ============================================================
+// Messages API
+// ============================================================
+const MessagesAPI = {
+    // إرسال رسالة (للعامة - بدون توكن)
+    send: (messageData) =>
+        apiFetch('/messages', {
+            method: 'POST',
+            body: JSON.stringify(messageData)
+        }),
 
-            <aside class="preview-column" aria-label="معاينة أماكن التعديل">
-                <div class="preview-sticky">
-                    <div class="preview-toolbar">
-                        <div>
-                            <p class="kicker">Live Map</p>
-                            <h2>مكان التعديل في الموقع</h2>
-                        </div>
-                        <span id="previewLangBadge">EN</span>
-                    </div>
-                    <div class="preview-device">
-                        <div class="preview-device-bar" aria-hidden="true">
-                            <span></span>
-                        </div>
-                        <div class="site-preview" id="adminPreview"></div>
-                    </div>
-                </div>
-            </aside>
-        </div>
-    </main>
+    // جيب كل الرسائل (أدمن فقط)
+    getAll: () => apiFetch('/messages'),
 
-    <script src="content.js?v=18"></script>
-    <script src="api.js?v=19"></script>
-    <script src="admin.js?v=18"></script>
-</body>
-</html>
+    // غيّر حالة الرسالة
+    updateStatus: (id, status) =>
+        apiFetch(`/messages/${id}/status`, {
+            method: 'PATCH',
+            body: JSON.stringify({ status })
+        }),
+
+    // احذف رسالة
+    delete: (id) =>
+        apiFetch(`/messages/${id}`, { method: 'DELETE' })
+};
+
+// ============================================================
+// Config API — إعدادات الموقع الحية
+// ✅ الأدمن يحفظ الإعدادات هنا فتظهر للزوار فورًا
+// ============================================================
+const ConfigAPI = {
+    get: () => apiFetch('/config'),
+    save: (configData) =>
+        apiFetch('/config', {
+            method: 'POST',
+            body: JSON.stringify({ data: configData })
+        })
+};
+
+// تصدير موحد لكل الـ APIs
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI };
