@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sectionConfig = {
         about: true,
         work: true,
-        projects: false,   // يتفعّل تلقائياً لما يكون في مشاريع في الباك اند
+        projects: null,    // null = تلقائي: يظهر لما يكون في مشاريع
         services: false,
         pricing: false,
         testimonials: false,
@@ -677,7 +677,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!section || !grid || !cards || !cards.length) return;
 
-        // ✅ لو الأدمن مش مخفّيه صراحةً → اظهره تلقائياً لما يكون في مشاريع
+        // ✅ يظهر تلقائياً لما يكون في مشاريع
+        // يتخبى بس لو الأدمن ضبطه على false صراحةً
         const adminHid = sectionConfig.projects === false;
         section.hidden  = adminHid;
         if (dockBtn) dockBtn.hidden = adminHid;
@@ -702,6 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         refreshDomCollections();
+        setTimeout(() => { if (typeof syncObservedElements === 'function') syncObservedElements(); }, 50);
         if (window.lucide) window.lucide.createIcons();
     }
 
