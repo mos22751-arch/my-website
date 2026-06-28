@@ -68,6 +68,7 @@
             <a class="nav-link" href="#expertise" data-target="expertise" data-i18n="nav.about">About</a>
             <a class="nav-link" href="#work" data-target="work" data-i18n="nav.work">Work</a>
             <a class="nav-link" href="#projects" data-target="projects" id="navProjects" hidden>Projects</a>
+            <a class="nav-link" href="#songs" data-target="songs" id="navSongs" hidden>Songs</a>
             <a class="nav-link" href="#connect" data-target="connect" data-i18n="nav.links">Links</a>
         </div>
         <div class="nav-actions">
@@ -239,6 +240,19 @@
             </div>
         </section>
 
+                <!-- ==================== FAV SONGS ==================== -->
+        <section class="screen" id="songs" aria-labelledby="songs-title" hidden>
+            <div class="section-shell">
+                <div class="section-heading reveal-up">
+                    <p class="eyebrow">Fav Songs</p>
+                    <h2 class="section-title" id="songs-title">What I listen to.</h2>
+                </div>
+                <div class="songs-grid" id="songsGrid">
+                    <!-- يتملى من الـ backend -->
+                </div>
+            </div>
+        </section>
+
         <section class="screen" id="connect" aria-labelledby="connect-title">
             <div class="connect-container">
                 <div class="section-heading reveal-up">
@@ -395,6 +409,9 @@
             </button>
             <button class="dock-btn" type="button" data-target="projects" aria-label="Projects" id="dockProjects" hidden>
                 <i data-lucide="layout-grid" aria-hidden="true"></i>
+            </button>
+            <button class="dock-btn" type="button" data-target="songs" aria-label="Songs" id="dockSongs" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
             </button>
             <button class="dock-btn" type="button" data-target="connect" aria-label="Links" data-i18n-attr="aria-label:nav.links">
                 <i data-lucide="link-2" aria-hidden="true"></i>

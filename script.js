@@ -644,6 +644,65 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.lucide) window.lucide.createIcons();
     }
 
+
+    // ============================================================
+    // FAV SONGS — تحميل وعرض من الـ Backend
+    // ============================================================
+    async function loadSongs() {
+        if (!window.TojiAPI?.SongsAPI) return;
+        try {
+            const response = await window.TojiAPI.SongsAPI.getPublic();
+            if (response && Array.isArray(response.data) && response.data.length > 0) {
+                renderSongsSection(response.data);
+                console.info('[TOJI] ✅ Loaded ' + response.data.length + ' songs from backend.');
+            }
+        } catch (err) {
+            console.warn('[TOJI] Songs API unavailable.', err.message);
+        }
+    }
+
+    function renderSongsSection(songs) {
+        const section = document.getElementById('songs');
+        const grid    = document.getElementById('songsGrid');
+        const dockBtn = document.getElementById('dockSongs');
+        const navLink = document.getElementById('navSongs');
+
+        if (!section || !grid || !songs || !songs.length) return;
+
+        // يظهر تلقائياً لما في أغاني
+        const adminHid = sectionConfig.songs === false;
+        section.hidden  = adminHid;
+        if (dockBtn) dockBtn.hidden = adminHid;
+        if (navLink) navLink.hidden = adminHid;
+        if (adminHid) return;
+
+        const moodEmoji = { chill: '🧊', hype: '🔥', sad: '🌧️', focus: '⚡', vibe: '🎵' };
+
+        grid.innerHTML = songs.map((song, i) => {
+            const emoji   = moodEmoji[song.mood] || '🎵';
+            const cover   = song.coverUrl
+                ? '<img src="' + song.coverUrl + '" alt="' + song.title + '" loading="lazy" onerror="this.parentElement.textContent='' + emoji + ''">'
+                : emoji;
+            const desc    = song.description ? '<p class="song-desc">' + song.description + '</p>' : '';
+            const spotify = song.spotifyUrl  ? '<a class="song-play-btn spotify" href="' + song.spotifyUrl + '" target="_blank" rel="noreferrer">▶ Spotify</a>' : '';
+            const youtube = song.youtubeUrl  ? '<a class="song-play-btn youtube" href="' + song.youtubeUrl + '" target="_blank" rel="noreferrer">▶ YouTube</a>' : '';
+            const mood    = song.mood ? '<span class="song-mood-tag">' + song.mood + '</span>' : '';
+
+            return '<article class="song-card glass-card reveal-up ' + (i ? 'delay-' + Math.min(i % 4, 3) : '') + '">'
+                + '<div class="song-cover" data-mood="' + (song.mood || 'vibe') + '">' + cover + '</div>'
+                + '<div class="song-info">'
+                +   '<h3 class="song-title">' + song.title + '</h3>'
+                +   '<p class="song-artist">' + song.artist + '</p>'
+                +   desc
+                +   '<div class="song-actions">' + spotify + youtube + mood + '</div>'
+                + '</div>'
+                + '</article>';
+        }).join('');
+
+        refreshDomCollections();
+        setTimeout(function() { if (typeof syncObservedElements === 'function') syncObservedElements(); }, 50);
+    }
+
     // ---- Load projects from backend API (with graceful fallback) ----
     async function loadProjectsFromAPI() {
         if (!window.TojiAPI) return;
@@ -1145,6 +1204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTemplateFeatures();
         // Fetch live projects from backend and overlay on static content
         loadProjectsFromAPI();
+        loadSongs();
         setThemePreset(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'neon');
         setAccent(localStorage.getItem('toji_accent') || profileConfig.accent || 'cyan');
         updateWhatsappLinks();

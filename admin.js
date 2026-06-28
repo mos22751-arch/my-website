@@ -2116,6 +2116,170 @@ Do not resell the customized public version as a separate template unless your s
         loadProjects();
     }
 
+
+    // ============================================================
+    // 🎵 SONGS MANAGER — إدارة الأغاني المفضلة
+    // ============================================================
+
+    async function loadSongs() {
+        const btn = el('loadSongsBtn');
+        const list = el('songsList');
+        if (!list) return;
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري التحميل...'; }
+
+        try {
+            const res   = await window.TojiAPI.SongsAPI.getAll();
+            const songs = res?.data || [];
+
+            if (songs.length === 0) {
+                list.innerHTML = '<p class="projects-hint">مفيش أغاني بعد. اضغط "+ إضافة أغنية جديدة".</p>';
+            } else {
+                const moodEmoji = { chill: '🧊', hype: '🔥', sad: '🌧️', focus: '⚡', vibe: '🎵' };
+                list.innerHTML = songs.map((song) => {
+                    const emoji = moodEmoji[song.mood] || '🎵';
+                    return `
+                    <div class="project-item" data-id="${song._id}">
+                        <div class="project-item-main">
+                            <span class="project-banner">${emoji}</span>
+                            <div class="project-item-info">
+                                <strong>${song.title}</strong>
+                                <span class="project-item-sub">${song.artist}</span>
+                                ${song.description ? '<span class="project-item-sub">' + song.description + '</span>' : ''}
+                            </div>
+                            <span class="project-visibility">${song.visible ? '👁 ظاهر' : '🙈 مخفي'}</span>
+                        </div>
+                        <div class="project-item-actions">
+                            <button class="btn-sm btn-edit" data-song-edit="${song._id}" type="button">✏️ تعديل</button>
+                            <button class="btn-sm btn-delete" data-song-delete="${song._id}" type="button">🗑 حذف</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+        } catch (err) {
+            list.innerHTML = '<p class="form-error">⚠️ فشل تحميل الأغاني: ' + err.message + '</p>';
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '🔄 تحميل الأغاني'; }
+        }
+    }
+
+    function clearSongForm() {
+        el('songId').value       = '';
+        el('sTitle').value       = '';
+        el('sArtist').value      = '';
+        el('sDesc').value        = '';
+        el('sSpotify').value     = '';
+        el('sYoutube').value     = '';
+        el('sCover').value       = '';
+        el('sMood').value        = 'vibe';
+        el('sOrder').value       = '0';
+        el('sVisible').checked   = true;
+        el('songFormMsg').textContent = '';
+        el('songFormTitle').textContent = 'أغنية جديدة';
+    }
+
+    // ---- أزرار الـ toolbar ----
+    el('addSongBtn').addEventListener('click', () => {
+        clearSongForm();
+        el('songForm').hidden = false;
+        el('songForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    el('cancelSongBtn').addEventListener('click', () => {
+        el('songForm').hidden = true;
+        clearSongForm();
+    });
+
+    // ---- حفظ / تعديل أغنية ----
+    el('saveSongBtn').addEventListener('click', async () => {
+        const id      = el('songId').value.trim();
+        const title   = el('sTitle').value.trim();
+        const artist  = el('sArtist').value.trim();
+        const msgEl   = el('songFormMsg');
+
+        if (!title || !artist) {
+            msgEl.textContent = '⚠️ اسم الأغنية والفنان مطلوبان.';
+            return;
+        }
+
+        const data = {
+            title,
+            artist,
+            description: el('sDesc').value.trim(),
+            spotifyUrl:  el('sSpotify').value.trim(),
+            youtubeUrl:  el('sYoutube').value.trim(),
+            coverUrl:    el('sCover').value.trim(),
+            mood:        el('sMood').value,
+            order:       Number(el('sOrder').value) || 0,
+            visible:     el('sVisible').checked
+        };
+
+        const saveBtn = el('saveSongBtn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = '⏳ جاري الحفظ...';
+        msgEl.textContent = '';
+
+        try {
+            if (id) {
+                await window.TojiAPI.SongsAPI.update(id, data);
+                msgEl.textContent = '✅ تم التعديل بنجاح!';
+            } else {
+                await window.TojiAPI.SongsAPI.add(data);
+                msgEl.textContent = '✅ تمت الإضافة بنجاح!';
+            }
+            el('songForm').hidden = true;
+            clearSongForm();
+            await loadSongs();
+        } catch (err) {
+            msgEl.textContent = '⚠️ فشل الحفظ: ' + err.message;
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 حفظ الأغنية';
+        }
+    });
+
+    // ---- Event delegation لأزرار التعديل والحذف ----
+    el('songsList').addEventListener('click', async (e) => {
+        // تعديل
+        const editId = e.target.dataset.songEdit;
+        if (editId) {
+            const res  = await window.TojiAPI.SongsAPI.getAll().catch(() => ({ data: [] }));
+            const song = (res?.data || []).find((s) => s._id === editId);
+            if (!song) return;
+            el('songId').value     = song._id;
+            el('sTitle').value     = song.title;
+            el('sArtist').value    = song.artist;
+            el('sDesc').value      = song.description || '';
+            el('sSpotify').value   = song.spotifyUrl  || '';
+            el('sYoutube').value   = song.youtubeUrl  || '';
+            el('sCover').value     = song.coverUrl    || '';
+            el('sMood').value      = song.mood        || 'vibe';
+            el('sOrder').value     = song.order       || 0;
+            el('sVisible').checked = song.visible !== false;
+            el('songFormTitle').textContent = 'تعديل: ' + song.title;
+            el('songForm').hidden = false;
+            el('songForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // حذف
+        const deleteId = e.target.dataset.songDelete;
+        if (deleteId) {
+            if (!confirm('هتحذف الأغنية دي؟')) return;
+            try {
+                await window.TojiAPI.SongsAPI.remove(deleteId);
+                await loadSongs();
+            } catch (err) {
+                alert('فشل الحذف: ' + err.message);
+            }
+        }
+    });
+
+    el('loadSongsBtn').addEventListener('click', loadSongs);
+
+    // تحميل تلقائي عند فتح الأدمن
+    if (window.TojiAPI?.SongsAPI) {
+        loadSongs();
+    }
+
     // ============================================================
     // 📊 ANALYTICS DASHBOARD
     // ============================================================

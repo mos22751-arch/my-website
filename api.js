@@ -151,4 +151,16 @@ const AnalyticsAPI = {
 };
 
 // تصدير موحد لكل الـ APIs
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI };
+
+// ============================================================
+// Songs API
+// ============================================================
+const SongsAPI = {
+    getPublic: ()      => apiFetch('/songs'),
+    getAll:    ()      => apiFetch('/songs/all'),
+    add:       (data)  => apiFetch('/songs',       { method: 'POST',   body: JSON.stringify(data) }),
+    update:    (id, d) => apiFetch('/songs/' + id, { method: 'PUT',    body: JSON.stringify(d)    }),
+    remove:    (id)    => apiFetch('/songs/' + id, { method: 'DELETE' })
+};
+
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI };
