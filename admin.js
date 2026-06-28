@@ -2173,6 +2173,8 @@ Do not resell the customized public version as a separate template unless your s
         el('sMood').value        = 'vibe';
         el('sOrder').value       = '0';
         el('sVisible').checked   = true;
+        el('sAudioUrl').value    = '';
+        el('sAudioStatus').textContent = 'مفيش ملف';
         el('songFormMsg').textContent = '';
         el('songFormTitle').textContent = 'أغنية جديدة';
     }
@@ -2207,6 +2209,7 @@ Do not resell the customized public version as a separate template unless your s
             description: el('sDesc').value.trim(),
             spotifyUrl:  el('sSpotify').value.trim(),
             youtubeUrl:  el('sYoutube').value.trim(),
+            audioUrl:    el('sAudioUrl').value.trim(),
             coverUrl:    el('sCover').value.trim(),
             mood:        el('sMood').value,
             order:       Number(el('sOrder').value) || 0,
@@ -2251,6 +2254,8 @@ Do not resell the customized public version as a separate template unless your s
             el('sDesc').value      = song.description || '';
             el('sSpotify').value   = song.spotifyUrl  || '';
             el('sYoutube').value   = song.youtubeUrl  || '';
+            el('sAudioUrl').value  = song.audioUrl    || '';
+            el('sAudioStatus').textContent = song.audioUrl ? '✅ ' + song.audioUrl.split('/').pop() : 'مفيش ملف';
             el('sCover').value     = song.coverUrl    || '';
             el('sMood').value      = song.mood        || 'vibe';
             el('sOrder').value     = song.order       || 0;
@@ -2270,6 +2275,50 @@ Do not resell the customized public version as a separate template unless your s
             } catch (err) {
                 alert('فشل الحذف: ' + err.message);
             }
+        }
+    });
+
+
+    // ---- رفع MP3 على Cloudinary ----
+    el('sAudioUploadBtn').addEventListener('click', () => el('sAudioFile').click());
+
+    el('sAudioFile').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const statusEl = el('sAudioStatus');
+        const btn      = el('sAudioUploadBtn');
+
+        statusEl.textContent = '⏳ جاري الرفع...';
+        btn.disabled = true;
+
+        try {
+            const formData = new FormData();
+            formData.append('audio', file);
+
+            const token = window.TojiAPI.TokenManager.get();
+            const res   = await fetch(
+                (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:5000'
+                    : 'https://portfolio-backend-production-1901.up.railway.app')
+                + '/api/upload/audio',
+                {
+                    method:  'POST',
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    body:    formData
+                }
+            );
+
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+
+            el('sAudioUrl').value      = data.url;
+            statusEl.textContent       = '✅ ' + file.name;
+        } catch (err) {
+            statusEl.textContent = '⚠️ فشل الرفع: ' + err.message;
+        } finally {
+            btn.disabled = false;
+            e.target.value = ''; // reset input
         }
     });
 

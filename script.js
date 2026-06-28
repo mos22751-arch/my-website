@@ -686,6 +686,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const desc    = song.description ? '<p class="song-desc">' + song.description + '</p>' : '';
             const spotify = song.spotifyUrl  ? '<a class="song-play-btn spotify" href="' + song.spotifyUrl + '" target="_blank" rel="noreferrer">▶ Spotify</a>' : '';
             const youtube = song.youtubeUrl  ? '<a class="song-play-btn youtube" href="' + song.youtubeUrl + '" target="_blank" rel="noreferrer">▶ YouTube</a>' : '';
+            const audio   = song.audioUrl
+                ? '<audio class="song-audio-player" controls preload="none"><source src="' + song.audioUrl + '" type="audio/mpeg">المتصفح مش بيدعم الصوت</audio>'
+                : '';
             const mood    = song.mood ? '<span class="song-mood-tag">' + song.mood + '</span>' : '';
 
             return '<article class="song-card glass-card reveal-up ' + (i ? 'delay-' + Math.min(i % 4, 3) : '') + '">'

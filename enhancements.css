@@ -1182,3 +1182,20 @@ body.lang-ar .project-card h3 {
     .songs-grid { grid-template-columns: 1fr; }
     .song-cover { width: 60px; height: 60px; font-size: 1.5rem; }
 }
+
+/* Audio Player */
+.song-audio-player {
+    width: 100%;
+    margin: 0.5rem 0;
+    border-radius: 0.5rem;
+    height: 36px;
+    accent-color: var(--accent, #6ec6ff);
+}
+
+/* Admin MP3 Upload Row */
+.mp3-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+}
