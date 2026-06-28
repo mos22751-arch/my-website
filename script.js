@@ -2225,3 +2225,118 @@ window.addEventListener('beforeunload', () => {
     progress.className = 'progress-bar';
     document.body.appendChild(progress);
 });
+
+// ============================================================
+// 📊 VISITOR TRACKING — بيسجّل الزيارة في الباك اند
+// ============================================================
+(function initTracking() {
+    if (!window.TojiAPI) return;
+    const API = 'https://portfolio-backend-production-1901.up.railway.app/api/analytics';
+
+    // كشف الجهاز
+    function detectDevice() {
+        const ua = navigator.userAgent;
+        if (/Mobi|Android|iPhone/i.test(ua)) return 'mobile';
+        if (/Tablet|iPad/i.test(ua)) return 'tablet';
+        return 'desktop';
+    }
+
+    function detectOS() {
+        const ua = navigator.userAgent;
+        if (/Windows/i.test(ua))     return 'Windows';
+        if (/Mac OS/i.test(ua))      return 'Mac';
+        if (/Linux/i.test(ua))       return 'Linux';
+        if (/Android/i.test(ua))     return 'Android';
+        if (/iPhone|iPad/i.test(ua)) return 'iOS';
+        return 'Unknown';
+    }
+
+    function detectBrowser() {
+        const ua = navigator.userAgent;
+        if (/Edg\//i.test(ua))     return 'Edge';
+        if (/Chrome/i.test(ua))    return 'Chrome';
+        if (/Firefox/i.test(ua))   return 'Firefox';
+        if (/Safari/i.test(ua))    return 'Safari';
+        if (/Opera/i.test(ua))     return 'Opera';
+        return 'Other';
+    }
+
+    const sessionData = {
+        visitId:         null,
+        sectionsViewed:  new Set(),
+        projectsClicked: [],
+        linksClicked:    [],
+        startTime:       Date.now()
+    };
+
+    // تسجيل الزيارة الأولية
+    async function trackVisit() {
+        try {
+            const res = await fetch(`${API}/visit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    device:   detectDevice(),
+                    os:       detectOS(),
+                    browser:  detectBrowser(),
+                    referrer: document.referrer || '',
+                    language: navigator.language || '',
+                    screen:   `${screen.width}x${screen.height}`
+                })
+            });
+            const data = await res.json();
+            if (data?.id) sessionData.visitId = data.id;
+        } catch {}
+    }
+
+    // تحديث الجلسة عند المغادرة
+    function updateSession() {
+        if (!sessionData.visitId) return;
+        const body = JSON.stringify({
+            sectionsViewed:  [...sessionData.sectionsViewed],
+            projectsClicked: sessionData.projectsClicked,
+            linksClicked:    sessionData.linksClicked,
+            timeOnSite:      Math.round((Date.now() - sessionData.startTime) / 1000)
+        });
+        // استخدام sendBeacon عشان يكمل حتى لو الصفحة بتقفل
+        navigator.sendBeacon(`${API}/visit/${sessionData.visitId}`, new Blob([body], { type: 'application/json' }));
+    }
+
+    // تتبع الأقسام بالـ IntersectionObserver
+    function trackSections() {
+        const sections = document.querySelectorAll('section[id]');
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach((e) => {
+                if (e.isIntersecting) sessionData.sectionsViewed.add(e.target.id);
+            });
+        }, { threshold: 0.3 });
+        sections.forEach((s) => obs.observe(s));
+    }
+
+    // تتبع نقرات المشاريع والروابط
+    function trackClicks() {
+        document.addEventListener('click', (e) => {
+            const projectCard = e.target.closest('.live-project-card, .project-card');
+            if (projectCard) {
+                const title = projectCard.querySelector('h3')?.textContent || '';
+                if (title) sessionData.projectsClicked.push(title);
+            }
+            const link = e.target.closest('a[href^="http"]');
+            if (link && !link.href.includes(location.hostname)) {
+                sessionData.linksClicked.push(link.href);
+            }
+        });
+    }
+
+    // ابدأ بعد ثانية (عشان مش يبطّل الـ page load)
+    setTimeout(async () => {
+        await trackVisit();
+        trackSections();
+        trackClicks();
+    }, 1000);
+
+    window.addEventListener('beforeunload', updateSession);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') updateSession();
+    });
+})();

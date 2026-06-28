@@ -2117,6 +2117,112 @@ Do not resell the customized public version as a separate template unless your s
     }
 
     // ============================================================
+    // 📊 ANALYTICS DASHBOARD
+    // ============================================================
+
+    async function loadAnalytics() {
+        const btn = el('refreshAnalyticsBtn');
+        if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+
+        try {
+            const res  = await window.TojiAPI.AnalyticsAPI.getStats();
+            const data = res?.data;
+            if (!data) throw new Error('لا توجد بيانات');
+
+            // الأرقام
+            el('statTotal').textContent   = data.counts.total.toLocaleString('ar');
+            el('statToday').textContent   = data.counts.today.toLocaleString('ar');
+            el('statWeek').textContent    = data.counts.week.toLocaleString('ar');
+            el('statMonth').textContent   = data.counts.month.toLocaleString('ar');
+            const m = Math.floor(data.avgTime / 60);
+            const s = data.avgTime % 60;
+            el('statAvgTime').textContent = m > 0 ? `${m}د ${s}ث` : `${s}ث`;
+
+            // الأجهزة
+            const deviceIcons = { mobile: '📱', tablet: '📲', desktop: '🖥' };
+            const maxDevice = data.deviceStats[0]?.count || 1;
+            el('deviceStats').innerHTML = data.deviceStats.map((d) => `
+                <div class="stat-row">
+                    <span class="stat-row-label">${deviceIcons[d._id] || '💻'} ${d._id}</span>
+                    <span class="stat-row-count">${d.count}</span>
+                </div>
+                <div class="stat-bar"><div class="stat-bar-fill" style="width:${(d.count/maxDevice*100).toFixed(0)}%"></div></div>
+            `).join('') || '<p class="projects-hint">لا توجد بيانات بعد.</p>';
+
+            // الأقسام
+            const maxSec = data.topSections[0]?.count || 1;
+            el('sectionStats').innerHTML = data.topSections.map((s) => `
+                <div class="stat-row">
+                    <span class="stat-row-label">${s._id}</span>
+                    <span class="stat-row-count">${s.count}</span>
+                </div>
+                <div class="stat-bar"><div class="stat-bar-fill" style="width:${(s.count/maxSec*100).toFixed(0)}%"></div></div>
+            `).join('') || '<p class="projects-hint">لا توجد بيانات بعد.</p>';
+
+            // المشاريع
+            const maxProj = data.topProjects[0]?.count || 1;
+            el('projectStats').innerHTML = data.topProjects.map((p) => `
+                <div class="stat-row">
+                    <span class="stat-row-label">${p._id}</span>
+                    <span class="stat-row-count">${p.count}</span>
+                </div>
+                <div class="stat-bar"><div class="stat-bar-fill" style="width:${(p.count/maxProj*100).toFixed(0)}%"></div></div>
+            `).join('') || '<p class="projects-hint">لا توجد بيانات بعد.</p>';
+
+            // جدول الزوار
+            const visitors = data.recentVisitors || [];
+            if (!visitors.length) {
+                el('visitorsList').innerHTML = '<p class="projects-hint">لا توجد زيارات مسجّلة بعد.</p>';
+            } else {
+                el('visitorsList').innerHTML = `
+                    <table class="visitors-table">
+                        <thead>
+                            <tr>
+                                <th>الجهاز</th>
+                                <th>IP</th>
+                                <th>المتصفح</th>
+                                <th>نظام التشغيل</th>
+                                <th>الأقسام</th>
+                                <th>الوقت</th>
+                                <th>تاريخ الزيارة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${visitors.map((v) => {
+                                const icons = { mobile:'📱', tablet:'📲', desktop:'🖥' };
+                                const date  = new Date(v.visitedAt).toLocaleString('ar-EG');
+                                const mins  = Math.floor((v.timeOnSite||0)/60);
+                                const secs  = (v.timeOnSite||0) % 60;
+                                const time  = mins > 0 ? `${mins}د ${secs}ث` : `${secs}ث`;
+                                const sections = (v.sectionsViewed||[]).join(', ') || '—';
+                                return `<tr>
+                                    <td><span class="device-icon">${icons[v.device]||'💻'}</span></td>
+                                    <td><code>${v.ip||'—'}</code></td>
+                                    <td>${v.browser||'—'}</td>
+                                    <td>${v.os||'—'}</td>
+                                    <td title="${sections}">${sections.length > 30 ? sections.slice(0,30)+'…' : sections}</td>
+                                    <td>${time}</td>
+                                    <td>${date}</td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>`;
+            }
+
+            showBanner(`✅ تم تحميل إحصائيات ${data.counts.total} زيارة.`, 'success', 3000);
+        } catch (err) {
+            el('visitorsList').innerHTML = `<p class="projects-hint error">❌ فشل التحميل: ${err.message}</p>`;
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '🔄 تحديث'; }
+        }
+    }
+
+    el('refreshAnalyticsBtn').addEventListener('click', loadAnalytics);
+
+    // تحميل تلقائي عند فتح الأدمن
+    if (window.TojiAPI?.AnalyticsAPI) loadAnalytics();
+
+    // ============================================================
     // JSON Panel Buttons (بدون تغيير)
     // ============================================================
     el('copyFullBtn').addEventListener('click', async () => {

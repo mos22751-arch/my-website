@@ -257,6 +257,33 @@
                     </div>
                 </section>
 
+
+                <section class="panel" id="analyticsPanel">
+                    <h2>📊 لوحة الزوار والتحليلات</h2>
+
+                    <div class="analytics-counts">
+                        <div class="stat-card"><span class="stat-num" id="statTotal">—</span><span class="stat-label">إجمالي الزيارات</span></div>
+                        <div class="stat-card"><span class="stat-num" id="statToday">—</span><span class="stat-label">اليوم</span></div>
+                        <div class="stat-card"><span class="stat-num" id="statWeek">—</span><span class="stat-label">الأسبوع</span></div>
+                        <div class="stat-card"><span class="stat-num" id="statMonth">—</span><span class="stat-label">الشهر</span></div>
+                        <div class="stat-card"><span class="stat-num" id="statAvgTime">—</span><span class="stat-label">متوسط الجلسة</span></div>
+                    </div>
+
+                    <div class="analytics-grid">
+                        <div class="analytics-col"><h3>📱 الأجهزة</h3><div id="deviceStats" class="stats-list"></div></div>
+                        <div class="analytics-col"><h3>👁 أكثر الأقسام مشاهدة</h3><div id="sectionStats" class="stats-list"></div></div>
+                        <div class="analytics-col"><h3>🖱 أكثر المشاريع نقرًا</h3><div id="projectStats" class="stats-list"></div></div>
+                    </div>
+
+                    <div class="analytics-visitors">
+                        <div class="analytics-visitors-header">
+                            <h3>🕐 آخر الزوار</h3>
+                            <button id="refreshAnalyticsBtn" class="btn-secondary btn-sm">🔄 تحديث</button>
+                        </div>
+                        <div id="visitorsList"><p class="projects-hint">اضغط تحديث لتحميل بيانات الزوار.</p></div>
+                    </div>
+                </section>
+
                 <section class="panel" id="projectsPanel">
                     <h2>📦 إدارة المشاريع (Backend)</h2>
 

@@ -143,5 +143,12 @@ const ConfigAPI = {
         })
 };
 
+// ============================================================
+// Analytics API
+// ============================================================
+const AnalyticsAPI = {
+    getStats: () => apiFetch('/analytics/stats')
+};
+
 // تصدير موحد لكل الـ APIs
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI };
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI };
