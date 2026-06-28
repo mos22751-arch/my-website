@@ -681,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
         grid.innerHTML = songs.map((song, i) => {
             const emoji   = moodEmoji[song.mood] || '🎵';
             const cover   = song.coverUrl
-                ? '<img src="' + song.coverUrl + '" alt="' + song.title + '" loading="lazy" onerror="this.parentElement.textContent='' + emoji + ''">'
+                ? '<img src="' + song.coverUrl + '" alt="cover" loading="lazy">'
                 : emoji;
             const desc    = song.description ? '<p class="song-desc">' + song.description + '</p>' : '';
             const spotify = song.spotifyUrl  ? '<a class="song-play-btn spotify" href="' + song.spotifyUrl + '" target="_blank" rel="noreferrer">▶ Spotify</a>' : '';
