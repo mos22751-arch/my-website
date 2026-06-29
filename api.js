@@ -163,4 +163,4 @@ const SongsAPI = {
     remove:    (id)    => apiFetch('/songs/' + id, { method: 'DELETE' })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI };
+window.TojiAPI = { BASE_URL: API_BASE_URL, TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI };

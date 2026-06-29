@@ -577,15 +577,20 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'testimonials', label: localized(contentOverrides.marketing?.testimonials?.eyebrow) || 'Reviews', icon: 'quote', enabled: sectionConfig.testimonials },
             { id: 'gallery', label: localized(contentOverrides.marketing?.gallery?.eyebrow) || 'Gallery', icon: 'images', enabled: sectionConfig.gallery },
             { id: 'faq', label: localized(contentOverrides.marketing?.faq?.eyebrow) || 'FAQ', icon: 'circle-help', enabled: sectionConfig.faq },
+            // Projects & Songs are populated asynchronously from the backend. Keep their
+            // nav/dock entries here (hidden by default) so they can be revealed once their
+            // sections render — otherwise rebuilding the nav would drop them entirely.
+            { id: 'projects', label: 'Projects', icon: 'layout-grid', enabled: true, hidden: true, navId: 'navProjects', dockId: 'dockProjects' },
+            { id: 'songs', label: 'Songs', icon: 'music', enabled: true, hidden: true, navId: 'navSongs', dockId: 'dockSongs' },
             { id: 'connect', label: t('nav.links'), icon: 'link-2', enabled: sectionConfig.connect }
         ].filter((item) => item.enabled);
 
         if (nav) {
-            nav.innerHTML = items.map((item, index) => `<a class="nav-link ${index === 0 ? 'active' : ''}" href="#${item.id}" data-target="${item.id}">${item.label}</a>`).join('');
+            nav.innerHTML = items.map((item, index) => `<a class="nav-link ${index === 0 ? 'active' : ''}" href="#${item.id}" data-target="${item.id}"${item.navId ? ` id="${item.navId}"` : ''}${item.hidden ? ' hidden' : ''}>${item.label}</a>`).join('');
         }
         if (dock) {
             dock.innerHTML = items.map((item, index) => `
-                <button class="dock-btn ${index === 0 ? 'active' : ''}" type="button" data-target="${item.id}" aria-label="${item.label}">
+                <button class="dock-btn ${index === 0 ? 'active' : ''}" type="button" data-target="${item.id}" aria-label="${item.label}"${item.dockId ? ` id="${item.dockId}"` : ''}${item.hidden ? ' hidden' : ''}>
                     ${iconMarkup(item.icon)}
                 </button>
             `).join('');
@@ -768,7 +773,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!mesh) return;
 
         const links = Array.isArray(contentOverrides.socialLinks)
-            ? contentOverrides.socialLinks.filter((item) => item.enabled !== false && item.url)
+            ? contentOverrides.socialLinks.filter((item) => item.enabled !== false && item.url && item.platform !== 'whatsapp')
             : [];
         const socialItems = links.map((item, index) => `
             <a href="${appendUtm(item.url, item.platform || 'social')}" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up ${index ? `delay-${Math.min(index, 3)}` : ''}" data-social-dynamic="${item.platform || 'link'}">
@@ -2290,7 +2295,7 @@ window.addEventListener('beforeunload', () => {
 // ============================================================
 (function initTracking() {
     if (!window.TojiAPI) return;
-    const API = 'https://portfolio-backend-production-1901.up.railway.app/api/analytics';
+    const API = `${window.TojiAPI.BASE_URL || 'https://portfolio-backend-production-1901.up.railway.app/api'}/analytics`;
 
     // كشف الجهاز
     function detectDevice() {
