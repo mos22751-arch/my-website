@@ -662,46 +662,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderSongsSection(songs) {
-        const section = document.getElementById('songs');
-        const grid    = document.getElementById('songsGrid');
-        const dockBtn = document.getElementById('dockSongs');
-        const navLink = document.getElementById('navSongs');
-
+        var section = document.getElementById('songs');
+        var grid    = document.getElementById('songsGrid');
+        var dockBtn = document.getElementById('dockSongs');
+        var navLink = document.getElementById('navSongs');
         if (!section || !grid || !songs || !songs.length) return;
 
-        const adminHid = sectionConfig.songs === false;
-        section.hidden  = adminHid;
+        var adminHid = sectionConfig.songs === false;
+        section.hidden = adminHid;
         if (dockBtn) dockBtn.hidden = adminHid;
         if (navLink) navLink.hidden = adminHid;
         if (adminHid) return;
 
-        const moodEmoji = { chill: '🧊', hype: '🔥', sad: '🌧️', focus: '⚡', vibe: '🎵' };
+        var moodEmoji = { chill:'🧊', hype:'🔥', sad:'🌧️', focus:'⚡', vibe:'🎵' };
 
         grid.innerHTML = songs.map(function(song, i) {
-            var emoji  = moodEmoji[song.mood] || '🎵';
-            var coverContent = song.coverUrl
-                ? '<img src="' + song.coverUrl + '" alt="cover" loading="lazy">' + emoji
-                : emoji;
-            var desc    = song.description ? '<p class="song-desc">' + song.description + '</p>' : '';
-            var spotify = song.spotifyUrl  ? '<a class="song-ext-link spotify" href="' + song.spotifyUrl + '" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">Spotify</a>' : '';
-            var youtube = song.youtubeUrl  ? '<a class="song-ext-link youtube" href="' + song.youtubeUrl + '" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">YouTube</a>' : '';
-            var mood    = song.mood ? '<span class="song-mood-tag">' + song.mood + '</span>' : '';
+            var emoji    = moodEmoji[song.mood] || '🎵';
+            var coverImg = song.coverUrl ? '<img src="' + song.coverUrl + '" alt="cover" loading="lazy">' : '';
             var hasAudio = !!song.audioUrl;
+            var playBtn  = hasAudio
+                ? '<button class="song-play-btn" aria-label="Play">▶</button>'
+                  + '<div class="song-eq"><span></span><span></span><span></span><span></span></div>'
+                  + '<div class="song-progress-bar"><div class="song-progress-fill"></div></div>'
+                : '';
+            var desc    = song.description ? '<p class="song-desc">' + song.description + '</p>' : '';
+            var spotify = song.spotifyUrl  ? '<a class="song-ext-link spotify" href="' + song.spotifyUrl + '" target="_blank" rel="noreferrer">Spotify</a>' : '';
+            var youtube = song.youtubeUrl  ? '<a class="song-ext-link youtube" href="' + song.youtubeUrl + '" target="_blank" rel="noreferrer">YouTube</a>' : '';
+            var mood    = song.mood ? '<span class="song-mood-tag">' + song.mood + '</span>' : '';
 
-            return '<article class="song-card reveal-up ' + (i ? 'delay-' + Math.min(i % 4, 3) : '') + '"'
-                + ' data-audio="' + (song.audioUrl || '') + '"'
-                + ' data-title="' + song.title + '"'
-                + ' data-artist="' + song.artist + '"'
-                + ' data-cover="' + (song.coverUrl || '') + '"'
-                + ' data-emoji="' + emoji + '"'
-                + '>'
-                + '<div class="song-cover" data-mood="' + (song.mood || 'vibe') + '">'
-                +   coverContent
-                +   (hasAudio ? '<div class="song-play-overlay"><div class="song-play-circle"><span class="song-play-icon">▶</span><div class="song-eq"><span></span><span></span><span></span><span></span></div></div></div>' : '')
+            return '<article class="song-card reveal-up ' + (i ? 'delay-' + Math.min(i%4,3) : '') + '"'
+                + ' data-audio="' + (song.audioUrl||'') + '">'
+                + '<div class="song-cover" data-mood="' + (song.mood||'vibe') + '">'
+                +   coverImg + emoji + playBtn
                 + '</div>'
                 + '<div class="song-body">'
                 +   '<h3 class="song-title">' + song.title + '</h3>'
                 +   '<p class="song-artist">' + song.artist + '</p>'
+                +   '<p class="song-time" id="st_' + i + '">0:00 / 0:00</p>'
                 +   desc
                 +   '<div class="song-meta">' + mood + spotify + youtube + '</div>'
                 + '</div>'
@@ -709,145 +706,83 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         refreshDomCollections();
-        setTimeout(function() { if (typeof syncObservedElements === 'function') syncObservedElements(); }, 50);
-
-        // attach click handlers
-        initSongsPlayer();
+        setTimeout(function() { if (typeof syncObservedElements==='function') syncObservedElements(); }, 50);
+        initInCardPlayer();
     }
 
-
-
-    // ============================================================
-    // SONGS MINI PLAYER — Custom Audio Player
-    // ============================================================
-    function initSongsPlayer() {
-        // Inject mini player HTML once
-        if (!document.getElementById('miniPlayer')) {
-            document.body.insertAdjacentHTML('beforeend', `
-                <div id="miniPlayer" role="region" aria-label="Music Player">
-                    <div class="mp-cover" id="mpCover">🎵</div>
-                    <div class="mp-info">
-                        <p class="mp-title"  id="mpTitle">-</p>
-                        <p class="mp-artist" id="mpArtist">-</p>
-                        <div class="mp-progress-wrap" id="mpProgressWrap">
-                            <div class="mp-progress-fill" id="mpFill"></div>
-                        </div>
-                    </div>
-                    <span class="mp-time" id="mpTime">0:00</span>
-                    <div class="mp-controls">
-                        <button class="mp-btn" id="mpPlayBtn" aria-label="Play/Pause">▶</button>
-                        <button class="mp-close" id="mpClose" aria-label="Close">✕</button>
-                    </div>
-                </div>
-            `);
-            setupPlayerEvents();
-        }
-
-        // Attach click to every song card that has audio
-        document.querySelectorAll('.song-card[data-audio]').forEach(function(card) {
-            if (!card.dataset.audio) return;
-            card.addEventListener('click', function() {
-                playSong(card);
-            });
-        });
-    }
-
-    var _audio      = null;
+    // ---- In-card audio player ----
+    var _audio = null;
     var _activeCard = null;
+    var _timeIdx = 0;
 
-    function playSong(card) {
-        var url    = card.dataset.audio;
-        var title  = card.dataset.title  || '';
-        var artist = card.dataset.artist || '';
-        var cover  = card.dataset.cover  || '';
-        var emoji  = card.dataset.emoji  || '🎵';
+    function initInCardPlayer() {
+        document.querySelectorAll('.song-card[data-audio]').forEach(function(card, idx) {
+            var url = card.dataset.audio;
+            if (!url) return;
 
-        // Same song → toggle play/pause
-        if (_activeCard === card && _audio) {
-            if (_audio.paused) { _audio.play(); } else { _audio.pause(); }
-            return;
-        }
+            var playBtn  = card.querySelector('.song-play-btn');
+            var fill     = card.querySelector('.song-progress-fill');
+            var bar      = card.querySelector('.song-progress-bar');
+            var timeEl   = card.querySelector('.song-time');
 
-        // Stop previous
-        if (_audio) { _audio.pause(); _audio.src = ''; }
-        if (_activeCard) { _activeCard.classList.remove('is-playing'); }
+            playBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (_activeCard === card && _audio) {
+                    if (_audio.paused) { _audio.play(); }
+                    else               { _audio.pause(); }
+                    return;
+                }
+                // Stop previous
+                if (_audio) { _audio.pause(); _audio.src = ''; }
+                if (_activeCard) {
+                    _activeCard.classList.remove('is-playing');
+                    var oldBtn = _activeCard.querySelector('.song-play-btn');
+                    if (oldBtn) oldBtn.textContent = '▶';
+                }
+                // New song
+                _audio = new Audio(url);
+                _activeCard = card;
+                card.classList.add('is-playing');
+                playBtn.textContent = '⏸';
 
-        // New audio
-        _audio = new Audio(url);
-        _activeCard = card;
-        card.classList.add('is-playing');
+                _audio.addEventListener('timeupdate', function() {
+                    if (!_audio.duration) return;
+                    var pct = (_audio.currentTime / _audio.duration) * 100;
+                    if (fill) fill.style.width = pct + '%';
+                    if (timeEl) timeEl.textContent = fmt(_audio.currentTime) + ' / ' + fmt(_audio.duration);
+                });
+                _audio.addEventListener('ended', function() {
+                    card.classList.remove('is-playing');
+                    playBtn.textContent = '▶';
+                    if (fill) fill.style.width = '0%';
+                    if (timeEl) timeEl.textContent = '0:00 / ' + fmt(_audio.duration);
+                });
+                _audio.addEventListener('pause', function() { playBtn.textContent = '▶'; });
+                _audio.addEventListener('play',  function() { playBtn.textContent = '⏸'; });
 
-        // Update mini player info
-        var mpCover = document.getElementById('mpCover');
-        if (cover) {
-            mpCover.innerHTML = '<img src="' + cover + '" alt="cover">';
-        } else {
-            mpCover.textContent = emoji;
-        }
-        document.getElementById('mpTitle').textContent  = title;
-        document.getElementById('mpArtist').textContent = artist;
-        document.getElementById('mpFill').style.width   = '0%';
-        document.getElementById('mpTime').textContent   = '0:00';
-        document.getElementById('mpPlayBtn').textContent = '⏸';
-        document.getElementById('miniPlayer').classList.add('visible');
+                _audio.play().catch(function(err) {
+                    console.warn('[TOJI] Audio error:', err.message);
+                });
+            });
 
-        // Audio events
-        _audio.addEventListener('timeupdate', function() {
-            if (!_audio.duration) return;
-            var pct = (_audio.currentTime / _audio.duration) * 100;
-            document.getElementById('mpFill').style.width = pct + '%';
-            document.getElementById('mpTime').textContent = fmtTime(_audio.currentTime);
-        });
-
-        _audio.addEventListener('ended', function() {
-            card.classList.remove('is-playing');
-            document.getElementById('mpPlayBtn').textContent = '▶';
-        });
-
-        _audio.addEventListener('pause', function() {
-            document.getElementById('mpPlayBtn').textContent = '▶';
-        });
-
-        _audio.addEventListener('play', function() {
-            document.getElementById('mpPlayBtn').textContent = '⏸';
-        });
-
-        _audio.play().catch(function(e) {
-            console.warn('[TOJI] Audio play error:', e.message);
-        });
-    }
-
-    function setupPlayerEvents() {
-        // Play/pause button
-        document.getElementById('mpPlayBtn').addEventListener('click', function() {
-            if (!_audio) return;
-            if (_audio.paused) { _audio.play(); } else { _audio.pause(); }
-        });
-
-        // Close
-        document.getElementById('mpClose').addEventListener('click', function() {
-            if (_audio) { _audio.pause(); _audio.src = ''; }
-            if (_activeCard) { _activeCard.classList.remove('is-playing'); }
-            _audio = null; _activeCard = null;
-            document.getElementById('miniPlayer').classList.remove('visible');
-        });
-
-        // Progress bar seek
-        document.getElementById('mpProgressWrap').addEventListener('click', function(e) {
-            if (!_audio || !_audio.duration) return;
-            var rect = this.getBoundingClientRect();
-            var pct  = (e.clientX - rect.left) / rect.width;
-            _audio.currentTime = pct * _audio.duration;
+            // Progress bar seek
+            if (bar) {
+                bar.addEventListener('click', function(e) {
+                    if (_activeCard !== card || !_audio || !_audio.duration) return;
+                    var rect = bar.getBoundingClientRect();
+                    _audio.currentTime = ((e.clientX - rect.left) / rect.width) * _audio.duration;
+                });
+            }
         });
     }
 
-    function fmtTime(sec) {
-        var m = Math.floor(sec / 60);
-        var s = Math.floor(sec % 60);
-        return m + ':' + (s < 10 ? '0' : '') + s;
+    function fmt(sec) {
+        sec = sec || 0;
+        var m = Math.floor(sec/60), s = Math.floor(sec%60);
+        return m + ':' + (s<10?'0':'') + s;
     }
 
-    // ---- Load projects from backend API (with graceful fallback) ----
+        // ---- Load projects from backend API (with graceful fallback) ----
     async function loadProjectsFromAPI() {
         if (!window.TojiAPI) return;
         try {
