@@ -677,109 +677,27 @@ document.addEventListener('DOMContentLoaded', () => {
         var moodEmoji = { chill:'🧊', hype:'🔥', sad:'🌧️', focus:'⚡', vibe:'🎵' };
 
         grid.innerHTML = songs.map(function(song, i) {
-            var emoji    = moodEmoji[song.mood] || '🎵';
-            var coverImg = song.coverUrl ? '<img src="' + song.coverUrl + '" alt="cover" loading="lazy">' : '';
-            var hasAudio = !!song.audioUrl;
-            var playBtn  = hasAudio
-                ? '<button class="song-play-btn" aria-label="Play">▶</button>'
-                  + '<div class="song-eq"><span></span><span></span><span></span><span></span></div>'
-                  + '<div class="song-progress-bar"><div class="song-progress-fill"></div></div>'
-                : '';
+            var emoji   = moodEmoji[song.mood] || '🎵';
             var desc    = song.description ? '<p class="song-desc">' + song.description + '</p>' : '';
-            var spotify = song.spotifyUrl  ? '<a class="song-ext-link spotify" href="' + song.spotifyUrl + '" target="_blank" rel="noreferrer">Spotify</a>' : '';
-            var youtube = song.youtubeUrl  ? '<a class="song-ext-link youtube" href="' + song.youtubeUrl + '" target="_blank" rel="noreferrer">YouTube</a>' : '';
             var mood    = song.mood ? '<span class="song-mood-tag">' + song.mood + '</span>' : '';
+            var spotify = song.spotifyUrl
+                ? '<a class="song-link-btn spotify" href="' + song.spotifyUrl + '" target="_blank" rel="noreferrer">Spotify ↗</a>' : '';
+            var youtube = song.youtubeUrl
+                ? '<a class="song-link-btn youtube" href="' + song.youtubeUrl + '" target="_blank" rel="noreferrer">YouTube ↗</a>' : '';
 
-            return '<article class="song-card reveal-up ' + (i ? 'delay-' + Math.min(i%4,3) : '') + '"'
-                + ' data-audio="' + (song.audioUrl||'') + '">'
-                + '<div class="song-cover" data-mood="' + (song.mood||'vibe') + '">'
-                +   coverImg + emoji + playBtn
-                + '</div>'
-                + '<div class="song-body">'
+            return '<article class="song-card glass-card reveal-up ' + (i ? 'delay-' + Math.min(i%4,3) : '') + '">'
+                + '<div class="song-cover" data-mood="' + (song.mood||'vibe') + '">' + emoji + '</div>'
+                + '<div class="song-info">'
                 +   '<h3 class="song-title">' + song.title + '</h3>'
                 +   '<p class="song-artist">' + song.artist + '</p>'
-                +   '<p class="song-time" id="st_' + i + '">0:00 / 0:00</p>'
                 +   desc
-                +   '<div class="song-meta">' + mood + spotify + youtube + '</div>'
+                +   '<div class="song-links">' + mood + spotify + youtube + '</div>'
                 + '</div>'
                 + '</article>';
         }).join('');
 
         refreshDomCollections();
         setTimeout(function() { if (typeof syncObservedElements==='function') syncObservedElements(); }, 50);
-        initInCardPlayer();
-    }
-
-    // ---- In-card audio player ----
-    var _audio = null;
-    var _activeCard = null;
-    var _timeIdx = 0;
-
-    function initInCardPlayer() {
-        document.querySelectorAll('.song-card[data-audio]').forEach(function(card, idx) {
-            var url = card.dataset.audio;
-            if (!url) return;
-
-            var playBtn  = card.querySelector('.song-play-btn');
-            var fill     = card.querySelector('.song-progress-fill');
-            var bar      = card.querySelector('.song-progress-bar');
-            var timeEl   = card.querySelector('.song-time');
-
-            playBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                if (_activeCard === card && _audio) {
-                    if (_audio.paused) { _audio.play(); }
-                    else               { _audio.pause(); }
-                    return;
-                }
-                // Stop previous
-                if (_audio) { _audio.pause(); _audio.src = ''; }
-                if (_activeCard) {
-                    _activeCard.classList.remove('is-playing');
-                    var oldBtn = _activeCard.querySelector('.song-play-btn');
-                    if (oldBtn) oldBtn.textContent = '▶';
-                }
-                // New song
-                _audio = new Audio(url);
-                _activeCard = card;
-                card.classList.add('is-playing');
-                playBtn.textContent = '⏸';
-
-                _audio.addEventListener('timeupdate', function() {
-                    if (!_audio.duration) return;
-                    var pct = (_audio.currentTime / _audio.duration) * 100;
-                    if (fill) fill.style.width = pct + '%';
-                    if (timeEl) timeEl.textContent = fmt(_audio.currentTime) + ' / ' + fmt(_audio.duration);
-                });
-                _audio.addEventListener('ended', function() {
-                    card.classList.remove('is-playing');
-                    playBtn.textContent = '▶';
-                    if (fill) fill.style.width = '0%';
-                    if (timeEl) timeEl.textContent = '0:00 / ' + fmt(_audio.duration);
-                });
-                _audio.addEventListener('pause', function() { playBtn.textContent = '▶'; });
-                _audio.addEventListener('play',  function() { playBtn.textContent = '⏸'; });
-
-                _audio.play().catch(function(err) {
-                    console.warn('[TOJI] Audio error:', err.message);
-                });
-            });
-
-            // Progress bar seek
-            if (bar) {
-                bar.addEventListener('click', function(e) {
-                    if (_activeCard !== card || !_audio || !_audio.duration) return;
-                    var rect = bar.getBoundingClientRect();
-                    _audio.currentTime = ((e.clientX - rect.left) / rect.width) * _audio.duration;
-                });
-            }
-        });
-    }
-
-    function fmt(sec) {
-        sec = sec || 0;
-        var m = Math.floor(sec/60), s = Math.floor(sec%60);
-        return m + ':' + (s<10?'0':'') + s;
     }
 
         // ---- Load projects from backend API (with graceful fallback) ----
