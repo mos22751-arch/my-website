@@ -568,27 +568,47 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderNavigation() {
         const nav = document.querySelector('.nav-links');
         const dock = document.querySelector('.floating-dock');
-        const items = [
-            { id: 'home', label: t('nav.home'), icon: 'home', enabled: true },
-            { id: 'expertise', label: t('nav.about'), icon: 'user-round', enabled: sectionConfig.about },
-            { id: 'work', label: t('nav.work'), icon: 'briefcase-business', enabled: sectionConfig.work },
-            { id: 'services', label: localized(contentOverrides.marketing?.services?.eyebrow) || 'Services', icon: 'sparkles', enabled: sectionConfig.services },
-            { id: 'pricing', label: localized(contentOverrides.marketing?.pricing?.eyebrow) || 'Pricing', icon: 'badge-dollar-sign', enabled: sectionConfig.pricing },
-            { id: 'testimonials', label: localized(contentOverrides.marketing?.testimonials?.eyebrow) || 'Reviews', icon: 'quote', enabled: sectionConfig.testimonials },
-            { id: 'gallery', label: localized(contentOverrides.marketing?.gallery?.eyebrow) || 'Gallery', icon: 'images', enabled: sectionConfig.gallery },
-            { id: 'faq', label: localized(contentOverrides.marketing?.faq?.eyebrow) || 'FAQ', icon: 'circle-help', enabled: sectionConfig.faq },
-            { id: 'connect', label: t('nav.links'), icon: 'link-2', enabled: sectionConfig.connect }
+        const mainItems = [
+            { id: 'home',         label: t('nav.home'),  icon: 'home',              enabled: true },
+            { id: 'expertise',    label: t('nav.about'), icon: 'user-round',         enabled: sectionConfig.about },
+            { id: 'work',         label: t('nav.work'),  icon: 'briefcase-business', enabled: sectionConfig.work },
+            { id: 'services',     label: localized(contentOverrides.marketing?.services?.eyebrow)     || 'Services', icon: 'sparkles',           enabled: sectionConfig.services },
+            { id: 'pricing',      label: localized(contentOverrides.marketing?.pricing?.eyebrow)      || 'Pricing',  icon: 'badge-dollar-sign',   enabled: sectionConfig.pricing },
+            { id: 'testimonials', label: localized(contentOverrides.marketing?.testimonials?.eyebrow) || 'Reviews',  icon: 'quote',              enabled: sectionConfig.testimonials },
+            { id: 'gallery',      label: localized(contentOverrides.marketing?.gallery?.eyebrow)      || 'Gallery',  icon: 'images',             enabled: sectionConfig.gallery },
+            { id: 'faq',          label: localized(contentOverrides.marketing?.faq?.eyebrow)          || 'FAQ',      icon: 'circle-help',        enabled: sectionConfig.faq },
+            { id: 'connect',      label: t('nav.links'), icon: 'link-2',             enabled: sectionConfig.connect }
         ].filter((item) => item.enabled);
 
+        // ✅ Projects و Songs دايمًا موجودين في الـ DOM لكن مخفيين
+        // renderProjectsSection() و renderSongsSection() هيظهروهم لما يكون في داتا
+        const dynamicItems = [
+            { id: 'projects', label: 'Projects',  icon: 'layout-grid', dockId: 'dockProjects', navId: 'navProjects' },
+            { id: 'songs',    label: 'Fav Songs', icon: 'music',       dockId: 'dockSongs',    navId: 'navSongs'    }
+        ];
+
         if (nav) {
-            nav.innerHTML = items.map((item, index) => `<a class="nav-link ${index === 0 ? 'active' : ''}" href="#${item.id}" data-target="${item.id}">${item.label}</a>`).join('');
+            nav.innerHTML =
+                mainItems.map((item, index) =>
+                    `<a class="nav-link ${index === 0 ? 'active' : ''}" href="#${item.id}" data-target="${item.id}">${item.label}</a>`
+                ).join('') +
+                dynamicItems.map((item) =>
+                    `<a class="nav-link" href="#${item.id}" data-target="${item.id}" id="${item.navId}" hidden>${item.label}</a>`
+                ).join('');
         }
+
         if (dock) {
-            dock.innerHTML = items.map((item, index) => `
-                <button class="dock-btn ${index === 0 ? 'active' : ''}" type="button" data-target="${item.id}" aria-label="${item.label}">
-                    ${iconMarkup(item.icon)}
-                </button>
-            `).join('');
+            dock.innerHTML =
+                mainItems.map((item, index) => `
+                    <button class="dock-btn ${index === 0 ? 'active' : ''}" type="button" data-target="${item.id}" aria-label="${item.label}">
+                        ${iconMarkup(item.icon)}
+                    </button>
+                `).join('') +
+                dynamicItems.map((item) => `
+                    <button class="dock-btn" type="button" data-target="${item.id}" aria-label="${item.label}" id="${item.dockId}" hidden>
+                        ${iconMarkup(item.icon)}
+                    </button>
+                `).join('');
         }
     }
 
@@ -677,21 +697,33 @@ document.addEventListener('DOMContentLoaded', () => {
         var moodEmoji = { chill:'🧊', hype:'🔥', sad:'🌧️', focus:'⚡', vibe:'🎵' };
 
         grid.innerHTML = songs.map(function(song, i) {
-            var emoji   = moodEmoji[song.mood] || '🎵';
-            var desc    = song.description ? '<p class="song-desc">' + song.description + '</p>' : '';
-            var mood    = song.mood ? '<span class="song-mood-tag">' + song.mood + '</span>' : '';
-            var spotify = song.spotifyUrl
-                ? '<a class="song-link-btn spotify" href="' + song.spotifyUrl + '" target="_blank" rel="noreferrer">Spotify ↗</a>' : '';
-            var youtube = song.youtubeUrl
-                ? '<a class="song-link-btn youtube" href="' + song.youtubeUrl + '" target="_blank" rel="noreferrer">YouTube ↗</a>' : '';
+            var emoji = moodEmoji[song.mood] || '🎵';
+            var desc  = song.description ? '<p class="song-desc">' + song.description + '</p>' : '';
+            var mood  = song.mood ? '<span class="song-mood-pill">' + emoji + ' ' + song.mood + '</span>' : '';
 
-            return '<article class="song-card glass-card reveal-up ' + (i ? 'delay-' + Math.min(i%4,3) : '') + '">'
-                + '<div class="song-cover" data-mood="' + (song.mood||'vibe') + '">' + emoji + '</div>'
-                + '<div class="song-info">'
-                +   '<h3 class="song-title">' + song.title + '</h3>'
-                +   '<p class="song-artist">' + song.artist + '</p>'
+            var spotify = song.spotifyUrl
+                ? '<a class="song-pill spotify" href="' + song.spotifyUrl + '" target="_blank" rel="noreferrer" aria-label="Spotify">'
+                  + '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>'
+                  + '</a>' : '';
+            var youtube = song.youtubeUrl
+                ? '<a class="song-pill youtube" href="' + song.youtubeUrl + '" target="_blank" rel="noreferrer" aria-label="YouTube">'
+                  + '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>'
+                  + '</a>' : '';
+
+            return '<article class="song-card-modern reveal-up ' + (i ? 'delay-' + Math.min(i%4,3) : '') + '" data-mood="' + (song.mood||'vibe') + '">'
+                + '<div class="song-glow"></div>'
+                + '<div class="song-modern-cover">'
+                +   '<span class="song-modern-emoji">' + emoji + '</span>'
+                +   '<div class="song-eq-bars"><span></span><span></span><span></span><span></span></div>'
+                + '</div>'
+                + '<div class="song-modern-body">'
+                +   '<div class="song-modern-head">'
+                +     '<h3 class="song-modern-title">' + song.title + '</h3>'
+                +     mood
+                +   '</div>'
+                +   '<p class="song-modern-artist">' + song.artist + '</p>'
                 +   desc
-                +   '<div class="song-links">' + mood + spotify + youtube + '</div>'
+                +   ((spotify || youtube) ? '<div class="song-modern-links">' + spotify + youtube + '</div>' : '')
                 + '</div>'
                 + '</article>';
         }).join('');
@@ -2215,16 +2247,14 @@ try {
 
 // TOUCH
 document.addEventListener('touchstart', (e) => {
-    if (e.target.closest('button, a')) {
-        e.target.closest('button, a').style.opacity = '0.8';
-    }
-});
+    const el = e.target.closest('button, a');
+    if (el) el.style.opacity = '0.8';
+}, { passive: true });
 
 document.addEventListener('touchend', (e) => {
-    if (e.target.closest('button, a')) {
-        e.target.closest('button, a').style.opacity = '1';
-    }
-});
+    const el = e.target.closest('button, a');
+    if (el) el.style.opacity = '';
+}, { passive: true });
 
 // LAZY LOADING
 if ('IntersectionObserver' in window) {
@@ -2258,23 +2288,25 @@ document.addEventListener('touchend', (e) => {
     }
 });
 
-// MAGNETIC HOVER
+// MAGNETIC HOVER — مش بيأثر على الـ dock أو الـ nav أو الـ tilt
 document.querySelectorAll('button, a').forEach(element => {
+    if (element.closest('.floating-dock, .nav-links, .tilt-effect, .profile-panel')) return;
+
     element.addEventListener('mousemove', (e) => {
         const rect = element.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
         const distance = Math.sqrt(x * x + y * y);
-        
+
         if (distance < 100) {
             const angle = Math.atan2(y, x);
-            const pull = (100 - distance) / 100 * 10;
+            const pull = (100 - distance) / 100 * 8;
             element.style.transform = `translate(${Math.cos(angle) * pull}px, ${Math.sin(angle) * pull}px)`;
         }
     });
-    
+
     element.addEventListener('mouseleave', () => {
-        element.style.transform = 'translate(0, 0)';
+        element.style.transform = ''; // ← مسح الـ inline style مش override
     });
 });
 

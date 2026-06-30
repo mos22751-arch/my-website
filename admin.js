@@ -2286,6 +2286,8 @@ Do not resell the customized public version as a separate template unless your s
     // 📊 ANALYTICS DASHBOARD
     // ============================================================
 
+    let currentVisitorsPage = 1;
+
     async function loadAnalytics() {
         const btn = el('refreshAnalyticsBtn');
         if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
@@ -2335,52 +2337,115 @@ Do not resell the customized public version as a separate template unless your s
                 <div class="stat-bar"><div class="stat-bar-fill" style="width:${(p.count/maxProj*100).toFixed(0)}%"></div></div>
             `).join('') || '<p class="projects-hint">لا توجد بيانات بعد.</p>';
 
-            // جدول الزوار
-            const visitors = data.recentVisitors || [];
-            if (!visitors.length) {
-                el('visitorsList').innerHTML = '<p class="projects-hint">لا توجد زيارات مسجّلة بعد.</p>';
-            } else {
-                el('visitorsList').innerHTML = `
-                    <table class="visitors-table">
-                        <thead>
-                            <tr>
-                                <th>الجهاز</th>
-                                <th>IP</th>
-                                <th>المتصفح</th>
-                                <th>نظام التشغيل</th>
-                                <th>الأقسام</th>
-                                <th>الوقت</th>
-                                <th>تاريخ الزيارة</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${visitors.map((v) => {
-                                const icons = { mobile:'📱', tablet:'📲', desktop:'🖥' };
-                                const date  = new Date(v.visitedAt).toLocaleString('ar-EG');
-                                const mins  = Math.floor((v.timeOnSite||0)/60);
-                                const secs  = (v.timeOnSite||0) % 60;
-                                const time  = mins > 0 ? `${mins}د ${secs}ث` : `${secs}ث`;
-                                const sections = (v.sectionsViewed||[]).join(', ') || '—';
-                                return `<tr>
-                                    <td><span class="device-icon">${icons[v.device]||'💻'}</span></td>
-                                    <td><code>${v.ip||'—'}</code></td>
-                                    <td>${v.browser||'—'}</td>
-                                    <td>${v.os||'—'}</td>
-                                    <td title="${sections}">${sections.length > 30 ? sections.slice(0,30)+'…' : sections}</td>
-                                    <td>${time}</td>
-                                    <td>${date}</td>
-                                </tr>`;
-                            }).join('')}
-                        </tbody>
-                    </table>`;
-            }
-
             showBanner(`✅ تم تحميل إحصائيات ${data.counts.total} زيارة.`, 'success', 3000);
+
+            // جدول الزوار — صفحة منفصلة
+            await loadVisitorsPage(1);
+
         } catch (err) {
             el('visitorsList').innerHTML = `<p class="projects-hint error">❌ فشل التحميل: ${err.message}</p>`;
         } finally {
             if (btn) { btn.disabled = false; btn.textContent = '🔄 تحديث'; }
         }
+    }
+
+    // ============================================================
+    // 📄 جدول الزوار بصفحات (1, 2, 3...)
+    // ============================================================
+    async function loadVisitorsPage(page) {
+        currentVisitorsPage = page;
+        el('visitorsList').innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+
+        try {
+            const res = await window.TojiAPI.AnalyticsAPI.getVisitors(page, 20);
+            const visitors   = res?.data || [];
+            const pagination = res?.pagination || { page: 1, totalPages: 1, total: 0 };
+
+            if (!visitors.length) {
+                el('visitorsList').innerHTML = '<p class="projects-hint">لا توجد زيارات مسجّلة بعد.</p>';
+                return;
+            }
+
+            const icons = { mobile:'📱', tablet:'📲', desktop:'🖥' };
+            const rows = visitors.map((v) => {
+                const date  = new Date(v.visitedAt).toLocaleString('ar-EG');
+                const mins  = Math.floor((v.timeOnSite||0)/60);
+                const secs  = (v.timeOnSite||0) % 60;
+                const time  = mins > 0 ? `${mins}د ${secs}ث` : `${secs}ث`;
+                const sections = (v.sectionsViewed||[]).join(', ') || '—';
+                return `<tr>
+                    <td><span class="device-icon">${icons[v.device]||'💻'}</span></td>
+                    <td><code>${v.ip||'—'}</code></td>
+                    <td>${v.browser||'—'}</td>
+                    <td>${v.os||'—'}</td>
+                    <td title="${sections}">${sections.length > 30 ? sections.slice(0,30)+'…' : sections}</td>
+                    <td>${time}</td>
+                    <td>${date}</td>
+                </tr>`;
+            }).join('');
+
+            el('visitorsList').innerHTML = `
+                <table class="visitors-table">
+                    <thead>
+                        <tr>
+                            <th>الجهاز</th>
+                            <th>IP</th>
+                            <th>المتصفح</th>
+                            <th>نظام التشغيل</th>
+                            <th>الأقسام</th>
+                            <th>الوقت</th>
+                            <th>تاريخ الزيارة</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                ${renderVisitorsPagination(pagination)}
+            `;
+
+            // ربط أزرار الصفحات
+            el('visitorsList').querySelectorAll('[data-vpage]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const p = parseInt(btn.dataset.vpage);
+                    if (p && p !== currentVisitorsPage) loadVisitorsPage(p);
+                });
+            });
+
+        } catch (err) {
+            el('visitorsList').innerHTML = `<p class="projects-hint error">❌ فشل تحميل الزوار: ${err.message}</p>`;
+        }
+    }
+
+    function renderVisitorsPagination(pagination) {
+        const { page, totalPages, total } = pagination;
+        if (totalPages <= 1) {
+            return `<p class="visitors-total-count">إجمالي ${total} زيارة</p>`;
+        }
+
+        // نطاق الصفحات المعروضة: حد أقصى 5 أزرار حوالين الصفحة الحالية
+        let start = Math.max(1, page - 2);
+        let end   = Math.min(totalPages, start + 4);
+        start = Math.max(1, end - 4);
+
+        let pages = '';
+        if (start > 1) {
+            pages += `<button class="vpage-btn" data-vpage="1">1</button>`;
+            if (start > 2) pages += `<span class="vpage-dots">…</span>`;
+        }
+        for (let p = start; p <= end; p++) {
+            pages += `<button class="vpage-btn ${p === page ? 'active' : ''}" data-vpage="${p}">${p}</button>`;
+        }
+        if (end < totalPages) {
+            if (end < totalPages - 1) pages += `<span class="vpage-dots">…</span>`;
+            pages += `<button class="vpage-btn" data-vpage="${totalPages}">${totalPages}</button>`;
+        }
+
+        return `
+            <div class="visitors-pagination">
+                <button class="vpage-btn vpage-nav" data-vpage="${Math.max(1, page-1)}" ${page===1?'disabled':''}>‹ السابق</button>
+                ${pages}
+                <button class="vpage-btn vpage-nav" data-vpage="${Math.min(totalPages, page+1)}" ${page===totalPages?'disabled':''}>التالي ›</button>
+                <span class="visitors-total-count">إجمالي ${total} زيارة</span>
+            </div>`;
     }
 
     el('refreshAnalyticsBtn').addEventListener('click', loadAnalytics);

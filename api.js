@@ -147,7 +147,9 @@ const ConfigAPI = {
 // Analytics API
 // ============================================================
 const AnalyticsAPI = {
-    getStats: () => apiFetch('/analytics/stats')
+    getStats: () => apiFetch('/analytics/stats'),
+    getVisitors: (page = 1, limit = 20) =>
+        apiFetch(`/analytics/visitors?page=${page}&limit=${limit}`)
 };
 
 // تصدير موحد لكل الـ APIs
