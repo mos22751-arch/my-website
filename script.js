@@ -582,19 +582,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ✅ Projects و Songs دايمًا موجودين في الـ DOM لكن مخفيين
         // renderProjectsSection() و renderSongsSection() هيظهروهم لما يكون في داتا
+        // ترتيبهم هنا لازم يتطابق مع ترتيبهم الفعلي في الصفحة: بعد Work وقبل Connect
         const dynamicItems = [
             { id: 'projects', label: 'Projects',  icon: 'layout-grid', dockId: 'dockProjects', navId: 'navProjects' },
             { id: 'songs',    label: 'Fav Songs', icon: 'music',       dockId: 'dockSongs',    navId: 'navSongs'    }
         ];
 
+        // اختصارات داخل قسم اللينكات نفسه — رسالة واتساب السريعة وتغيير الثيم
+        const subItems = [
+            { id: 'quickMessageForm', label: 'WhatsApp', icon: 'message-circle', dockId: 'dockWhatsappForm', navId: 'navWhatsappForm', visible: sectionConfig.connect && sectionConfig.form },
+            { id: 'themePanel',       label: 'Themes',    icon: 'palette',        dockId: 'dockThemes',       navId: 'navThemes',       visible: sectionConfig.connect && sectionConfig.themeControls }
+        ].filter((item) => item.visible);
+
+        // ✅ رتّب القائمة بحيث تطابق ترتيب الأقسام عمودياً في الصفحة:
+        // ... work → projects → songs → connect → (واتساب/ثيمات جوه نفس قسم الكونكت)
+        const connectIdx = mainItems.findIndex((item) => item.id === 'connect');
+        const orderedItems = connectIdx === -1
+            ? [...mainItems, ...dynamicItems]
+            : [...mainItems.slice(0, connectIdx), ...dynamicItems, ...mainItems.slice(connectIdx), ...subItems];
+
+        function renderNavLink(item, index) {
+            const isExtra = !!item.dockId;
+            const activeClass = (!isExtra && index === 0) ? 'active' : '';
+            const idAttr  = isExtra ? ` id="${item.navId}"` : '';
+            const hidden  = isExtra ? ' hidden' : '';
+            return `<a class="nav-link ${activeClass}" href="#${item.id}" data-target="${item.id}"${idAttr}${hidden}>${item.label}</a>`;
+        }
+
+        function renderDockBtn(item, index) {
+            const isExtra = !!item.dockId;
+            const activeClass = (!isExtra && index === 0) ? 'active' : '';
+            const idAttr  = isExtra ? ` id="${item.dockId}"` : '';
+            const hidden  = isExtra ? ' hidden' : '';
+            return `
+                <button class="dock-btn ${activeClass}" type="button" data-target="${item.id}" aria-label="${item.label}"${idAttr}${hidden}>
+                    ${iconMarkup(item.icon)}
+                </button>`;
+        }
+
         if (nav) {
-            nav.innerHTML =
-                mainItems.map((item, index) =>
-                    `<a class="nav-link ${index === 0 ? 'active' : ''}" href="#${item.id}" data-target="${item.id}">${item.label}</a>`
-                ).join('') +
-                dynamicItems.map((item) =>
-                    `<a class="nav-link" href="#${item.id}" data-target="${item.id}" id="${item.navId}" hidden>${item.label}</a>`
-                ).join('');
+            nav.innerHTML = orderedItems.map(renderNavLink).join('');
         }
 
         if (dock) {
@@ -604,18 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tailHTML = (tailDivider ? tailDivider.outerHTML : '')
                            + (tailSoundBtn ? tailSoundBtn.outerHTML : '');
 
-            dock.innerHTML =
-                mainItems.map((item, index) => `
-                    <button class="dock-btn ${index === 0 ? 'active' : ''}" type="button" data-target="${item.id}" aria-label="${item.label}">
-                        ${iconMarkup(item.icon)}
-                    </button>
-                `).join('') +
-                dynamicItems.map((item) => `
-                    <button class="dock-btn" type="button" data-target="${item.id}" aria-label="${item.label}" id="${item.dockId}" hidden>
-                        ${iconMarkup(item.icon)}
-                    </button>
-                `).join('') +
-                tailHTML;
+            dock.innerHTML = orderedItems.map(renderDockBtn).join('') + tailHTML;
         }
     }
 
@@ -1447,6 +1463,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ✅ rootMargin بيعمل "شريط رصد" قريب من أعلى الشاشة بدل ما نطلب نسبة
+    // كبيرة من ارتفاع القسم كله — ده بيخلي الكشف يشتغل صح حتى لو القسم
+    // طويل جدًا زي قسم Connect (مش بيوصل أبدًا لـ 55% ظاهر منه في الشاشة)
     sectionObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
             if (entry.isIntersecting) {
@@ -1455,7 +1474,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, {
         root: scrollRoot,
-        threshold: 0.55
+        rootMargin: '-15% 0px -65% 0px',
+        threshold: 0
     });
 
     revealObserver = new IntersectionObserver((entries) => {
@@ -2192,18 +2212,20 @@ document.addEventListener('DOMContentLoaded', () => {
         void dock.offsetWidth;
 
         requestAnimationFrame(() => {
-            dock.style.transition = 'width 0.85s cubic-bezier(0.16, 1, 0.3, 1)';
+            // ✅ back-ease: الشريط بيمتد لطول أكبر من طوله الطبيعي شوية
+            // وبعدين يرجع يستقر عليه — حركة سبرينج ناعمة وأبطأ
+            dock.style.transition = 'width 1.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
             dock.style.width = naturalWidth + 'px';
 
-            // الأيقونات تبان تدريجيًا وهي بتتفتح
+            // الأيقونات تبان تدريجيًا قرب ما الشريط يوصل لأقصى مده
             setTimeout(() => {
                 items.forEach((item, i) => {
-                    item.style.transition = `opacity 0.4s ease ${i * 0.035}s`;
+                    item.style.transition = `opacity 0.5s ease ${i * 0.045}s`;
                     item.style.opacity = '1';
                 });
-            }, 380);
+            }, 560);
 
-            // بعد ما الشريط يخلص فتح، رجّع العرض auto عشان يفضل responsive
+            // بعد ما الشريط يستقر تمامًا، رجّع العرض auto عشان يفضل responsive
             const cleanup = (event) => {
                 if (event && event.propertyName !== 'width') return;
                 dock.removeEventListener('transitionend', cleanup);
@@ -2213,7 +2235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 items.forEach((item) => { item.style.transition = ''; });
             };
             dock.addEventListener('transitionend', cleanup);
-            setTimeout(cleanup, 1200); // fallback لو الـ transitionend مطلعش
+            setTimeout(cleanup, 1800); // fallback لو الـ transitionend مطلعش
         });
     }
 
