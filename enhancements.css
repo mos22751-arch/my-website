@@ -360,43 +360,50 @@ svg,
     pointer-events: none;
     z-index: -3;
     border-radius: 50%;
-    filter: blur(72px);
+    /* ✅ كان blur(72px) — تقليل نصف القطر تقريبًا بيقلل تكلفة الـ blur على الـ GPU
+       بشكل كبير (التكلفة بتزيد تقريبًا مع مربع نصف القطر) من غير ما اللمسة البصرية تختفي */
+    filter: blur(44px);
     will-change: transform;
-    animation: orbFloat 18s ease-in-out infinite alternate;
+    animation: orbFloat 20s ease-in-out infinite alternate;
+}
+
+/* ✅ يوقف الانيميشن لما التاب يبقى في الخلفية — يوفر باتري وGPU بدون ما يمسح التأثير */
+body.tab-hidden .gradient-orb {
+    animation-play-state: paused;
 }
 
 .gradient-orb-1 {
-    width: 420px;
-    height: 420px;
+    width: 340px;
+    height: 340px;
     top: -10%;
     left: -8%;
     background: radial-gradient(circle, color-mix(in srgb, var(--primary) 24%, transparent), transparent 65%);
-    animation-duration: 22s;
+    animation-duration: 24s;
 }
 
 .gradient-orb-2 {
-    width: 320px;
-    height: 320px;
+    width: 260px;
+    height: 260px;
     top: 30%;
     right: -5%;
     background: radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent), transparent 65%);
-    animation-duration: 17s;
+    animation-duration: 19s;
     animation-direction: alternate-reverse;
 }
 
 .gradient-orb-3 {
-    width: 280px;
-    height: 280px;
+    width: 230px;
+    height: 230px;
     bottom: 10%;
     left: 25%;
     background: radial-gradient(circle, color-mix(in srgb, var(--mint) 18%, transparent), transparent 65%);
-    animation-duration: 25s;
+    animation-duration: 27s;
 }
 
 @keyframes orbFloat {
     0%   { transform: translate3d(0, 0, 0) scale(1); }
-    50%  { transform: translate3d(30px, -20px, 0) scale(1.08); }
-    100% { transform: translate3d(-15px, 15px, 0) scale(0.95); }
+    50%  { transform: translate3d(24px, -16px, 0) scale(1.04); }
+    100% { transform: translate3d(-12px, 12px, 0) scale(0.98); }
 }
 
 /* ─── Float Animation for Profile Card ───────────────────*/

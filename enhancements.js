@@ -15,6 +15,16 @@
     const isFinePointer = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
     /* ======================================================
+       0. VISIBILITY — وقف الانيميشن المكلفة (الـ orbs) لما
+          المستخدم يبدل تاب — توفير GPU/باتري بدون ما نمسح حاجة
+       ====================================================== */
+    function initVisibilityPause() {
+        document.addEventListener('visibilitychange', () => {
+            document.body.classList.toggle('tab-hidden', document.hidden);
+        });
+    }
+
+    /* ======================================================
        1. GRADIENT ORBS — Animated background depth layers
        ====================================================== */
     function initGradientOrbs() {
@@ -141,37 +151,62 @@
     function initMagneticEffect() {
         if (!isFinePointer() || reducedMotion.matches) return;
 
-        const targets = $$('.action-btn, .share-profile, .theme-switch, .language-toggle, .nav-link, .dock-btn');
+        const selector = '.action-btn, .share-profile, .theme-switch, .language-toggle, .nav-link, .dock-btn';
+        $$(selector).forEach((el) => el.classList.add('magnetic-btn'));
 
-        targets.forEach((el) => {
-            el.classList.add('magnetic-btn');
+        function resetTransform(el) {
+            if (el && !el.closest('.tilt-effect')) el.style.transform = '';
+        }
 
-            el.addEventListener('mousemove', (e) => {
-                const rect = el.getBoundingClientRect();
-                const cx = rect.left + rect.width / 2;
-                const cy = rect.top + rect.height / 2;
-                const dx = e.clientX - cx;
-                const dy = e.clientY - cy;
-                const dist = Math.hypot(dx, dy);
-                const maxDist = Math.max(rect.width, rect.height) * 0.7;
-                if (dist > maxDist) return;
+        let activeEl = null;
+        let lastEvent = null;
+        let rafId = null;
 
-                const pull = (1 - dist / maxDist) * 8;
-                const nx = (dx / dist || 0) * pull;
-                const ny = (dy / dist || 0) * pull;
+        // ✅ بنحسب ونكتب الـ transform مرة واحدة بس في كل فريم (60fps حد أقصى)
+        // بدل ما نعمل getBoundingClientRect() + style write على كل حركة فأرة خام
+        // (اللي ممكن توصل لمئات المرات في الثانية) — نفس التأثير البصري بالظبط، تكلفة أقل بكتير
+        function applyMagnetic() {
+            rafId = null;
+            if (!activeEl || !lastEvent) return;
+            if (activeEl.closest('.tilt-effect')) return;
 
-                // Don't fight with tilt-effect transforms
-                if (!el.closest('.tilt-effect')) {
-                    el.style.transform = `translate(${nx}px, ${ny}px)`;
-                }
-            }, { passive: true });
+            const rect = activeEl.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = lastEvent.clientX - cx;
+            const dy = lastEvent.clientY - cy;
+            const dist = Math.hypot(dx, dy);
+            const maxDist = Math.max(rect.width, rect.height) * 0.7;
 
-            el.addEventListener('mouseleave', () => {
-                if (!el.closest('.tilt-effect')) {
-                    el.style.transform = '';
-                }
-            }, { passive: true });
-        });
+            if (dist > maxDist) {
+                activeEl.style.transform = '';
+                return;
+            }
+
+            const pull = (1 - dist / maxDist) * 8;
+            const nx = (dx / dist || 0) * pull;
+            const ny = (dy / dist || 0) * pull;
+            activeEl.style.transform = `translate(${nx}px, ${ny}px)`;
+        }
+
+        // ✅ listener واحد على الصفحة كلها بدل listener منفصل على كل عنصر مغناطيسي
+        document.addEventListener('mousemove', (e) => {
+            const target = e.target.closest(selector);
+
+            if (target !== activeEl) {
+                resetTransform(activeEl);
+                activeEl = target;
+            }
+            if (!activeEl) return;
+
+            lastEvent = e;
+            if (rafId === null) rafId = requestAnimationFrame(applyMagnetic);
+        }, { passive: true });
+
+        document.documentElement.addEventListener('mouseleave', () => {
+            resetTransform(activeEl);
+            activeEl = null;
+        }, { passive: true });
     }
 
     /* ======================================================
@@ -709,6 +744,7 @@
        INIT — run when DOM is ready
        ====================================================== */
     function init() {
+        initVisibilityPause();
         initGradientOrbs();
         initSoundToggle();
         initRipple();

@@ -583,15 +583,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // ✅ Projects و Songs دايمًا موجودين في الـ DOM لكن مخفيين
         // renderProjectsSection() و renderSongsSection() هيظهروهم لما يكون في داتا
         // ترتيبهم هنا لازم يتطابق مع ترتيبهم الفعلي في الصفحة: بعد Work وقبل Connect
+        // startHidden: true → بيستنى تحميل داتا من السيرفر قبل ما يظهر (Projects/Songs)
         const dynamicItems = [
-            { id: 'projects', label: 'Projects',  icon: 'layout-grid', dockId: 'dockProjects', navId: 'navProjects' },
-            { id: 'songs',    label: 'Fav Songs', icon: 'music',       dockId: 'dockSongs',    navId: 'navSongs'    }
+            { id: 'projects', label: 'Projects',  icon: 'layout-grid', dockId: 'dockProjects', navId: 'navProjects', startHidden: true },
+            { id: 'songs',    label: 'Fav Songs', icon: 'music',       dockId: 'dockSongs',    navId: 'navSongs',    startHidden: true }
         ];
 
         // اختصارات داخل قسم اللينكات نفسه — رسالة واتساب السريعة وتغيير الثيم
+        // startHidden: false → دول متفلترين خلاص بـ sectionConfig فوق، مش محتاجين ينتظروا تحميل داتا
         const subItems = [
-            { id: 'quickMessageForm', label: 'WhatsApp', icon: 'message-circle', dockId: 'dockWhatsappForm', navId: 'navWhatsappForm', visible: sectionConfig.connect && sectionConfig.form },
-            { id: 'themePanel',       label: 'Themes',    icon: 'palette',        dockId: 'dockThemes',       navId: 'navThemes',       visible: sectionConfig.connect && sectionConfig.themeControls }
+            { id: 'quickMessageForm', label: 'WhatsApp', icon: 'message-circle', dockId: 'dockWhatsappForm', navId: 'navWhatsappForm', visible: sectionConfig.connect && sectionConfig.form, startHidden: false },
+            { id: 'themePanel',       label: 'Themes',    icon: 'palette',        dockId: 'dockThemes',       navId: 'navThemes',       visible: sectionConfig.connect && sectionConfig.themeControls, startHidden: false }
         ].filter((item) => item.visible);
 
         // ✅ رتّب القائمة بحيث تطابق ترتيب الأقسام عمودياً في الصفحة:
@@ -605,7 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isExtra = !!item.dockId;
             const activeClass = (!isExtra && index === 0) ? 'active' : '';
             const idAttr  = isExtra ? ` id="${item.navId}"` : '';
-            const hidden  = isExtra ? ' hidden' : '';
+            const hidden  = item.startHidden ? ' hidden' : '';
             return `<a class="nav-link ${activeClass}" href="#${item.id}" data-target="${item.id}"${idAttr}${hidden}>${item.label}</a>`;
         }
 
@@ -613,7 +615,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isExtra = !!item.dockId;
             const activeClass = (!isExtra && index === 0) ? 'active' : '';
             const idAttr  = isExtra ? ` id="${item.dockId}"` : '';
-            const hidden  = isExtra ? ' hidden' : '';
+            const hidden  = item.startHidden ? ' hidden' : '';
             return `
                 <button class="dock-btn ${activeClass}" type="button" data-target="${item.id}" aria-label="${item.label}"${idAttr}${hidden}>
                     ${iconMarkup(item.icon)}

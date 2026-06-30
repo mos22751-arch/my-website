@@ -304,6 +304,8 @@ body:not(.is-loading) .page-loader {
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.04);
+    /* ✅ نفس سبب الدوك — نمنع الانعكاس في وضع العربي */
+    direction: ltr;
 }
 
 .nav-link {
@@ -1548,6 +1550,9 @@ body.accent-gold {
     overflow-x: auto;
     scrollbar-width: none;
     border-radius: 999px;
+    /* ✅ بيمنع dir="rtl" (وضع العربي) من عكس ترتيب الأيقونات بصريًا.
+       الترتيب لازم يفضل ثابت ومطابق لترتيب الأقسام في الصفحة بغض النظر عن اللغة */
+    direction: ltr;
 }
 
 .floating-dock::-webkit-scrollbar {
