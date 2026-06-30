@@ -598,6 +598,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (dock) {
+            // ✅ احتفظ بالديفايدر وزرار الصوت قبل ما نمسح الدوك بالكامل
+            const tailDivider  = dock.querySelector('.dock-divider');
+            const tailSoundBtn = dock.querySelector('.dock-sound-btn');
+            const tailHTML = (tailDivider ? tailDivider.outerHTML : '')
+                           + (tailSoundBtn ? tailSoundBtn.outerHTML : '');
+
             dock.innerHTML =
                 mainItems.map((item, index) => `
                     <button class="dock-btn ${index === 0 ? 'active' : ''}" type="button" data-target="${item.id}" aria-label="${item.label}">
@@ -608,7 +614,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="dock-btn" type="button" data-target="${item.id}" aria-label="${item.label}" id="${item.dockId}" hidden>
                         ${iconMarkup(item.icon)}
                     </button>
-                `).join('');
+                `).join('') +
+                tailHTML;
         }
     }
 
@@ -2157,9 +2164,63 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
+    // ============================================================
+    // 🌀 Dock Intro — دايرة بتتفتح بسلاسة وتتحول لشريط الدوك
+    // ============================================================
+    function playDockIntro() {
+        const dock = document.querySelector('.floating-dock');
+        if (!dock || dock.dataset.introPlayed) return;
+        dock.dataset.introPlayed = '1';
+
+        // احترام تفضيل تقليل الحركة
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        const items = Array.from(dock.children); // dock-btn + dock-divider
+        const naturalWidth  = dock.offsetWidth;
+        const naturalHeight = dock.offsetHeight || 62;
+        if (!naturalWidth) return;
+
+        // اخفي محتوى الدوك مؤقتًا
+        items.forEach((item) => { item.style.opacity = '0'; });
+
+        // الحالة الابتدائية: دايرة (العرض = الارتفاع)
+        dock.style.transition = 'none';
+        dock.style.overflow   = 'hidden';
+        dock.style.width      = naturalHeight + 'px';
+
+        // فورس reflow عشان التغيير ده ياخد تأثير قبل الانيميشن
+        void dock.offsetWidth;
+
+        requestAnimationFrame(() => {
+            dock.style.transition = 'width 0.85s cubic-bezier(0.16, 1, 0.3, 1)';
+            dock.style.width = naturalWidth + 'px';
+
+            // الأيقونات تبان تدريجيًا وهي بتتفتح
+            setTimeout(() => {
+                items.forEach((item, i) => {
+                    item.style.transition = `opacity 0.4s ease ${i * 0.035}s`;
+                    item.style.opacity = '1';
+                });
+            }, 380);
+
+            // بعد ما الشريط يخلص فتح، رجّع العرض auto عشان يفضل responsive
+            const cleanup = (event) => {
+                if (event && event.propertyName !== 'width') return;
+                dock.removeEventListener('transitionend', cleanup);
+                dock.style.width      = '';
+                dock.style.overflow   = '';
+                dock.style.transition = '';
+                items.forEach((item) => { item.style.transition = ''; });
+            };
+            dock.addEventListener('transitionend', cleanup);
+            setTimeout(cleanup, 1200); // fallback لو الـ transitionend مطلعش
+        });
+    }
+
     function finishLoading() {
         body.classList.remove('is-loading');
         body.classList.add('is-ready');
+        playDockIntro();
     }
 
     window.addEventListener('load', () => {
