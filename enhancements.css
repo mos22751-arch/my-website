@@ -1082,7 +1082,6 @@ body.lang-ar .project-card h3 {
     gap: 1rem;
     align-items: center;
     overflow: hidden;
-    backdrop-filter: blur(12px);
     transition: transform 0.3s cubic-bezier(0.23,1,0.32,1),
                 border-color 0.3s, background 0.3s;
 }
@@ -1253,4 +1252,202 @@ body.lang-ar .project-card h3 {
     .songs-grid { grid-template-columns: 1fr; }
     .song-card-modern { padding: 0.9rem; }
     .song-modern-cover { width: 50px; height: 50px; font-size: 1.4rem; }
+}
+
+/* ============================================================
+   🔗 Social Links — new compact row design
+   ============================================================ */
+.social-mesh {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.social-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.03);
+    color: var(--text-main, #fff);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, transform 0.18s;
+    width: 100%;
+}
+
+.social-row:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: var(--primary, #39d0ff);
+    transform: translateX(3px);
+}
+
+.social-row-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--primary, #39d0ff);
+}
+
+.social-row-icon svg,
+.social-row-icon i { width: 16px; height: 16px; }
+
+.social-row-name { flex: 1; }
+
+.social-row-arrow {
+    width: 14px;
+    height: 14px;
+    color: rgba(255,255,255,0.3);
+    flex-shrink: 0;
+    transition: color 0.18s, transform 0.18s;
+}
+
+.social-row:hover .social-row-arrow {
+    color: var(--primary, #39d0ff);
+    transform: translate(2px, -2px);
+}
+
+/* ============================================================
+   📱 Sub-screen — WhatsApp Form & Themes standalone sections
+   ============================================================ */
+.sub-screen {
+    min-height: auto !important;
+    padding: 4rem 1.25rem !important;
+}
+
+.sub-section-shell {
+    width: min(640px, 100%);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* ============================================================
+   🎨 Theme Studio — new design
+   ============================================================ */
+.theme-studio {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.theme-studio-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.theme-studio-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin: 0;
+}
+
+/* Accent tiles */
+.accent-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.accent-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 4px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    cursor: pointer;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    transition: background 0.18s, border-color 0.18s, transform 0.18s;
+}
+
+.accent-tile:hover { background: rgba(255,255,255,0.07); transform: translateY(-2px); }
+.accent-tile.active {
+    border-color: var(--primary, #39d0ff);
+    background: rgba(57,208,255,0.1);
+    color: #fff;
+}
+
+.accent-tile-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary, #39d0ff);
+    box-shadow: 0 0 10px currentColor;
+}
+
+.accent-tile.orange  .accent-tile-dot { background: #ff7a3d; box-shadow: 0 0 10px #ff7a3d66; }
+.accent-tile.green   .accent-tile-dot { background: #5ee2a0; box-shadow: 0 0 10px #5ee2a066; }
+.accent-tile.violet  .accent-tile-dot { background: #a78bfa; box-shadow: 0 0 10px #a78bfa66; }
+.accent-tile.gold    .accent-tile-dot { background: #f6c95f; box-shadow: 0 0 10px #f6c95f66; }
+
+/* Preset grid */
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+}
+
+.preset-card {
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    color: rgba(255,255,255,0.55);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+}
+
+.preset-card:hover {
+    background: rgba(255,255,255,0.07);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.preset-card.active {
+    border-color: var(--primary, #39d0ff);
+    background: rgba(57,208,255,0.1);
+    color: #fff;
+}
+
+.preset-card-shuffle {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, rgba(57,208,255,0.1), rgba(255,122,61,0.08));
+    border-color: rgba(57,208,255,0.2);
+    color: rgba(255,255,255,0.7);
+}
+
+.preset-card-shuffle:hover { background: linear-gradient(135deg, rgba(57,208,255,0.18), rgba(255,122,61,0.14)); }
+
+.preset-card svg { width: 13px; height: 13px; }
+
+@media (max-width: 600px) {
+    .theme-studio { grid-template-columns: 1fr; }
+    .accent-grid  { grid-template-columns: repeat(5, 1fr); }
+    .preset-grid  { grid-template-columns: repeat(2, 1fr); }
 }

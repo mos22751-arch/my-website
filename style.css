@@ -155,7 +155,7 @@ body:not(.is-loading) .page-loader {
     pointer-events: none;
     opacity: 0;
     transform: translate3d(-120px, -120px, 0) translate(-50%, -50%);
-    will-change: transform, width, height, opacity;
+    will-change: transform;
     contain: layout paint style;
 }
 
@@ -239,8 +239,8 @@ body:not(.is-loading) .page-loader {
     border: 1px solid var(--glass-border);
     background: var(--glass-bg);
     box-shadow: var(--shadow);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .glass-card {
@@ -2161,7 +2161,7 @@ body.preset-pastel { --primary: #ff85c0; --accent: #85c1ff; --mint: #85ffab; }
 .gradient-text { background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
 /* GLOW EFFECT */
-.glow-bg { background: radial-gradient(circle, rgba(57, 208, 255, 0.3), transparent); filter: blur(80px); animation: glowPulse 4s ease-in-out infinite; }
+.glow-bg { background: radial-gradient(circle, rgba(57, 208, 255, 0.3), transparent); filter: blur(60px); animation: glowPulse 4s ease-in-out infinite; }
 @keyframes glowPulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 
 /* BADGE */

@@ -261,35 +261,35 @@
                 </div>
                 <div class="connect-layout">
                     <div class="social-mesh">
-                        <a href="https://instagram.com/mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up" data-social="instagram">
-                            <i data-lucide="instagram" aria-hidden="true"></i>
-                            <span>Instagram</span>
-                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
+                        <a href="https://instagram.com/mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-row reveal-up" data-social="instagram">
+                            <span class="social-row-icon"><i data-lucide="instagram" aria-hidden="true"></i></span>
+                            <span class="social-row-name">Instagram</span>
+                            <i data-lucide="arrow-up-right" class="social-row-arrow" aria-hidden="true"></i>
                         </a>
-                        <a href="https://tiktok.com/@mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up delay-1" data-social="tiktok">
-                            <i data-lucide="video" aria-hidden="true"></i>
-                            <span>TikTok</span>
-                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
+                        <a href="https://tiktok.com/@mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-row reveal-up delay-1" data-social="tiktok">
+                            <span class="social-row-icon"><i data-lucide="video" aria-hidden="true"></i></span>
+                            <span class="social-row-name">TikTok</span>
+                            <i data-lucide="arrow-up-right" class="social-row-arrow" aria-hidden="true"></i>
                         </a>
-                        <a href="https://www.snapchat.com/add/dr.toji" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up delay-2" data-social="snapchat">
-                            <i data-lucide="ghost" aria-hidden="true"></i>
-                            <span>Snapchat</span>
-                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
+                        <a href="https://www.snapchat.com/add/dr.toji" target="_blank" rel="noreferrer" class="social-row reveal-up delay-2" data-social="snapchat">
+                            <span class="social-row-icon"><i data-lucide="ghost" aria-hidden="true"></i></span>
+                            <span class="social-row-name">Snapchat</span>
+                            <i data-lucide="arrow-up-right" class="social-row-arrow" aria-hidden="true"></i>
                         </a>
-                        <a href="https://www.threads.net/@mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up delay-3" data-social="threads">
-                            <i data-lucide="at-sign" aria-hidden="true"></i>
-                            <span>Threads</span>
-                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
+                        <a href="https://www.threads.net/@mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-row reveal-up delay-3" data-social="threads">
+                            <span class="social-row-icon"><i data-lucide="at-sign" aria-hidden="true"></i></span>
+                            <span class="social-row-name">Threads</span>
+                            <i data-lucide="arrow-up-right" class="social-row-arrow" aria-hidden="true"></i>
                         </a>
-                        <a href="https://wa.me/201102550730?text=Hi%20TOJI%2C%20I%20saw%20your%20profile%20and%20wanted%20to%20ask%20about%20a%20custom%20page." target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up" data-whatsapp="">
-                            <i data-lucide="message-circle" aria-hidden="true"></i>
-                            <span>WhatsApp</span>
-                            <i data-lucide="external-link" class="pill-arrow" aria-hidden="true"></i>
+                        <a href="https://wa.me/201102550730?text=Hi%20TOJI%2C%20I%20saw%20your%20profile%20and%20wanted%20to%20ask%20about%20a%20custom%20page." target="_blank" rel="noreferrer" class="social-row reveal-up" data-whatsapp="">
+                            <span class="social-row-icon"><i data-lucide="message-circle" aria-hidden="true"></i></span>
+                            <span class="social-row-name">WhatsApp</span>
+                            <i data-lucide="arrow-up-right" class="social-row-arrow" aria-hidden="true"></i>
                         </a>
-                        <button class="social-pill glass-card hover-glow reveal-up delay-1" type="button" data-copy="201102550730">
-                            <i data-lucide="copy" aria-hidden="true"></i>
-                            <span data-i18n="connect.copyNumber">Copy Number</span>
-                            <i data-lucide="check" class="pill-arrow" aria-hidden="true"></i>
+                        <button class="social-row reveal-up delay-1" type="button" data-copy="201102550730">
+                            <span class="social-row-icon"><i data-lucide="copy" aria-hidden="true"></i></span>
+                            <span class="social-row-name" data-i18n="connect.copyNumber">Copy Number</span>
+                            <i data-lucide="check" class="social-row-arrow" aria-hidden="true"></i>
                         </button>
                     </div>
 
@@ -333,11 +333,21 @@
                         </div>
                     </aside>
                 </div>
-                <form class="contact-form glass-card reveal-up delay-2" id="quickMessageForm">
-                    <div>
-                        <p class="eyebrow" data-i18n="form.eyebrow">Quick Message</p>
-                        <h3 data-i18n="form.title">Send a WhatsApp brief.</h3>
-                    </div>
+                <button class="share-profile reveal-up delay-2" type="button" id="shareProfile">
+                    <i data-lucide="share-2" aria-hidden="true"></i>
+                    <span data-i18n="connect.shareProfile">Share Profile</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== WHATSAPP FORM ==================== -->
+        <section class="screen sub-screen" id="quickMessageForm" aria-labelledby="form-title">
+            <div class="section-shell sub-section-shell">
+                <div class="section-heading reveal-up">
+                    <p class="eyebrow" data-i18n="form.eyebrow">Quick Message</p>
+                    <h2 class="section-title" id="form-title" data-i18n="form.title">Send a WhatsApp brief.</h2>
+                </div>
+                <form class="contact-form glass-card reveal-up delay-1" id="quickMessageFormInner">
                     <div class="form-grid">
                         <label>
                             <span data-i18n="form.name">Name</span>
@@ -361,35 +371,59 @@
                         <span data-i18n="form.send">Open WhatsApp</span>
                     </button>
                 </form>
-                <div class="accent-panel glass-card reveal-up delay-3" id="themePanel" aria-label="Accent colors" data-i18n-attr="aria-label:aria.accentColors">
-                    <div class="accent-row">
-                        <span data-i18n="accent.label">Accent</span>
-                        <button class="accent-swatch cyan active" type="button" data-accent="cyan" aria-label="Cyan"></button>
-                        <button class="accent-swatch orange" type="button" data-accent="orange" aria-label="Orange"></button>
-                        <button class="accent-swatch green" type="button" data-accent="green" aria-label="Green"></button>
-                        <button class="accent-swatch violet" type="button" data-accent="violet" aria-label="Violet"></button>
-                        <button class="accent-swatch gold" type="button" data-accent="gold" aria-label="Gold"></button>
-                    </div>
-                    <div class="preset-row" aria-label="Theme presets" data-i18n-attr="aria-label:aria.themePresets">
-                        <span data-i18n="preset.label">Theme</span>
-                        <button class="preset-btn active" type="button" data-preset="neon" data-i18n="preset.neon">Neon</button>
-                        <button class="preset-btn" type="button" data-preset="midnight" data-i18n="preset.midnight">Midnight</button>
-                        <button class="preset-btn" type="button" data-preset="emerald" data-i18n="preset.emerald">Emerald</button>
-                        <button class="preset-btn" type="button" data-preset="sunset" data-i18n="preset.sunset">Sunset</button>
-                        <button class="preset-btn" type="button" data-preset="aurora" data-i18n="preset.aurora">Aurora</button>
-                        <button class="preset-btn" type="button" data-preset="royal" data-i18n="preset.royal">Royal</button>
-                        <button class="preset-btn" type="button" data-preset="graphite" data-i18n="preset.graphite">Graphite</button>
-                        <button class="preset-btn preset-shuffle" type="button" id="randomVibe">
-                            <i data-lucide="sparkles" aria-hidden="true"></i>
-                            <span data-i18n="preset.shuffle">Shuffle</span>
-                        </button>
-                    </div>
+            </div>
+        </section>
 
+        <!-- ==================== THEMES ==================== -->
+        <section class="screen sub-screen" id="themePanel" aria-labelledby="theme-title">
+            <div class="section-shell sub-section-shell">
+                <div class="section-heading reveal-up">
+                    <p class="eyebrow">Customize</p>
+                    <h2 class="section-title" id="theme-title">Make it yours.</h2>
                 </div>
-                <button class="share-profile reveal-up delay-2" type="button" id="shareProfile">
-                    <i data-lucide="share-2" aria-hidden="true"></i>
-                    <span data-i18n="connect.shareProfile">Share Profile</span>
-                </button>
+                <div class="theme-studio reveal-up delay-1">
+                    <div class="theme-studio-col">
+                        <p class="theme-studio-label" data-i18n="accent.label">Accent color</p>
+                        <div class="accent-grid">
+                            <button class="accent-tile cyan active" type="button" data-accent="cyan" aria-label="Cyan">
+                                <span class="accent-tile-dot"></span>
+                                <span>Cyan</span>
+                            </button>
+                            <button class="accent-tile orange" type="button" data-accent="orange" aria-label="Orange">
+                                <span class="accent-tile-dot"></span>
+                                <span>Orange</span>
+                            </button>
+                            <button class="accent-tile green" type="button" data-accent="green" aria-label="Green">
+                                <span class="accent-tile-dot"></span>
+                                <span>Green</span>
+                            </button>
+                            <button class="accent-tile violet" type="button" data-accent="violet" aria-label="Violet">
+                                <span class="accent-tile-dot"></span>
+                                <span>Violet</span>
+                            </button>
+                            <button class="accent-tile gold" type="button" data-accent="gold" aria-label="Gold">
+                                <span class="accent-tile-dot"></span>
+                                <span>Gold</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="theme-studio-col">
+                        <p class="theme-studio-label" data-i18n="preset.label">Theme</p>
+                        <div class="preset-grid">
+                            <button class="preset-card active" type="button" data-preset="neon" data-i18n="preset.neon">Neon</button>
+                            <button class="preset-card" type="button" data-preset="midnight" data-i18n="preset.midnight">Midnight</button>
+                            <button class="preset-card" type="button" data-preset="emerald" data-i18n="preset.emerald">Emerald</button>
+                            <button class="preset-card" type="button" data-preset="sunset" data-i18n="preset.sunset">Sunset</button>
+                            <button class="preset-card" type="button" data-preset="aurora" data-i18n="preset.aurora">Aurora</button>
+                            <button class="preset-card" type="button" data-preset="royal" data-i18n="preset.royal">Royal</button>
+                            <button class="preset-card" type="button" data-preset="graphite" data-i18n="preset.graphite">Graphite</button>
+                            <button class="preset-card preset-card-shuffle" type="button" id="randomVibe">
+                                <i data-lucide="sparkles" aria-hidden="true"></i>
+                                <span data-i18n="preset.shuffle">Shuffle</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -404,17 +438,23 @@
             <button class="dock-btn" type="button" data-target="expertise" aria-label="About" data-i18n-attr="aria-label:nav.about">
                 <i data-lucide="user-round" aria-hidden="true"></i>
             </button>
+            <button class="dock-btn" type="button" data-target="songs" aria-label="Songs" id="dockSongs" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </button>
             <button class="dock-btn" type="button" data-target="work" aria-label="Work" data-i18n-attr="aria-label:nav.work">
                 <i data-lucide="briefcase-business" aria-hidden="true"></i>
             </button>
             <button class="dock-btn" type="button" data-target="projects" aria-label="Projects" id="dockProjects" hidden>
                 <i data-lucide="layout-grid" aria-hidden="true"></i>
             </button>
-            <button class="dock-btn" type="button" data-target="songs" aria-label="Songs" id="dockSongs" hidden>
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-            </button>
             <button class="dock-btn" type="button" data-target="connect" aria-label="Links" data-i18n-attr="aria-label:nav.links">
                 <i data-lucide="link-2" aria-hidden="true"></i>
+            </button>
+            <button class="dock-btn" type="button" data-target="quickMessageForm" aria-label="WhatsApp" id="dockWhatsapp">
+                <i data-lucide="message-circle" aria-hidden="true"></i>
+            </button>
+            <button class="dock-btn" type="button" data-target="themePanel" aria-label="Themes" id="dockThemes">
+                <i data-lucide="palette" aria-hidden="true"></i>
             </button>
             <div class="dock-divider" aria-hidden="true"></div>
             <button class="dock-btn dock-sound-btn" type="button" id="soundToggle" aria-label="Sound off — tap to enable">

@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyProfileLink = document.getElementById('copyProfileLink');
     const generateShareImage = document.getElementById('generateShareImage');
     const qrModeBtns = document.querySelectorAll('.qr-mode');
-    const quickMessageForm = document.getElementById('quickMessageForm');
+    const quickMessageForm = document.getElementById('quickMessageFormInner');
     const messageName = document.getElementById('messageName');
     const messageType = document.getElementById('messageType');
     const messageText = document.getElementById('messageText');
@@ -522,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function refreshDomCollections() {
         dockBtns = document.querySelectorAll('.dock-btn');
         navLinks = document.querySelectorAll('.nav-link');
-        sections = document.querySelectorAll('.screen:not([hidden])');
+        sections = document.querySelectorAll('.screen:not([hidden]), .sub-screen:not([hidden])');
         revealElements = document.querySelectorAll('.reveal-up');
         tiltElements = document.querySelectorAll('.tilt-effect');
     }
@@ -566,74 +566,68 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderNavigation() {
-        const nav = document.querySelector('.nav-links');
+        const nav  = document.querySelector('.nav-links');
         const dock = document.querySelector('.floating-dock');
+
+        // ترتيب الأقسام الرئيسية كما هي في الصفحة
         const mainItems = [
             { id: 'home',         label: t('nav.home'),  icon: 'home',              enabled: true },
             { id: 'expertise',    label: t('nav.about'), icon: 'user-round',         enabled: sectionConfig.about },
             { id: 'work',         label: t('nav.work'),  icon: 'briefcase-business', enabled: sectionConfig.work },
-            { id: 'services',     label: localized(contentOverrides.marketing?.services?.eyebrow)     || 'Services', icon: 'sparkles',           enabled: sectionConfig.services },
-            { id: 'pricing',      label: localized(contentOverrides.marketing?.pricing?.eyebrow)      || 'Pricing',  icon: 'badge-dollar-sign',   enabled: sectionConfig.pricing },
-            { id: 'testimonials', label: localized(contentOverrides.marketing?.testimonials?.eyebrow) || 'Reviews',  icon: 'quote',              enabled: sectionConfig.testimonials },
-            { id: 'gallery',      label: localized(contentOverrides.marketing?.gallery?.eyebrow)      || 'Gallery',  icon: 'images',             enabled: sectionConfig.gallery },
-            { id: 'faq',          label: localized(contentOverrides.marketing?.faq?.eyebrow)          || 'FAQ',      icon: 'circle-help',        enabled: sectionConfig.faq },
+            { id: 'services',     label: localized(contentOverrides.marketing?.services?.eyebrow)     || 'Services', icon: 'sparkles',         enabled: sectionConfig.services },
+            { id: 'pricing',      label: localized(contentOverrides.marketing?.pricing?.eyebrow)      || 'Pricing',  icon: 'badge-dollar-sign', enabled: sectionConfig.pricing },
+            { id: 'testimonials', label: localized(contentOverrides.marketing?.testimonials?.eyebrow) || 'Reviews',  icon: 'quote',            enabled: sectionConfig.testimonials },
+            { id: 'gallery',      label: localized(contentOverrides.marketing?.gallery?.eyebrow)      || 'Gallery',  icon: 'images',           enabled: sectionConfig.gallery },
+            { id: 'faq',          label: localized(contentOverrides.marketing?.faq?.eyebrow)          || 'FAQ',      icon: 'circle-help',      enabled: sectionConfig.faq },
             { id: 'connect',      label: t('nav.links'), icon: 'link-2',             enabled: sectionConfig.connect }
         ].filter((item) => item.enabled);
 
-        // ✅ Projects و Songs دايمًا موجودين في الـ DOM لكن مخفيين
-        // renderProjectsSection() و renderSongsSection() هيظهروهم لما يكون في داتا
-        // ترتيبهم هنا لازم يتطابق مع ترتيبهم الفعلي في الصفحة: بعد Work وقبل Connect
-        // startHidden: true → بيستنى تحميل داتا من السيرفر قبل ما يظهر (Projects/Songs)
-        const dynamicItems = [
-            { id: 'projects', label: 'Projects',  icon: 'layout-grid', dockId: 'dockProjects', navId: 'navProjects', startHidden: true },
-            { id: 'songs',    label: 'Fav Songs', icon: 'music',       dockId: 'dockSongs',    navId: 'navSongs',    startHidden: true }
+        // أقسام ديناميكية — تظهر فقط لما في داتا من البيكاند
+        // Songs عند المركز الثالت (بعد home + about)
+        const dynamicSections = [
+            { id: 'songs',    label: 'Fav Songs', icon: 'music',       dockId: 'dockSongs',    navId: 'navSongs',    startHidden: true, insertAfter: 'expertise' },
+            { id: 'projects', label: 'Projects',  icon: 'layout-grid', dockId: 'dockProjects', navId: 'navProjects', startHidden: true, insertAfter: 'work' }
         ];
 
-        // اختصارات داخل قسم اللينكات نفسه — رسالة واتساب السريعة وتغيير الثيم
-        // startHidden: false → دول متفلترين خلاص بـ sectionConfig فوق، مش محتاجين ينتظروا تحميل داتا
-        const subItems = [
-            { id: 'quickMessageForm', label: 'WhatsApp', icon: 'message-circle', dockId: 'dockWhatsappForm', navId: 'navWhatsappForm', visible: sectionConfig.connect && sectionConfig.form, startHidden: false },
-            { id: 'themePanel',       label: 'Themes',    icon: 'palette',        dockId: 'dockThemes',       navId: 'navThemes',       visible: sectionConfig.connect && sectionConfig.themeControls, startHidden: false }
-        ].filter((item) => item.visible);
-
-        // ✅ رتّب القائمة بحيث تطابق ترتيب الأقسام عمودياً في الصفحة:
-        // ... work → projects → songs → connect → (واتساب/ثيمات جوه نفس قسم الكونكت)
-        const connectIdx = mainItems.findIndex((item) => item.id === 'connect');
-        const orderedItems = connectIdx === -1
-            ? [...mainItems, ...dynamicItems]
-            : [...mainItems.slice(0, connectIdx), ...dynamicItems, ...mainItems.slice(connectIdx), ...subItems];
-
-        function renderNavLink(item, index) {
-            const isExtra = !!item.dockId;
-            const activeClass = (!isExtra && index === 0) ? 'active' : '';
-            const idAttr  = isExtra ? ` id="${item.navId}"` : '';
-            const hidden  = item.startHidden ? ' hidden' : '';
-            return `<a class="nav-link ${activeClass}" href="#${item.id}" data-target="${item.id}"${idAttr}${hidden}>${item.label}</a>`;
+        // دمج الأقسام بالترتيب الصح
+        const ordered = [];
+        for (const item of mainItems) {
+            ordered.push(item);
+            for (const d of dynamicSections) {
+                if (d.insertAfter === item.id) ordered.push(d);
+            }
         }
 
-        function renderDockBtn(item, index) {
-            const isExtra = !!item.dockId;
-            const activeClass = (!isExtra && index === 0) ? 'active' : '';
-            const idAttr  = isExtra ? ` id="${item.dockId}"` : '';
-            const hidden  = item.startHidden ? ' hidden' : '';
-            return `
-                <button class="dock-btn ${activeClass}" type="button" data-target="${item.id}" aria-label="${item.label}"${idAttr}${hidden}>
-                    ${iconMarkup(item.icon)}
-                </button>`;
-        }
+        // الأقسام المستقلة الجديدة — WhatsApp و Themes — لها أزرار ثابتة في الـ DOM
+        // مش محتاجين يتضافوا هنا لأن renderNavigation مش بتعيد بناء الديفايدر والصوت
 
         if (nav) {
-            nav.innerHTML = orderedItems.map(renderNavLink).join('');
+            nav.innerHTML = ordered.map((item, i) => {
+                const isExtra  = !!item.dockId;
+                const idAttr   = isExtra ? ` id="${item.navId}"` : '';
+                const hidden   = item.startHidden ? ' hidden' : '';
+                const active   = !isExtra && i === 0 ? ' active' : '';
+                return `<a class="nav-link${active}" href="#${item.id}" data-target="${item.id}"${idAttr}${hidden}>${item.label}</a>`;
+            }).join('');
         }
 
         if (dock) {
-            // ✅ احتفظ بالديفايدر وزرار الصوت قبل ما نمسح الدوك بالكامل
-            const tailDivider  = dock.querySelector('.dock-divider');
-            const tailSoundBtn = dock.querySelector('.dock-sound-btn');
-            const tailHTML = (tailDivider ? tailDivider.outerHTML : '')
-                           + (tailSoundBtn ? tailSoundBtn.outerHTML : '');
+            // احتفظ بالديفايدر + صوت + WhatsApp + Themes الثابتة في الـ DOM
+            const savedTail = [];
+            ['dockWhatsapp','dockThemes','.dock-divider','.dock-sound-btn'].forEach((sel) => {
+                const el = dock.querySelector(sel.startsWith('.') ? sel : `#${sel}`);
+                if (el) savedTail.push(el.outerHTML);
+            });
 
-            dock.innerHTML = orderedItems.map(renderDockBtn).join('') + tailHTML;
+            dock.innerHTML = ordered.map((item, i) => {
+                const isExtra  = !!item.dockId;
+                const idAttr   = isExtra ? ` id="${item.dockId}"` : '';
+                const hidden   = item.startHidden ? ' hidden' : '';
+                const active   = !isExtra && i === 0 ? ' active' : '';
+                return `<button class="dock-btn${active}" type="button" data-target="${item.id}" aria-label="${item.label}"${idAttr}${hidden}>
+                    ${iconMarkup(item.icon)}
+                </button>`;
+            }).join('') + savedTail.join('');
         }
     }
 
@@ -969,8 +963,14 @@ document.addEventListener('DOMContentLoaded', () => {
         setElementVisible('#expertise', sectionConfig.about);
         setElementVisible('#work', sectionConfig.work);
         setElementVisible('#connect', sectionConfig.connect);
+        // WhatsApp form و Themes بقوا أقسام مستقلة — نظهر/نخبّي القسم كله
         setElementVisible('#quickMessageForm', sectionConfig.form && sectionConfig.connect);
-        setElementVisible('.accent-panel', sectionConfig.themeControls && sectionConfig.connect);
+        setElementVisible('#themePanel',       sectionConfig.themeControls && sectionConfig.connect);
+        // إظهار/إخفاء أزرار الدوك المقابلة
+        const dockWa = document.getElementById('dockWhatsapp');
+        const dockTh = document.getElementById('dockThemes');
+        if (dockWa) dockWa.hidden = !(sectionConfig.form && sectionConfig.connect);
+        if (dockTh) dockTh.hidden = !(sectionConfig.themeControls && sectionConfig.connect);
     }
 
     function applyDesignConfig() {
@@ -1157,8 +1157,9 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('toji_accent', safeAccent);
         applyColorTokens(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'neon', safeAccent);
 
-        accentSwatches.forEach((button) => {
-            button.classList.toggle('active', button.dataset.accent === safeAccent);
+        // sync both old swatches and new accent-tiles
+        document.querySelectorAll('[data-accent]').forEach((btn) => {
+            btn.classList.toggle('active', btn.dataset.accent === safeAccent);
         });
 
         window.tojiRenderQr?.();
@@ -1174,8 +1175,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         localStorage.setItem('toji_theme_preset', safePreset);
         applyColorTokens(safePreset, localStorage.getItem('toji_accent') || profileConfig.accent || 'cyan');
-        presetBtns.forEach((button) => {
-            button.classList.toggle('active', button.dataset.preset === safePreset);
+
+        // sync both old preset-btns and new preset-cards
+        document.querySelectorAll('[data-preset]').forEach((btn) => {
+            btn.classList.toggle('active', btn.dataset.preset === safePreset);
         });
     }
 
@@ -1323,8 +1326,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ✅ إضافة accent-tile (التصميم الجديد)
+    document.querySelectorAll('.accent-tile[data-accent]').forEach((button) => {
+        button.addEventListener('click', () => {
+            setAccent(button.dataset.accent);
+            showToast(t('toast.accentSaved'));
+        });
+    });
+
     presetBtns.forEach((button) => {
         if (!button.dataset.preset) return;
+        button.addEventListener('click', () => {
+            setThemePreset(button.dataset.preset);
+            showToast(t('toast.presetSaved'));
+        });
+    });
+
+    // ✅ إضافة preset-card (التصميم الجديد)
+    document.querySelectorAll('.preset-card[data-preset]').forEach((button) => {
         button.addEventListener('click', () => {
             setThemePreset(button.dataset.preset);
             showToast(t('toast.presetSaved'));
