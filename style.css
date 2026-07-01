@@ -995,27 +995,21 @@ body:not(.is-loading) .page-loader {
 }
 
 .social-mesh {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
 }
 
 .social-pill {
-    display: inline-flex;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: auto;
-    min-width: fit-content;
-    min-height: auto;
-    padding: 0.65rem 1.1rem;
+    width: 100%;
+    min-height: 78px;
     color: var(--text-main);
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-align: center;
-    white-space: nowrap;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-align: left;
 }
 
 button.social-pill {
@@ -1029,22 +1023,21 @@ button.social-pill {
 }
 
 .social-pill .pill-arrow {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     color: var(--text-muted);
     transition: transform 0.24s ease, color 0.24s ease;
-    display: none;
 }
 
 .hover-glow:hover {
-    transform: translateY(-2px);
+    transform: translateY(-4px);
     border-color: rgba(57, 208, 255, 0.5);
     background: var(--glass-strong);
-    box-shadow: 0 8px 24px var(--glow-color);
+    box-shadow: 0 18px 54px var(--glow-color);
 }
 
 .hover-glow:hover .pill-arrow {
-    transform: translate(2px, -2px);
+    transform: translate(3px, -3px);
     color: var(--accent);
 }
 
@@ -2030,9 +2023,8 @@ html[dir="rtl"] .contact-form .share-profile {
     }
 
     .social-pill {
-        min-height: auto;
-        font-size: 0.85rem;
-        padding: 0.6rem 0.95rem;
+        min-height: 70px;
+        font-size: 0.98rem;
     }
 }
 
