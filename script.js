@@ -582,26 +582,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ✅ Projects و Songs دايمًا موجودين في الـ DOM لكن مخفيين
         // renderProjectsSection() و renderSongsSection() هيظهروهم لما يكون في داتا
-        // ترتيبهم هنا لازم يتطابق مع ترتيبهم الفعلي في الصفحة: بعد Work وقبل Connect
-        // startHidden: true → بيستنى تحميل داتا من السيرفر قبل ما يظهر (Projects/Songs)
         const dynamicItems = [
             { id: 'projects', label: 'Projects',  icon: 'layout-grid', dockId: 'dockProjects', navId: 'navProjects', startHidden: true },
-            { id: 'songs',    label: 'Fav Songs', icon: 'music',       dockId: 'dockSongs',    navId: 'navSongs',    startHidden: true }
-        ];
-
-        // اختصارات داخل قسم اللينكات نفسه — رسالة واتساب السريعة وتغيير الثيم
-        // startHidden: false → دول متفلترين خلاص بـ sectionConfig فوق، مش محتاجين ينتظروا تحميل داتا
-        const subItems = [
-            { id: 'quickMessageForm', label: 'WhatsApp', icon: 'message-circle', dockId: 'dockWhatsappForm', navId: 'navWhatsappForm', visible: sectionConfig.connect && sectionConfig.form, startHidden: false },
-            { id: 'themePanel',       label: 'Themes',    icon: 'palette',        dockId: 'dockThemes',       navId: 'navThemes',       visible: sectionConfig.connect && sectionConfig.themeControls, startHidden: false }
-        ].filter((item) => item.visible);
+            { id: 'songs',    label: 'Fav Songs', icon: 'music',       dockId: 'dockSongs',    navId: 'navSongs',    startHidden: true },
+            { id: 'messaging', label: t('nav.messaging') || 'Message', icon: 'message-circle', enabled: sectionConfig.form, startHidden: false },
+            { id: 'themes',   label: t('nav.themes') || 'Themes',   icon: 'palette',        enabled: sectionConfig.themeControls, startHidden: false }
+        ].filter((item) => item.enabled !== false); // dynamicItems don't have dockId so no startHidden check needed for them
 
         // ✅ رتّب القائمة بحيث تطابق ترتيب الأقسام عمودياً في الصفحة:
-        // ... work → projects → songs → connect → (واتساب/ثيمات جوه نفس قسم الكونكت)
+        // home → about → work → services → pricing → testimonials → gallery → faq → projects → songs → messaging → themes → connect
         const connectIdx = mainItems.findIndex((item) => item.id === 'connect');
         const orderedItems = connectIdx === -1
             ? [...mainItems, ...dynamicItems]
-            : [...mainItems.slice(0, connectIdx), ...dynamicItems, ...mainItems.slice(connectIdx), ...subItems];
+            : [...mainItems.slice(0, connectIdx), ...dynamicItems, ...mainItems.slice(connectIdx)];
 
         function renderNavLink(item, index) {
             const isExtra = !!item.dockId;
@@ -1500,8 +1493,19 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo(0, 0);
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
+
+        // ✅ getBoundingClientRect بدل offsetTop: offsetTop بيتحسب نسبة لأقرب
+        // عنصر أب عنده position غير static — و#connect (زي كل .screen) عنده
+        // position:relative، فـ quickMessageForm و themePanel (جواه) كان
+        // offsetTop بتاعهم بيرجع رقم غلط (نسبة لـ #connect مش لـ #pageScroll)
+        // فالسكرول كان بيهبط في مكان غلط تمامًا. getBoundingClientRect بيرجع
+        // إحداثيات حقيقية بالنسبة للشاشة فبتشتغل صح لأي عنصر مهما كان متداخل.
+        const targetRect = target.getBoundingClientRect();
+        const rootRect = scrollRoot.getBoundingClientRect();
+        const destination = scrollRoot.scrollTop + (targetRect.top - rootRect.top);
+
         scrollRoot.scrollTo({
-            top: target.offsetTop,
+            top: destination,
             behavior: reducedMotion.matches ? 'auto' : 'smooth'
         });
         target.querySelectorAll('.reveal-up').forEach((element) => element.classList.add('visible'));
