@@ -687,6 +687,200 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     // FAV SONGS — تحميل وعرض من الـ Backend
     // ============================================================
+    // ============================================================
+    // 📋 WORK IN PROGRESS BOARD
+    // ============================================================
+    async function loadWip() {
+        if (!window.TojiAPI?.WipAPI) return;
+        try {
+            const res   = await window.TojiAPI.WipAPI.getAll();
+            const items = res?.data || [];
+            if (!items.length) return;
+
+            const section = document.getElementById('wip');
+            const dockBtn = document.getElementById('dockWip');
+            const navLink = document.getElementById('navWip');
+            if (!section) return;
+
+            if (sectionConfig.wip === false) return;
+            section.hidden = false;
+            if (dockBtn) dockBtn.hidden = false;
+            if (navLink) navLink.hidden = false;
+
+            const cols = { next: 'wipNext', progress: 'wipProgress', done: 'wipDone' };
+            const counts = { next: 0, progress: 0, done: 0 };
+
+            // مسح الكولامنز
+            Object.values(cols).forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = '';
+            });
+
+            items.forEach((item) => {
+                const colId = cols[item.status] || cols.next;
+                const col   = document.getElementById(colId);
+                if (!col) return;
+                counts[item.status] = (counts[item.status] || 0) + 1;
+
+                const link = item.link
+                    ? `<a href="${item.link}" target="_blank" rel="noreferrer" class="wip-card-link">
+                         <i data-lucide="external-link" aria-hidden="true"></i> View
+                       </a>`
+                    : '';
+
+                const card = document.createElement('div');
+                card.className = 'wip-card';
+                card.innerHTML = `
+                    <div class="wip-card-top">
+                        <span class="wip-card-emoji">${item.emoji || '🔧'}</span>
+                        <span class="wip-card-title">${item.title}</span>
+                    </div>
+                    ${item.description ? `<p class="wip-card-desc">${item.description}</p>` : ''}
+                    ${link}`;
+                col.appendChild(card);
+            });
+
+            // تحديث الأعداد
+            ['next','progress','done'].forEach((s) => {
+                const el = document.getElementById(`wipCount${s.charAt(0).toUpperCase()+s.slice(1)}`);
+                if (el) el.textContent = counts[s] || 0;
+            });
+
+            refreshDomCollections();
+            if (window.lucide) window.lucide.createIcons();
+            setTimeout(() => { if (typeof syncObservedElements==='function') syncObservedElements(); }, 60);
+
+        } catch (err) { console.warn('[TOJI] WIP board unavailable:', err.message); }
+    }
+
+    // ============================================================
+    // ✦ AI CHAT — Ask about TOJI
+    // ============================================================
+    (function initAiChat() {
+        const overlay   = document.getElementById('aiChatOverlay');
+        const openBtn   = document.getElementById('openAiChat');
+        const closeBtn  = document.getElementById('closeAiChat');
+        const messages  = document.getElementById('aiChatMessages');
+        const input     = document.getElementById('aiChatInput');
+        const sendBtn   = document.getElementById('aiChatSend');
+        const suggestEl = document.getElementById('aiChatSuggestions');
+        if (!overlay || !openBtn) return;
+
+        // بناء system prompt من بيانات الموقع الحقيقية
+        function buildContext() {
+            const p  = window.TOJI_CONTENT?.profile  || {};
+            const m  = window.TOJI_CONTENT?.marketing || {};
+            const faq = (m.faq?.items || []).map((item, i) =>
+                `Q${i+1}: ${item.question?.en}\nA${i+1}: ${item.answer?.en}`
+            ).join('\n');
+            const packages = (m.pricing?.items || []).map((pkg) =>
+                `- ${pkg.name?.en}: ${pkg.price} — ${(pkg.features||[]).join(', ')}`
+            ).join('\n');
+
+            return `You are an AI assistant embedded in ${p.nickname || 'TOJI'}'s personal portfolio website.
+Your job: answer visitor questions concisely and helpfully about ${p.nickname || 'TOJI'}.
+
+ABOUT:
+Name: ${p.name || 'Mohamed Mostafa'} (known as ${p.nickname || 'TOJI'})
+Status: ${p.status?.en || 'Available for work'}
+WhatsApp: +${p.phone || '201102550730'}
+
+PACKAGES:
+${packages || 'Contact via WhatsApp for pricing.'}
+
+FAQ:
+${faq || 'No FAQ available.'}
+
+RULES:
+- Keep answers SHORT (2-3 sentences max unless asked for detail)
+- Be friendly and direct
+- If asked for contact, share the WhatsApp number
+- If you don't know something, say "I'm not sure, message TOJI directly on WhatsApp"
+- Never make up projects or prices that aren't listed above
+- Respond in the same language the visitor uses`;
+        }
+
+        const history = [];
+        let isTyping  = false;
+
+        openBtn.addEventListener('click', () => {
+            overlay.hidden = false;
+            input.focus();
+            if (window.lucide) window.lucide.createIcons();
+        });
+
+        const close = () => { overlay.hidden = true; };
+        closeBtn.addEventListener('click', close);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+        function addMsg(text, role) {
+            const div = document.createElement('div');
+            div.className = `ai-msg ${role}`;
+            div.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+            return div;
+        }
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.className = 'ai-msg ai typing';
+            div.innerHTML = '<p><span></span><span></span><span></span></p>';
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+            return div;
+        }
+
+        async function sendMessage(text) {
+            if (!text.trim() || isTyping) return;
+            isTyping = true;
+
+            // اخفي الـ suggestions بعد أول رسالة
+            if (suggestEl) suggestEl.style.display = 'none';
+
+            addMsg(text, 'user');
+            history.push({ role: 'user', content: text });
+            input.value = '';
+
+            const typingEl = showTyping();
+
+            try {
+                const res = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-6',
+                        max_tokens: 300,
+                        system: buildContext(),
+                        messages: history.slice(-8) // آخر 8 رسائل بس عشان مش يعدي الـ limit
+                    })
+                });
+
+                const data = await res.json();
+                typingEl.remove();
+
+                const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Try messaging TOJI directly on WhatsApp!";
+                addMsg(reply, 'ai');
+                history.push({ role: 'assistant', content: reply });
+
+            } catch {
+                typingEl.remove();
+                addMsg("Connection issue. Please try again or message TOJI directly on WhatsApp 🙏", 'ai');
+            }
+
+            isTyping = false;
+        }
+
+        sendBtn.addEventListener('click', () => sendMessage(input.value));
+        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(input.value); });
+
+        // Quick suggestions
+        document.querySelectorAll('.ai-suggestion').forEach((btn) => {
+            btn.addEventListener('click', () => sendMessage(btn.dataset.q));
+        });
+    })();
+
     async function loadSongs() {
         if (!window.TojiAPI?.SongsAPI) return;
         try {
@@ -1262,6 +1456,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fetch live projects from backend and overlay on static content
         loadProjectsFromAPI();
         loadSongs();
+        loadWip();
         setThemePreset(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'neon');
         setAccent(localStorage.getItem('toji_accent') || profileConfig.accent || 'cyan');
         updateWhatsappLinks();

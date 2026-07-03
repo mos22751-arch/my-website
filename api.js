@@ -165,4 +165,14 @@ const SongsAPI = {
     remove:    (id)    => apiFetch('/songs/' + id, { method: 'DELETE' })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI };
+// ============================================================
+// WIP API — Work in Progress Board
+// ============================================================
+const WipAPI = {
+    getAll:  ()              => apiFetch('/wip'),
+    create:  (data)          => apiFetch('/wip', { method: 'POST',  body: JSON.stringify(data) }),
+    update:  (id, data)      => apiFetch(`/wip/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete:  (id)            => apiFetch(`/wip/${id}`, { method: 'DELETE' })
+};
+
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI };

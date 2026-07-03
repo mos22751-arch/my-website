@@ -107,6 +107,10 @@
                             <i data-lucide="message-circle" aria-hidden="true"></i>
                             <span>WhatsApp</span>
                         </a>
+                        <button class="action-btn action-ai" type="button" id="openAiChat">
+                            <i data-lucide="sparkles" aria-hidden="true"></i>
+                            <span>Ask AI</span>
+                        </button>
                     </div>
                     <div class="signal-row" aria-label="Profile highlights">
                         <div class="signal-item">
@@ -240,7 +244,43 @@
             </div>
         </section>
 
-                <!-- ==================== FAV SONGS ==================== -->
+                <!-- ==================== WORK IN PROGRESS ==================== -->
+        <section class="screen" id="wip" aria-labelledby="wip-title" hidden>
+            <div class="section-shell">
+                <div class="section-heading reveal-up">
+                    <p class="eyebrow">What I'm building</p>
+                    <h2 class="section-title" id="wip-title">Work in Progress.</h2>
+                </div>
+                <div class="wip-board" id="wipBoard">
+                    <div class="wip-col" data-col="next">
+                        <div class="wip-col-header">
+                            <span class="wip-col-dot next"></span>
+                            <span class="wip-col-label">Next Up</span>
+                            <span class="wip-col-count" id="wipCountNext">0</span>
+                        </div>
+                        <div class="wip-cards" id="wipNext"></div>
+                    </div>
+                    <div class="wip-col" data-col="progress">
+                        <div class="wip-col-header">
+                            <span class="wip-col-dot progress"></span>
+                            <span class="wip-col-label">In Progress</span>
+                            <span class="wip-col-count" id="wipCountProgress">0</span>
+                        </div>
+                        <div class="wip-cards" id="wipProgress"></div>
+                    </div>
+                    <div class="wip-col" data-col="done">
+                        <div class="wip-col-header">
+                            <span class="wip-col-dot done"></span>
+                            <span class="wip-col-label">Done</span>
+                            <span class="wip-col-count" id="wipCountDone">0</span>
+                        </div>
+                        <div class="wip-cards" id="wipDone"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== FAV SONGS ==================== -->
         <section class="screen" id="songs" aria-labelledby="songs-title" hidden>
             <div class="section-shell">
                 <div class="section-heading reveal-up">
@@ -481,5 +521,40 @@
 
 
 
+
+
+    <!-- ==================== AI CHAT WIDGET ==================== -->
+    <div class="ai-chat-overlay" id="aiChatOverlay" hidden>
+        <div class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Ask about TOJI">
+            <div class="ai-chat-header">
+                <div class="ai-chat-header-info">
+                    <span class="ai-chat-avatar">✦</span>
+                    <div>
+                        <p class="ai-chat-title">Ask about TOJI</p>
+                        <p class="ai-chat-sub">Powered by Claude AI</p>
+                    </div>
+                </div>
+                <button class="ai-chat-close" id="closeAiChat" aria-label="Close">
+                    <i data-lucide="x" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="ai-chat-messages" id="aiChatMessages">
+                <div class="ai-msg ai">
+                    <p>Hey 👋 I'm an AI assistant that knows everything about TOJI. Ask me about his work, pricing, skills, or anything else!</p>
+                </div>
+            </div>
+            <div class="ai-chat-suggestions" id="aiChatSuggestions">
+                <button class="ai-suggestion" data-q="What kind of pages does TOJI build?">What does he build?</button>
+                <button class="ai-suggestion" data-q="What are the pricing packages?">Pricing?</button>
+                <button class="ai-suggestion" data-q="How can I contact TOJI?">Contact?</button>
+            </div>
+            <div class="ai-chat-input-row">
+                <input class="ai-chat-input" id="aiChatInput" type="text" placeholder="Ask anything..." autocomplete="off" maxlength="200">
+                <button class="ai-chat-send" id="aiChatSend" aria-label="Send">
+                    <i data-lucide="send" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
 </body></html>
