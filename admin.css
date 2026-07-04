@@ -1603,95 +1603,15 @@ code {
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 10px;
-    display: block;
-    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
 }
 
 .bot-opt-row select,
 .bot-opt-row textarea { grid-column: 1 / -1; }
 .bot-opt-remove       { grid-column: 1 / -1; justify-self: end; }
-
-/* ── New inline branch-editing option row ─────────────────── */
-.bot-form-hint {
-    font-size: 0.74rem;
-    color: var(--muted);
-    background: rgba(57,208,255,0.06);
-    border: 1px solid rgba(57,208,255,0.15);
-    border-radius: 8px;
-    padding: 8px 10px;
-    margin: 0 0 4px;
-    line-height: 1.5;
-}
-
-.bot-opt-row-top {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 6px;
-    margin-bottom: 8px;
-}
-.bot-opt-row-top input { margin: 0; }
-.bot-opt-row-top .bot-opt-remove { align-self: center; }
-
-.bot-opt-mode {
-    display: flex;
-    gap: 14px;
-    margin-bottom: 8px;
-    padding: 6px 2px;
-}
-.bot-opt-mode-choice {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    color: var(--fg) !important;
-    cursor: pointer;
-}
-.bot-opt-mode-choice input { width: auto; margin: 0; cursor: pointer; }
-
-.bot-opt-final-fields { display: flex; flex-direction: column; gap: 6px; }
-
-.bot-opt-branch-fields {
-    background: rgba(57,208,255,0.04);
-    border: 1px dashed rgba(57,208,255,0.25);
-    border-radius: 8px;
-    padding: 10px;
-}
-
-.bot-opt-branch-display {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.bot-opt-branch-chip {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 5px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--accent);
-    background: rgba(57,208,255,0.12);
-    border: 1px solid rgba(57,208,255,0.3);
-    border-radius: 20px;
-    padding: 5px 12px;
-}
-.bot-opt-branch-chip-ar { color: var(--muted); font-weight: 500; }
-.bot-opt-branch-chip-missing { color: #f0a84e; background: rgba(240,168,78,0.1); border-color: rgba(240,168,78,0.3); }
-
-.bot-opt-advanced { margin-top: 8px; }
-.bot-opt-advanced summary {
-    font-size: 0.72rem;
-    color: var(--muted);
-    cursor: pointer;
-    user-select: none;
-}
-.bot-opt-advanced summary:hover { color: var(--fg); }
-.bot-opt-advanced select { margin-top: 6px; }
-
-.bot-form-overlay-nested { z-index: 5100; }
-.bot-form-modal-sm { width: min(440px, 100%); }
 
 /* ============================================================
    Bot Question Tree — Visual

@@ -2561,138 +2561,38 @@ Do not resell the customized public version as a separate template unless your s
         `;
     }
 
-    // ── Add / Edit Question (tree-style: branch inline, no ID hunting) ──
-
-    // Builds the "linked to" chip + actions for a branch option, or the
-    // "create branch" button when nothing is linked yet.
-    function botBranchFieldsHTML(nextId) {
-        const nextQ = nextId ? botAllQuestions.find(q => String(q._id) === String(nextId)) : null;
-        if (nextId && nextQ) {
-            return `
-                <div class="bot-opt-branch-display">
-                    <span class="bot-opt-branch-chip">🔗 ${escapeHtml(nextQ.text?.en || '')} <span class="bot-opt-branch-chip-ar">/ ${escapeHtml(nextQ.text?.ar || '')}</span></span>
-                    <button type="button" class="btn-secondary btn-sm bot-opt-edit-branch">✏️ فتح السؤال المتفرع</button>
-                    <button type="button" class="btn-ghost btn-sm bot-opt-unlink-branch">✕ فك الربط</button>
-                </div>`;
-        }
-        if (nextId && !nextQ) {
-            // linked to a question that no longer exists
-            return `
-                <div class="bot-opt-branch-display">
-                    <span class="bot-opt-branch-chip bot-opt-branch-chip-missing">⚠️ السؤال المرتبط محذوف</span>
-                    <button type="button" class="btn-ghost btn-sm bot-opt-unlink-branch">✕ فك الربط</button>
-                </div>`;
-        }
-        return `
-            <div class="bot-opt-branch-display">
-                <button type="button" class="btn-primary btn-sm bot-opt-add-branch">➕ أنشئ سؤال متفرع هنا</button>
-            </div>`;
-    }
-
-    function botOptionRowHTML(opt, otherQs) {
-        const optId    = opt?.id || '';
-        const nextId   = opt?.nextQuestionId ? String(opt.nextQuestionId) : '';
-        const isBranch = !!nextId;
-        const modeName = 'bot-opt-mode-' + (optId || Math.random().toString(36).slice(2));
-        const advancedSelect = `
-            <details class="bot-opt-advanced">
-                <summary>أو اربط بسؤال موجود بالفعل</summary>
-                <select class="bot-opt-next">
-                    <option value="">— اختر سؤال —</option>
-                    ${otherQs.map(q => `<option value="${q._id}" ${nextId===String(q._id)?'selected':''}>${q.isRoot?'🌱 ':'📌 '}${escapeHtml(q.text?.en||'')}</option>`).join('')}
-                </select>
-            </details>`;
-
-        return `
-            <div class="bot-opt-row" data-opt-id="${optId}" data-next-id="${nextId}">
-                <div class="bot-opt-row-top">
-                    <input class="bot-opt-en" placeholder="نص الاختيار EN" value="${opt?.text?.en||''}">
-                    <input class="bot-opt-ar" placeholder="نص الاختيار AR" value="${opt?.text?.ar||''}">
-                    <button type="button" class="btn-danger btn-sm bot-opt-remove" title="حذف الاختيار">✕</button>
-                </div>
-                <div class="bot-opt-mode">
-                    <label class="bot-opt-mode-choice">
-                        <input type="radio" class="bot-opt-mode-final" name="${modeName}" ${!isBranch?'checked':''}> إجابة نهائية
-                    </label>
-                    <label class="bot-opt-mode-choice">
-                        <input type="radio" class="bot-opt-mode-branch" name="${modeName}" ${isBranch?'checked':''}> يتفرع لسؤال تاني
-                    </label>
-                </div>
-                <div class="bot-opt-final-fields" ${isBranch?'hidden':''}>
-                    <textarea class="bot-opt-final-en" placeholder="الإجابة النهائية EN">${opt?.finalResponse?.en||''}</textarea>
-                    <textarea class="bot-opt-final-ar" placeholder="الإجابة النهائية AR">${opt?.finalResponse?.ar||''}</textarea>
-                </div>
-                <div class="bot-opt-branch-fields" ${!isBranch?'hidden':''}>
-                    ${botBranchFieldsHTML(nextId)}
-                    ${advancedSelect}
-                </div>
-            </div>`;
-    }
-
-    function refreshOptRowBranchUI(rowEl, nextId) {
-        rowEl.dataset.nextId = nextId || '';
-        const branchFields = rowEl.querySelector('.bot-opt-branch-fields');
-        const display = branchFields.querySelector('.bot-opt-branch-display');
-        display.outerHTML = botBranchFieldsHTML(nextId);
-        const sel = rowEl.querySelector('.bot-opt-next');
-        if (sel) sel.value = nextId || '';
-    }
-
-    // Small nested modal to spin up a brand-new sub-question in one step
-    function openQuickSubQuestionModal(onCreated) {
-        const nested = document.createElement('div');
-        nested.className = 'bot-form-overlay bot-form-overlay-nested';
-        nested.innerHTML = `
-            <div class="bot-form-modal bot-form-modal-sm">
-                <h3>➕ سؤال متفرع جديد</h3>
-                <p class="bot-form-hint">هيظهر هذا السؤال لما الزائر يختار الاختيار ده. تقدر بعدين تفتحه من الشجرة وتضيفله اختيارات وتفرعات تانية.</p>
-                <label>نص السؤال بالإنجليزي<input id="subQEn"></label>
-                <label>نص السؤال بالعربي<input id="subQAr"></label>
-                <div class="project-form-actions" style="margin-top:14px">
-                    <button class="btn-primary" id="subQSaveBtn">💾 إنشاء وربط</button>
-                    <button class="btn-ghost" id="subQCancelBtn">إلغاء</button>
-                </div>
-                <p id="subQMsg" class="form-msg"></p>
-            </div>`;
-        document.body.appendChild(nested);
-
-        nested.querySelector('#subQCancelBtn').addEventListener('click', () => nested.remove());
-        nested.addEventListener('click', (e) => { if (e.target === nested) nested.remove(); });
-
-        nested.querySelector('#subQSaveBtn').addEventListener('click', async () => {
-            const msgEl = nested.querySelector('#subQMsg');
-            const en = nested.querySelector('#subQEn').value.trim();
-            const ar = nested.querySelector('#subQAr').value.trim();
-            if (!en || !ar) { msgEl.textContent = '⚠️ لازم تكتب النص بالعربي والإنجليزي'; return; }
-            msgEl.textContent = '⏳ جارٍ الإنشاء...';
-            try {
-                const res = await window.TojiAPI.BotAPI.createQuestion({ text: { en, ar }, isRoot: false, order: 0, options: [] });
-                if (res?.data) botAllQuestions.push(res.data);
-                nested.remove();
-                onCreated(res.data);
-            } catch (err) { msgEl.textContent = '❌ ' + err.message; }
-        });
-    }
-
-    function openBotQuestionForm(existing = null, onSaved = null) {
+    // ── Add / Edit Question ────────────────────────────────────
+    function openBotQuestionForm(existing = null) {
         const isEdit  = !!existing;
         const overlay = document.createElement('div');
         overlay.className = 'bot-form-overlay';
 
         const otherQs = botAllQuestions.filter(q => !existing || String(q._id) !== String(existing._id));
-        const existingOpts = (existing?.options || []).map(o => botOptionRowHTML(o, otherQs)).join('');
+        const qOptions = otherQs.map(q => `<option value="${q._id}">${q.text?.en}</option>`).join('');
+
+        const existingOpts = (existing?.options || []).map((o, i) => `
+            <div class="bot-opt-row" data-oi="${i}">
+                <input class="bot-opt-en" placeholder="Option EN" value="${o.text?.en||''}">
+                <input class="bot-opt-ar" placeholder="Option AR" value="${o.text?.ar||''}">
+                <select class="bot-opt-next">
+                    <option value="">— Final Response —</option>
+                    ${otherQs.map(q => `<option value="${q._id}" ${String(o.nextQuestionId)===String(q._id)?'selected':''}>${q.text?.en}</option>`).join('')}
+                </select>
+                <textarea class="bot-opt-final-en" placeholder="Final response EN">${o.finalResponse?.en||''}</textarea>
+                <textarea class="bot-opt-final-ar" placeholder="Final response AR">${o.finalResponse?.ar||''}</textarea>
+                <button class="btn-danger btn-sm bot-opt-remove">✕</button>
+            </div>`).join('');
 
         overlay.innerHTML = `
             <div class="bot-form-modal">
-                <h3>${isEdit ? '✏️ تعديل سؤال' : '➕ سؤال جديد'}</h3>
+                <h3>${isEdit ? 'تعديل سؤال' : 'سؤال جديد'}</h3>
                 <label>النص بالإنجليزي<input id="bqEn" value="${existing?.text?.en||''}"></label>
                 <label>النص بالعربي<input id="bqAr" value="${existing?.text?.ar||''}"></label>
-                <label><input type="checkbox" id="bqRoot" ${existing?.isRoot?'checked':''}> سؤال بداية (Root) — يظهر أول ما الشات يبدأ</label>
+                <label><input type="checkbox" id="bqRoot" ${existing?.isRoot?'checked':''}> Root Question (يظهر أول ما الشات يبدأ)</label>
                 <label>الترتيب<input type="number" id="bqOrder" value="${existing?.order||0}" style="width:80px"></label>
-                <div class="bot-section-label" style="margin:12px 0 4px">الاختيارات (Options)</div>
-                <p class="bot-form-hint">لكل اختيار: اختار إما "إجابة نهائية" أو "يتفرع لسؤال تاني" وأنشئ السؤال الفرعي من هنا مباشرة.</p>
+                <div class="bot-section-label" style="margin:12px 0 8px">الخيارات (Answers)</div>
                 <div id="botOptList">${existingOpts}</div>
-                <button class="btn-secondary btn-sm" id="botAddOptBtn">+ إضافة اختيار</button>
+                <button class="btn-secondary btn-sm" id="botAddOptBtn">+ إضافة خيار</button>
                 <div class="project-form-actions" style="margin-top:16px">
                     <button class="btn-primary" id="botSaveQBtn">💾 حفظ</button>
                     <button class="btn-ghost"   id="botCancelQBtn">إلغاء</button>
@@ -2703,66 +2603,28 @@ Do not resell the customized public version as a separate template unless your s
         document.body.appendChild(overlay);
         if (window.lucide) window.lucide.createIcons();
 
-        const optList = overlay.querySelector('#botOptList');
-
         overlay.querySelector('#botCancelQBtn').addEventListener('click', () => overlay.remove());
         overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 
-        // Add a blank option row
+        // Add option row
         overlay.querySelector('#botAddOptBtn').addEventListener('click', () => {
-            const wrap = document.createElement('div');
-            wrap.innerHTML = botOptionRowHTML(null, otherQs);
-            optList.appendChild(wrap.firstElementChild);
+            const row = document.createElement('div');
+            row.className = 'bot-opt-row';
+            row.innerHTML = `
+                <input class="bot-opt-en" placeholder="Option EN">
+                <input class="bot-opt-ar" placeholder="Option AR">
+                <select class="bot-opt-next">
+                    <option value="">— Final Response —</option>
+                    ${qOptions}
+                </select>
+                <textarea class="bot-opt-final-en" placeholder="Final response EN"></textarea>
+                <textarea class="bot-opt-final-ar" placeholder="Final response AR"></textarea>
+                <button class="btn-danger btn-sm bot-opt-remove">✕</button>`;
+            overlay.querySelector('#botOptList').appendChild(row);
         });
 
-        // Delegated events for all option rows (existing + newly added)
-        optList.addEventListener('click', (e) => {
-            const row = e.target.closest('.bot-opt-row');
-            if (!row) return;
-
-            if (e.target.classList.contains('bot-opt-remove')) { row.remove(); return; }
-
-            if (e.target.classList.contains('bot-opt-add-branch')) {
-                openQuickSubQuestionModal((newQ) => {
-                    if (!newQ) return;
-                    refreshOptRowBranchUI(row, newQ._id);
-                });
-                return;
-            }
-
-            if (e.target.classList.contains('bot-opt-edit-branch')) {
-                const childId = row.dataset.nextId;
-                const child = botAllQuestions.find(q => String(q._id) === childId);
-                if (child) {
-                    openBotQuestionForm(child, (updatedQ) => {
-                        if (updatedQ) refreshOptRowBranchUI(row, updatedQ._id);
-                    });
-                }
-                return;
-            }
-
-            if (e.target.classList.contains('bot-opt-unlink-branch')) {
-                refreshOptRowBranchUI(row, '');
-                return;
-            }
-        });
-
-        optList.addEventListener('change', (e) => {
-            const row = e.target.closest('.bot-opt-row');
-            if (!row) return;
-
-            if (e.target.classList.contains('bot-opt-mode-final')) {
-                row.querySelector('.bot-opt-final-fields').hidden = false;
-                row.querySelector('.bot-opt-branch-fields').hidden = true;
-            }
-            if (e.target.classList.contains('bot-opt-mode-branch')) {
-                row.querySelector('.bot-opt-final-fields').hidden = true;
-                row.querySelector('.bot-opt-branch-fields').hidden = false;
-            }
-            if (e.target.classList.contains('bot-opt-next')) {
-                refreshOptRowBranchUI(row, e.target.value);
-                if (e.target.value) row.querySelector('.bot-opt-mode-branch').checked = true;
-            }
+        overlay.querySelector('#botOptList').addEventListener('click', (e) => {
+            if (e.target.classList.contains('bot-opt-remove')) e.target.closest('.bot-opt-row').remove();
         });
 
         // Save
@@ -2772,18 +2634,12 @@ Do not resell the customized public version as a separate template unless your s
             const ar    = overlay.querySelector('#bqAr').value.trim();
             if (!en || !ar) { msgEl.textContent = '⚠️ لازم تكتب النص بالعربي والإنجليزي'; return; }
 
-            const opts = [...optList.querySelectorAll('.bot-opt-row')].map((row) => {
-                const isBranch = row.querySelector('.bot-opt-mode-branch').checked;
-                return {
-                    id:             row.dataset.optId || crypto.randomUUID().slice(0,8),
-                    text:           { en: row.querySelector('.bot-opt-en').value.trim(), ar: row.querySelector('.bot-opt-ar').value.trim() },
-                    nextQuestionId: isBranch ? (row.dataset.nextId || null) : null,
-                    finalResponse:  isBranch ? { en:'', ar:'' } : {
-                        en: row.querySelector('.bot-opt-final-en').value.trim(),
-                        ar: row.querySelector('.bot-opt-final-ar').value.trim()
-                    }
-                };
-            });
+            const opts = [...overlay.querySelectorAll('.bot-opt-row')].map((row, i) => ({
+                id:            (existing?.options?.[i]?.id) || crypto.randomUUID().slice(0,8),
+                text:          { en: row.querySelector('.bot-opt-en').value.trim(), ar: row.querySelector('.bot-opt-ar').value.trim() },
+                nextQuestionId:row.querySelector('.bot-opt-next').value || null,
+                finalResponse: { en: row.querySelector('.bot-opt-final-en').value.trim(), ar: row.querySelector('.bot-opt-final-ar').value.trim() }
+            }));
 
             const data = {
                 text:    { en, ar },
@@ -2794,13 +2650,11 @@ Do not resell the customized public version as a separate template unless your s
 
             msgEl.textContent = '⏳ جارٍ الحفظ...';
             try {
-                const res = isEdit
-                    ? await window.TojiAPI.BotAPI.updateQuestion(existing._id, data)
-                    : await window.TojiAPI.BotAPI.createQuestion(data);
+                if (isEdit) await window.TojiAPI.BotAPI.updateQuestion(existing._id, data);
+                else        await window.TojiAPI.BotAPI.createQuestion(data);
                 overlay.remove();
                 await loadBotQuestions();
                 showBanner('✅ تم حفظ السؤال.', 'success');
-                if (onSaved) onSaved(res?.data || { ...data, _id: existing?._id });
             } catch (err) {
                 msgEl.textContent = '❌ ' + err.message;
             }
@@ -2819,13 +2673,7 @@ Do not resell the customized public version as a separate template unless your s
         }
 
         if (deleteId) {
-            const usedElsewhere = botAllQuestions.some(q =>
-                String(q._id) !== deleteId && (q.options||[]).some(o => String(o.nextQuestionId) === deleteId)
-            );
-            const warning = usedElsewhere
-                ? 'تنبيه: في اختيارات في أسئلة تانية بتتفرع للسؤال ده، وهتفضل الروابط دي فاضية بعد الحذف. متابعة؟'
-                : 'حذف هذا السؤال؟';
-            if (!confirm(warning)) return;
+            if (!confirm('حذف هذا السؤال؟')) return;
             try {
                 await window.TojiAPI.BotAPI.deleteQuestion(deleteId);
                 await loadBotQuestions();
