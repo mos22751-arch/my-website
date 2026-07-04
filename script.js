@@ -782,10 +782,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function scroll() { msgEl.scrollTop = msgEl.scrollHeight; }
 
+        const aiAvatarHTML = '<span class="ai-msg-avatar"><img src="assets/profile.webp" alt="" onerror="this.style.display=\'none\'"></span>';
+
         function addMsg(html, role) {
             const d = document.createElement('div');
             d.className = 'ai-msg ' + role;
-            d.innerHTML = '<p>' + String(html).split('\n').join('<br>') + '</p>';
+            d.innerHTML = (role === 'ai' ? aiAvatarHTML : '') +
+                '<p>' + String(html).split('\n').join('<br>') + '</p>';
             msgEl.appendChild(d);
             scroll();
             return d;
@@ -796,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return new Promise(resolve => {
                 const typing = document.createElement('div');
                 typing.className = 'ai-msg ai typing';
-                typing.innerHTML = '<p><span></span><span></span><span></span></p>';
+                typing.innerHTML = aiAvatarHTML + '<p><span></span><span></span><span></span></p>';
                 msgEl.appendChild(typing);
                 scroll();
                 setTimeout(() => {
