@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link rel="stylesheet" href="style.css?v=18">
-    <link rel="stylesheet" href="enhancements.css?v=1">
+    <link rel="stylesheet" href="enhancements.css?v=2">
     <script src="content.js?v=18"></script>
     <script id="profileSchema" type="application/ld+json">
     {
@@ -510,7 +510,7 @@
     <script src="config.js?v=18"></script>
     <script src="status.js?v=18"></script>
     <script src="api.js?v=19"></script>
-        <script src="script.js?v=18"></script>
+        <script src="script.js?v=19"></script>
     <script src="enhancements.js?v=1"></script>
 
 
@@ -528,10 +528,13 @@
         <div class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Chat with TOJI's bot">
             <div class="ai-chat-header">
                 <div class="ai-chat-header-info">
-                    <span class="ai-chat-avatar">✦</span>
+                    <span class="ai-chat-avatar-wrap">
+                        <img class="ai-chat-avatar" src="assets/profile.webp" alt="TOJI" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ai-chat-avatar ai-chat-avatar-fallback',textContent:'T'}))">
+                        <span class="ai-chat-avatar-dot" aria-hidden="true"></span>
+                    </span>
                     <div>
                         <p class="ai-chat-title" id="botHeaderTitle">TOJI Assistant</p>
-                        <p class="ai-chat-sub" id="botHeaderSub">Let me help you</p>
+                        <p class="ai-chat-sub" id="botHeaderSub"><span class="ai-chat-online-dot" aria-hidden="true"></span>Let me help you</p>
                     </div>
                 </div>
                 <button class="ai-chat-close" id="closeAiChat" aria-label="Close">
