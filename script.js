@@ -762,6 +762,8 @@ document.addEventListener('DOMContentLoaded', () => {
     (function initSmartBot() {
         const overlay  = document.getElementById('aiChatOverlay');
         const openBtn  = document.getElementById('openAiChat');
+        const dockBot  = document.getElementById('dockBotBtn');
+        if (dockBot) dockBot.addEventListener('click', () => openBtn && openBtn.click());
         const closeBtn = document.getElementById('closeAiChat');
         const msgEl    = document.getElementById('aiChatMessages');
         const choices  = document.getElementById('botChoices');

@@ -2492,74 +2492,84 @@ Do not resell the customized public version as a separate template unless your s
             return;
         }
 
-        const getQ = id => botAllQuestions.find(q => String(q._id) === String(id));
-        const roots = botAllQuestions.filter(q => q.isRoot).sort((a,b) => a.order - b.order);
+        const getQ    = id => botAllQuestions.find(q => String(q._id) === String(id));
+        const roots   = botAllQuestions.filter(q => q.isRoot).sort((a,b) => a.order - b.order);
+        const visited = new Set(); // prevent infinite loops
 
-        function renderTree(q, depth) {
-            const indent = depth * 24;
-            const hasChildren = (q.options || []).some(o => o.nextQuestionId);
-
-            let html = `<div class="bot-tree-node" style="padding-right:${indent}px" data-depth="${depth}">
-                <div class="bot-tree-line-wrap">
-                    ${depth > 0 ? '<span class="bot-tree-line"></span>' : ''}
-                    <div class="bot-q-card">
-                        <div class="bot-q-header">
-                            <span class="bot-q-tag">${q.isRoot ? '🌱 Root' : '📌'}</span>
-                            <div class="bot-q-texts">
-                                <strong>${q.text?.en || ''}</strong>
-                                <span>${q.text?.ar || ''}</span>
-                            </div>
-                            <div class="project-card-actions">
-                                <button class="btn-secondary btn-sm" data-bot-edit="${q._id}">✏️</button>
-                                <button class="btn-danger btn-sm" data-bot-delete="${q._id}">🗑</button>
-                            </div>
-                        </div>
-                        <div class="bot-opts-tree">
-                            ${(q.options||[]).map(o => {
-                                const nextQ = o.nextQuestionId ? getQ(o.nextQuestionId) : null;
-                                const finalText = o.finalResponse?.en || o.finalResponse?.ar || '';
-                                return `<div class="bot-opt-branch">
-                                    <span class="bot-opt-bullet">┣</span>
-                                    <span class="bot-opt-label">${o.text?.en || ''}</span>
-                                    <span class="bot-opt-sep">/</span>
-                                    <span class="bot-opt-label-ar">${o.text?.ar || ''}</span>
-                                    ${nextQ
-                                        ? '<span class="bot-opt-arrow">→ <em>' + (nextQ.text?.en||'') + '</em></span>'
-                                        : (finalText ? '<span class="bot-opt-final">✓ ' + finalText.slice(0,45) + '…</span>' : '')
-                                    }
-                                </div>`;
-                            }).join('')}
-                        </div>
+        // ── render one node (question box) ───────────────────────
+        function nodeHTML(q) {
+            return `
+            <div class="tq-node" data-id="${q._id}">
+                <div class="tq-box ${q.isRoot ? 'tq-box-root' : 'tq-box-child'}">
+                    <div class="tq-box-label">${q.isRoot ? '🌱 Root' : '📌'}</div>
+                    <div class="tq-box-en">${escapeHtml(q.text?.en || '')}</div>
+                    <div class="tq-box-ar">${escapeHtml(q.text?.ar || '')}</div>
+                    <div class="tq-box-actions">
+                        <button class="btn-secondary btn-sm" data-bot-edit="${q._id}">✏️</button>
+                        <button class="btn-danger btn-sm"   data-bot-delete="${q._id}">🗑</button>
                     </div>
                 </div>
             </div>`;
+        }
 
-            // render children recursively
-            (q.options||[]).forEach(o => {
-                if (o.nextQuestionId) {
-                    const child = getQ(o.nextQuestionId);
-                    if (child) {
-                        html += `<div class="bot-tree-connector" style="padding-right:${indent + 12}px">
-                            <span class="bot-connector-line"></span>
-                            <span class="bot-connector-label">${o.text?.en || ''}</span>
-                        </div>`;
-                        html += renderTree(child, depth + 1);
-                    }
+        // ── render children level ─────────────────────────────────
+        function childrenHTML(q) {
+            if (visited.has(String(q._id))) return '';
+            visited.add(String(q._id));
+
+            const opts = (q.options || []);
+            if (!opts.length) return '';
+
+            // Build each option branch
+            const branches = opts.map(o => {
+                const nextQ     = o.nextQuestionId ? getQ(o.nextQuestionId) : null;
+                const finalText = o.finalResponse?.en || o.finalResponse?.ar || '';
+
+                // The leaf content: either a sub-question tree or a final answer box
+                let leafHTML = '';
+                if (nextQ) {
+                    leafHTML = treeHTML(nextQ);
+                } else if (finalText) {
+                    leafHTML = `<div class="tq-leaf">
+                        <div class="tq-leaf-icon">✓</div>
+                        <p class="tq-leaf-text">${escapeHtml(finalText.slice(0, 60))}${finalText.length > 60 ? '…' : ''}</p>
+                    </div>`;
+                } else {
+                    leafHTML = `<div class="tq-leaf tq-leaf-empty"><span>—</span></div>`;
                 }
-            });
 
-            return html;
+                return `<div class="tq-branch">
+                    <div class="tq-branch-label">${escapeHtml(o.text?.en || '')} / ${escapeHtml(o.text?.ar || '')}</div>
+                    <div class="tq-branch-connector"></div>
+                    ${leafHTML}
+                </div>`;
+            }).join('');
+
+            return `<div class="tq-children">
+                <div class="tq-children-line"></div>
+                <div class="tq-children-row">${branches}</div>
+            </div>`;
+        }
+
+        // ── full sub-tree for one question ────────────────────────
+        function treeHTML(q) {
+            return `<div class="tq-subtree">
+                ${nodeHTML(q)}
+                ${childrenHTML(q)}
+            </div>`;
         }
 
         listEl.innerHTML = `
-            <div class="bot-tree-legend">
+            <div class="tq-legend">
                 <span>🌱 Root = سؤال ابتدائي</span>
                 <span>📌 = سؤال فرعي</span>
-                <span>✓ = إجابة نهائية</span>
+                <span class="tq-legend-final">✓ = إجابة نهائية</span>
             </div>
-            ${roots.map(q => renderTree(q, 0)).join('')}
-        `;
+            <div class="tq-forest">
+                ${roots.map(q => treeHTML(q)).join('')}
+            </div>`;
     }
+
 
     // ── Add / Edit Question (tree-style: branch inline, no ID hunting) ──
 
