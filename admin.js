@@ -2492,49 +2492,73 @@ Do not resell the customized public version as a separate template unless your s
             return;
         }
 
+        const getQ = id => botAllQuestions.find(q => String(q._id) === String(id));
         const roots = botAllQuestions.filter(q => q.isRoot).sort((a,b) => a.order - b.order);
-        const others = botAllQuestions.filter(q => !q.isRoot);
 
-        function getQ(id) { return botAllQuestions.find(q => String(q._id) === String(id)); }
+        function renderTree(q, depth) {
+            const indent = depth * 24;
+            const hasChildren = (q.options || []).some(o => o.nextQuestionId);
 
-        function renderOptions(opts, depth = 0) {
-            return opts.map(o => {
-                const next = o.nextQuestionId ? getQ(o.nextQuestionId) : null;
-                const final = (o.finalResponse?.en || o.finalResponse?.ar) ? `<span class="bot-final-tag">✓ ${(o.finalResponse.en || o.finalResponse.ar).slice(0,50)}...</span>` : '';
-                return `<div class="bot-option" style="margin-right:${depth * 16}px">
-                    <span class="bot-option-text">${o.text?.en || ''} / ${o.text?.ar || ''}</span>
-                    ${next ? `<span class="bot-arrow">→ <em>${next.text?.en || ''}</em></span>` : final}
-                </div>`;
-            }).join('');
-        }
-
-        function renderQuestion(q, depth = 0) {
-            return `<div class="bot-q-card" data-id="${q._id}" style="margin-right:${depth*16}px">
-                <div class="bot-q-header">
-                    <span class="bot-q-tag">${q.isRoot ? '🌱 Root' : '📌'}</span>
-                    <div class="bot-q-texts">
-                        <strong>${q.text?.en || ''}</strong>
-                        <span>${q.text?.ar || ''}</span>
+            let html = `<div class="bot-tree-node" style="padding-right:${indent}px" data-depth="${depth}">
+                <div class="bot-tree-line-wrap">
+                    ${depth > 0 ? '<span class="bot-tree-line"></span>' : ''}
+                    <div class="bot-q-card">
+                        <div class="bot-q-header">
+                            <span class="bot-q-tag">${q.isRoot ? '🌱 Root' : '📌'}</span>
+                            <div class="bot-q-texts">
+                                <strong>${q.text?.en || ''}</strong>
+                                <span>${q.text?.ar || ''}</span>
+                            </div>
+                            <div class="project-card-actions">
+                                <button class="btn-secondary btn-sm" data-bot-edit="${q._id}">✏️</button>
+                                <button class="btn-danger btn-sm" data-bot-delete="${q._id}">🗑</button>
+                            </div>
+                        </div>
+                        <div class="bot-opts-tree">
+                            ${(q.options||[]).map(o => {
+                                const nextQ = o.nextQuestionId ? getQ(o.nextQuestionId) : null;
+                                const finalText = o.finalResponse?.en || o.finalResponse?.ar || '';
+                                return `<div class="bot-opt-branch">
+                                    <span class="bot-opt-bullet">┣</span>
+                                    <span class="bot-opt-label">${o.text?.en || ''}</span>
+                                    <span class="bot-opt-sep">/</span>
+                                    <span class="bot-opt-label-ar">${o.text?.ar || ''}</span>
+                                    ${nextQ
+                                        ? '<span class="bot-opt-arrow">→ <em>' + (nextQ.text?.en||'') + '</em></span>'
+                                        : (finalText ? '<span class="bot-opt-final">✓ ' + finalText.slice(0,45) + '…</span>' : '')
+                                    }
+                                </div>`;
+                            }).join('')}
+                        </div>
                     </div>
-                    <div class="project-card-actions">
-                        <button class="btn-secondary btn-sm" data-bot-edit="${q._id}">✏️ تعديل</button>
-                        <button class="btn-danger btn-sm"   data-bot-delete="${q._id}">🗑</button>
-                    </div>
-                </div>
-                <div class="bot-options-list">
-                    ${renderOptions(q.options || [], depth)}
                 </div>
             </div>`;
+
+            // render children recursively
+            (q.options||[]).forEach(o => {
+                if (o.nextQuestionId) {
+                    const child = getQ(o.nextQuestionId);
+                    if (child) {
+                        html += `<div class="bot-tree-connector" style="padding-right:${indent + 12}px">
+                            <span class="bot-connector-line"></span>
+                            <span class="bot-connector-label">${o.text?.en || ''}</span>
+                        </div>`;
+                        html += renderTree(child, depth + 1);
+                    }
+                }
+            });
+
+            return html;
         }
 
-        // عرض الجذور أولاً ثم الباقي
-        const html = `
-            <div class="bot-section-label">🌱 الأسئلة الجذرية</div>
-            ${roots.map(q => renderQuestion(q)).join('')}
-            ${others.length ? `<div class="bot-section-label" style="margin-top:16px">📌 الأسئلة الفرعية</div>
-            ${others.map(q => renderQuestion(q)).join('')}` : ''}
+        listEl.innerHTML = `
+            <div class="bot-tree-legend">
+                <span>🌱 Root = سؤال ابتدائي</span>
+                <span>📌 = سؤال فرعي</span>
+                <span>✓ = إجابة نهائية</span>
+            </div>
+            ${roots.map(q => renderTree(q, 0)).join('')}
         `;
-        listEl.innerHTML = html;
     }
 
     // ── Add / Edit Question ────────────────────────────────────

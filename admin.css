@@ -1612,3 +1612,83 @@ code {
 .bot-opt-row select,
 .bot-opt-row textarea { grid-column: 1 / -1; }
 .bot-opt-remove       { grid-column: 1 / -1; justify-self: end; }
+
+/* ============================================================
+   Bot Question Tree — Visual
+   ============================================================ */
+.bot-tree-legend {
+    display: flex;
+    gap: 16px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.bot-tree-node { position: relative; }
+
+.bot-tree-line-wrap { display: flex; align-items: flex-start; gap: 0; }
+
+.bot-tree-line {
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), rgba(57,208,255,0.2));
+    border-radius: 2px;
+    min-height: 100%;
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+.bot-tree-connector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    margin: 4px 0;
+}
+
+.bot-connector-line {
+    width: 20px;
+    height: 2px;
+    background: rgba(57,208,255,0.35);
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.bot-connector-label {
+    font-size: 0.68rem;
+    color: var(--accent);
+    font-weight: 700;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+
+.bot-opts-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    border-top: 1px dashed rgba(255,255,255,0.06);
+    padding-top: 8px;
+}
+
+.bot-opt-branch {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 0.76rem;
+    flex-wrap: wrap;
+}
+
+.bot-opt-bullet { color: rgba(255,255,255,0.2); flex-shrink: 0; }
+.bot-opt-label  { color: var(--fg); font-weight: 600; }
+.bot-opt-sep    { color: rgba(255,255,255,0.2); }
+.bot-opt-label-ar { color: var(--muted); }
+.bot-opt-arrow  { font-size: 0.7rem; color: var(--accent); }
+.bot-opt-arrow em { font-style:normal; font-weight:700; }
+.bot-opt-final  { font-size: 0.7rem; color: #4ade80; }

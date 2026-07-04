@@ -770,245 +770,241 @@ document.addEventListener('DOMContentLoaded', () => {
         const sendBtn  = document.getElementById('botInputSend');
         if (!overlay || !openBtn) return;
 
-        // ── State ──────────────────────────────────────────────
-        let allQuestions = [];   // كل أسئلة الشجرة من الـ backend
+        let allQuestions = [];
         let lang         = 'en';
-        let state        = 'lang';   // lang → name → phone → chat
-        let lead         = { name: '', phone: '', language: 'en', conversation: [] };
+        let state        = 'lang';
+        let lead         = { name:'', phone:'', language:'en', conversation:[] };
         let leadId       = null;
+        let historyStack = [];   // stack of { question, options } for Back button
 
-        // ── Helpers ─────────────────────────────────────────────
-        function t(obj) { return (typeof obj === 'object' ? (obj[lang] || obj.en || '') : obj) || ''; }
+        // ── helpers ────────────────────────────────────────────
+        const t = (obj) => (typeof obj === 'object' ? (obj[lang] || obj.en || '') : obj) || '';
 
-        function addMsg(text, role) {
-            const div = document.createElement('div');
-            div.className = `ai-msg ${role}`;
-            div.innerHTML = `<p>${String(text).replace(/\n/g, '<br>')}</p>`;
-            msgEl.appendChild(div);
-            msgEl.scrollTop = msgEl.scrollHeight;
+        function scroll() { msgEl.scrollTop = msgEl.scrollHeight; }
+
+        function addMsg(html, role) {
+            const d = document.createElement('div');
+            d.className = 'ai-msg ' + role;
+            d.innerHTML = '<p>' + String(html).split('\n').join('<br>') + '</p>';
+            msgEl.appendChild(d);
+            scroll();
+            return d;
         }
 
-        function setChoices(opts) {
-            choices.innerHTML = opts.map(o =>
-                `<button class="bot-choice-btn" data-id="${o.id}">${o.label}</button>`
-            ).join('');
+        // typing indicator → resolves after delay then shows message
+        function typeThen(text, delay = 2800) {
+            return new Promise(resolve => {
+                const typing = document.createElement('div');
+                typing.className = 'ai-msg ai typing';
+                typing.innerHTML = '<p><span></span><span></span><span></span></p>';
+                msgEl.appendChild(typing);
+                scroll();
+                setTimeout(() => {
+                    typing.remove();
+                    addMsg(text, 'ai');
+                    resolve();
+                }, delay);
+            });
         }
 
         function clearChoices() { choices.innerHTML = ''; }
 
-        function showInput(placeholder, type = 'text') {
-            inputEl.type        = type;
+        function setChoices(opts, showNav = false) {
+            const navBtns = showNav ? [
+                { id:'__back', label: lang==='ar' ? '⬅ رجوع' : '⬅ Back', cls:'bot-nav-btn' },
+                { id:'__home', label: lang==='ar' ? '🏠 الرئيسية' : '🏠 Home', cls:'bot-nav-btn' }
+            ] : [];
+
+            choices.innerHTML =
+                opts.map(o =>
+                    '<button class="bot-choice-btn" data-id="' + o.id + '">' + o.label + '</button>'
+                ).join('') +
+                (navBtns.length ? '<div class="bot-nav-row">' +
+                    navBtns.map(b =>
+                        '<button class="' + b.cls + '" data-id="' + b.id + '">' + b.label + '</button>'
+                    ).join('') + '</div>' : '');
+        }
+
+        function showInput(placeholder, type) {
+            inputEl.type        = type || 'text';
             inputEl.placeholder = placeholder;
             inputEl.value       = '';
             inputRow.hidden     = false;
             inputEl.focus();
         }
-
         function hideInput() { inputRow.hidden = true; inputEl.value = ''; }
 
-        // ── Fetch questions ──────────────────────────────────────
+        // ── data ───────────────────────────────────────────────
         async function loadQuestions() {
             try {
                 const res = await window.TojiAPI.BotAPI.getQuestions();
                 allQuestions = res?.data || [];
             } catch { allQuestions = []; }
         }
+        const getQ = id => allQuestions.find(q => String(q._id) === String(id)) || null;
+        const rootQuestions = () => allQuestions.filter(q => q.isRoot).sort((a,b)=>a.order-b.order);
 
-        function getQuestion(id) {
-            return allQuestions.find(q => String(q._id) === String(id)) || null;
-        }
-
-        function rootQuestions() {
-            return allQuestions.filter(q => q.isRoot).sort((a,b) => a.order - b.order);
-        }
-
-        // ── Save lead ──────────────────────────────────────────
         async function saveLead() {
-            try {
-                const res = await window.TojiAPI.BotAPI.saveLead(lead);
-                leadId = res?.id || null;
-            } catch {}
+            try { const r = await window.TojiAPI.BotAPI.saveLead(lead); leadId = r?.id||null; } catch {}
+        }
+        async function updateLead(q,a) {
+            lead.conversation.push({question:q, answer:a, at:new Date()});
+            if (leadId) try { await window.TojiAPI.BotAPI.updateLead(leadId,[{question:q,answer:a}]); } catch {}
         }
 
-        async function updateLead(q, a) {
-            lead.conversation.push({ question: q, answer: a, at: new Date() });
-            if (leadId) {
-                try { await window.TojiAPI.BotAPI.updateLead(leadId, [{ question: q, answer: a }]); } catch {}
-            }
-        }
-
-        // ── Flow ────────────────────────────────────────────────
+        // ── flow steps ─────────────────────────────────────────
         function startLangStep() {
             state = 'lang';
+            historyStack = [];
             addMsg('👋 Welcome! Choose your language | أهلاً! اختار لغتك.', 'ai');
-            setChoices([
-                { id: 'en', label: '🇬🇧 English' },
-                { id: 'ar', label: '🇦🇪 العربية' }
-            ]);
+            setChoices([{id:'en',label:'🇬🇧 English'},{id:'ar',label:'🇦🇪 العربية'}]);
             hideInput();
         }
 
-        function startNameStep() {
+        async function startNameStep() {
             state = 'name';
             clearChoices();
-            addMsg(lang === "ar" ? "تمام 😊 اسمك إيه؟" : "Great 😊 What's your name?", "ai");
-            showInput(lang === 'ar' ? 'اكتب اسمك...' : 'Your name...');
+            await typeThen(lang==='ar' ? 'تمام 😊 اسمك إيه؟' : "Great 😊 What's your name?", 1500);
+            showInput(lang==='ar'?'اكتب اسمك...':'Your name...');
         }
 
-        function startPhoneStep() {
+        async function startPhoneStep() {
             state = 'phone';
-            addMsg(lang === 'ar' ? 'ورقم موبايلك؟ (هنتواصل معاك عليه)' : 'And your phone number? (for follow-up)', 'ai');
-            showInput(lang === 'ar' ? 'رقم الموبايل...' : 'Phone number...', 'tel');
+            hideInput();
+            await typeThen(lang==='ar'?'ورقم موبايلك؟ (هنتواصل معاك عليه)':'And your phone number? (for follow-up)', 1800);
+            showInput(lang==='ar'?'رقم الموبايل...':'Phone number...','tel');
         }
 
-        function startChatStep() {
+        async function startChatStep() {
             state = 'chat';
             hideInput();
             saveLead();
             const roots = rootQuestions();
-            if (!roots.length) {
-                addMsg(lang === 'ar' ? 'عذراً، لا توجد أسئلة بعد.' : 'No questions available yet.', 'ai');
-                return;
-            }
-            // عرض الأسئلة الجذرية
-            showQuestion(roots[0]);
+            if (!roots.length) { addMsg(lang==='ar'?'عذراً، لا توجد أسئلة بعد.':'No questions yet.','ai'); return; }
+            const greeting = lang==='ar'
+                ? 'شكراً ' + lead.name + '! 🎉 إزاي أقدر أساعدك؟'
+                : 'Thanks ' + lead.name + '! 🎉 How can I help?';
+            await typeThen(greeting, 2000);
+            await showQuestion(roots[0], false);  // root → no nav buttons
         }
 
-        function showQuestion(q) {
-            addMsg(t(q.text), 'ai');
-            setChoices(q.options.map(o => ({ id: o.id, label: t(o.text) })));
+        async function showQuestion(q, showNav) {
+            await typeThen(t(q.text), 2500);
+            historyStack.push(q);
+            setChoices(q.options.map(o=>({id:o.id,label:t(o.text)})), showNav);
         }
 
-        function handleOptionPick(optionId, question) {
-            const opt = question.options.find(o => o.id === optionId);
+        async function handleOptionPick(optionId, question) {
+            const opt = question.options.find(o=>o.id===optionId);
             if (!opt) return;
 
-            const answerText = t(opt.text);
-            addMsg(answerText, 'user');
-            updateLead(t(question.text), answerText);
-
+            addMsg(t(opt.text), 'user');
+            updateLead(t(question.text), t(opt.text));
             clearChoices();
 
-            // لو في سؤال تالي
             if (opt.nextQuestionId) {
-                const next = getQuestion(opt.nextQuestionId);
-                if (next) {
-                    setTimeout(() => showQuestion(next), 400);
-                    return;
-                }
+                const next = getQ(opt.nextQuestionId);
+                if (next) { await showQuestion(next, true); return; }
             }
 
-            // لو في إجابة نهائية
             const finalText = t(opt.finalResponse);
             if (finalText) {
-                setTimeout(() => {
-                    addMsg(finalText, 'ai');
-                    setTimeout(() => showRestartBtn(), 600);
-                }, 400);
+                await typeThen(finalText, 2800);
+                setChoices([
+                    {id:'__restart', label: lang==='ar'?'🔄 سؤال تاني':'🔄 Ask something else'},
+                    {id:'__wa',      label: lang==='ar'?'💬 واتساب':'💬 WhatsApp'}
+                ], true);
                 return;
             }
 
-            // fallback
-            setTimeout(() => showRestartBtn(), 400);
+            setChoices([{id:'__restart',label:lang==='ar'?'🔄 رجوع للبداية':'🔄 Start over'}], false);
         }
 
-        function showRestartBtn() {
-            const restart = lang === 'ar' ? '🔄 سؤال تاني' : '🔄 Ask something else';
-            const wa      = lang === 'ar' ? '💬 تواصل على واتساب' : '💬 Contact on WhatsApp';
-            setChoices([
-                { id: '__restart', label: restart },
-                { id: '__wa',      label: wa }
-            ]);
-        }
-
-        // ── Choice click handler ──────────────────────────────
-        choices.addEventListener('click', (e) => {
-            const btn = e.target.closest('.bot-choice-btn');
+        // ── choice click ───────────────────────────────────────
+        choices.addEventListener('click', async (e) => {
+            const btn = e.target.closest('[data-id]');
             if (!btn) return;
             const id = btn.dataset.id;
 
             if (state === 'lang') {
-                lang = id;
-                lead.language = lang;
-                addMsg(id === 'ar' ? '🇦🇪 العربية' : '🇬🇧 English', 'user');
-                setTimeout(() => startNameStep(), 300);
+                lang = id; lead.language = lang;
+                addMsg(id==='ar'?'🇦🇪 العربية':'🇬🇧 English','user');
+                await startNameStep(); return;
+            }
+
+            if (id === '__home') {
+                historyStack = [];
+                clearChoices();
+                const roots = rootQuestions();
+                if (roots.length) await showQuestion(roots[0], false);
+                return;
+            }
+
+            if (id === '__back') {
+                historyStack.pop(); // current
+                const prev = historyStack.pop(); // previous
+                if (prev) { await showQuestion(prev, historyStack.length > 1); }
+                else {
+                    const roots = rootQuestions();
+                    if (roots.length) await showQuestion(roots[0], false);
+                }
                 return;
             }
 
             if (id === '__restart') {
+                historyStack = [];
                 clearChoices();
                 const roots = rootQuestions();
-                if (roots.length) setTimeout(() => showQuestion(roots[0]), 300);
+                if (roots.length) await showQuestion(roots[0], false);
                 return;
             }
 
             if (id === '__wa') {
                 const phone = window.TOJI_CONTENT?.profile?.phone || '201102550730';
-                const msg   = lang === 'ar' ? 'السلام عليكم، جيت من موقع TOJI 👋' : 'Hi, I came from your portfolio site 👋';
-                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                const msg = lang==='ar'?'السلام عليكم، جيت من موقع TOJI 👋':'Hi, I came from your portfolio 👋';
+                window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
                 return;
             }
 
             if (state === 'chat') {
-                const currentQuestion = allQuestions.find(q =>
-                    q.options.some(o => o.id === id)
-                );
-                if (currentQuestion) handleOptionPick(id, currentQuestion);
+                const q = allQuestions.find(q => q.options.some(o=>o.id===id));
+                if (q) await handleOptionPick(id, q);
             }
         });
 
-        // ── Input submit ────────────────────────────────────────
-        function submitInput() {
+        // ── input ──────────────────────────────────────────────
+        async function submitInput() {
             const val = inputEl.value.trim();
             if (!val) return;
-
             if (state === 'name') {
-                lead.name = val;
-                addMsg(val, 'user');
-                hideInput();
-                setTimeout(() => startPhoneStep(), 300);
-                return;
+                lead.name = val; addMsg(val,'user'); hideInput();
+                await startPhoneStep(); return;
             }
-
             if (state === 'phone') {
-                lead.phone = val;
-                addMsg(val, 'user');
-                hideInput();
-                const greeting = lang === 'ar'
-                    ? `شكراً ${lead.name}! 🎉 إزاي أقدر أساعدك؟`
-                    : `Thanks ${lead.name}! 🎉 How can I help?`;
-                addMsg(greeting, 'ai');
-                setTimeout(() => startChatStep(), 400);
-                return;
+                lead.phone = val; addMsg(val,'user'); hideInput();
+                await startChatStep(); return;
             }
         }
-
         sendBtn.addEventListener('click', submitInput);
-        inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitInput(); });
+        inputEl.addEventListener('keydown', e => { if(e.key==='Enter') submitInput(); });
 
-        // ── Open / Close ────────────────────────────────────────
+        // ── open/close ─────────────────────────────────────────
         async function openBot() {
             overlay.hidden = false;
             msgEl.innerHTML = '';
-            choices.innerHTML = '';
-            hideInput();
-            lead = { name: '', phone: '', language: 'en', conversation: [] };
-            leadId = null;
-            lang = 'en';
-
+            clearChoices(); hideInput();
+            lead = { name:'',phone:'',language:'en',conversation:[] };
+            leadId = null; lang = 'en'; historyStack = [];
             if (window.lucide) window.lucide.createIcons();
-
-            // جيب الأسئلة من السيرفر
             await loadQuestions();
             startLangStep();
         }
 
         openBtn.addEventListener('click', openBot);
-
         const close = () => { overlay.hidden = true; };
         closeBtn.addEventListener('click', close);
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.hidden) close(); });
+        overlay.addEventListener('click', e => { if(e.target===overlay) close(); });
+        document.addEventListener('keydown', e => { if(e.key==='Escape'&&!overlay.hidden) close(); });
     })();
 
         async function loadSongs() {
