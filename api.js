@@ -175,4 +175,21 @@ const WipAPI = {
     delete:  (id)            => apiFetch(`/wip/${id}`, { method: 'DELETE' })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI };
+// ============================================================
+// Bot API — Smart FAQ Bot
+// ============================================================
+const BotAPI = {
+    getQuestions:  ()           => apiFetch('/bot/questions'),
+    saveLead:      (data)       => apiFetch('/bot/lead', { method: 'POST',  body: JSON.stringify(data) }),
+    updateLead:    (id, steps)  => apiFetch(`/bot/lead/${id}`, { method: 'PATCH', body: JSON.stringify({ steps }) }),
+    // Admin
+    getLeads:      (page = 1)   => apiFetch(`/bot/leads?page=${page}`),
+    deleteLead:    (id)         => apiFetch(`/bot/leads/${id}`,  { method: 'DELETE' }),
+    deleteAllLeads:()           => apiFetch('/bot/leads',        { method: 'DELETE' }),
+    createQuestion:(data)       => apiFetch('/bot/questions',    { method: 'POST',  body: JSON.stringify(data) }),
+    updateQuestion:(id, data)   => apiFetch(`/bot/questions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteQuestion:(id)         => apiFetch(`/bot/questions/${id}`, { method: 'DELETE' }),
+    seed:          (force)      => apiFetch('/bot/seed',         { method: 'POST',  body: JSON.stringify({ force }) })
+};
+
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, BotAPI };

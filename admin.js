@@ -2454,6 +2454,279 @@ Do not resell the customized public version as a separate template unless your s
     if (window.TojiAPI?.AnalyticsAPI) loadAnalytics();
 
     // ============================================================
+    // 🤖 BOT ADMIN — إدارة الأسئلة والـ Leads
+    // ============================================================
+
+    // ── Tabs ──────────────────────────────────────────────────
+    document.querySelectorAll('.bot-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.bot-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.dataset.tab;
+            document.getElementById('botTabQuestions').hidden = target !== 'questions';
+            document.getElementById('botTabLeads').hidden     = target !== 'leads';
+            if (target === 'leads') loadBotLeads(1);
+            if (target === 'questions') loadBotQuestions();
+        });
+    });
+
+    // ── Questions ──────────────────────────────────────────────
+    let botAllQuestions = [];
+
+    async function loadBotQuestions() {
+        const listEl = el('botQuestionsList');
+        listEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+        try {
+            const res = await window.TojiAPI.BotAPI.getQuestions();
+            botAllQuestions = res?.data || [];
+            renderBotTree();
+        } catch (err) {
+            listEl.innerHTML = `<p class="projects-hint error">❌ ${err.message}</p>`;
+        }
+    }
+
+    function renderBotTree() {
+        const listEl = el('botQuestionsList');
+        if (!botAllQuestions.length) {
+            listEl.innerHTML = '<p class="projects-hint">لا توجد أسئلة. اضغط "بذر الأسئلة الافتراضية" للبدء.</p>';
+            return;
+        }
+
+        const roots = botAllQuestions.filter(q => q.isRoot).sort((a,b) => a.order - b.order);
+        const others = botAllQuestions.filter(q => !q.isRoot);
+
+        function getQ(id) { return botAllQuestions.find(q => String(q._id) === String(id)); }
+
+        function renderOptions(opts, depth = 0) {
+            return opts.map(o => {
+                const next = o.nextQuestionId ? getQ(o.nextQuestionId) : null;
+                const final = (o.finalResponse?.en || o.finalResponse?.ar) ? `<span class="bot-final-tag">✓ ${(o.finalResponse.en || o.finalResponse.ar).slice(0,50)}...</span>` : '';
+                return `<div class="bot-option" style="margin-right:${depth * 16}px">
+                    <span class="bot-option-text">${o.text?.en || ''} / ${o.text?.ar || ''}</span>
+                    ${next ? `<span class="bot-arrow">→ <em>${next.text?.en || ''}</em></span>` : final}
+                </div>`;
+            }).join('');
+        }
+
+        function renderQuestion(q, depth = 0) {
+            return `<div class="bot-q-card" data-id="${q._id}" style="margin-right:${depth*16}px">
+                <div class="bot-q-header">
+                    <span class="bot-q-tag">${q.isRoot ? '🌱 Root' : '📌'}</span>
+                    <div class="bot-q-texts">
+                        <strong>${q.text?.en || ''}</strong>
+                        <span>${q.text?.ar || ''}</span>
+                    </div>
+                    <div class="project-card-actions">
+                        <button class="btn-secondary btn-sm" data-bot-edit="${q._id}">✏️ تعديل</button>
+                        <button class="btn-danger btn-sm"   data-bot-delete="${q._id}">🗑</button>
+                    </div>
+                </div>
+                <div class="bot-options-list">
+                    ${renderOptions(q.options || [], depth)}
+                </div>
+            </div>`;
+        }
+
+        // عرض الجذور أولاً ثم الباقي
+        const html = `
+            <div class="bot-section-label">🌱 الأسئلة الجذرية</div>
+            ${roots.map(q => renderQuestion(q)).join('')}
+            ${others.length ? `<div class="bot-section-label" style="margin-top:16px">📌 الأسئلة الفرعية</div>
+            ${others.map(q => renderQuestion(q)).join('')}` : ''}
+        `;
+        listEl.innerHTML = html;
+    }
+
+    // ── Add / Edit Question ────────────────────────────────────
+    function openBotQuestionForm(existing = null) {
+        const isEdit  = !!existing;
+        const overlay = document.createElement('div');
+        overlay.className = 'bot-form-overlay';
+
+        const otherQs = botAllQuestions.filter(q => !existing || String(q._id) !== String(existing._id));
+        const qOptions = otherQs.map(q => `<option value="${q._id}">${q.text?.en}</option>`).join('');
+
+        const existingOpts = (existing?.options || []).map((o, i) => `
+            <div class="bot-opt-row" data-oi="${i}">
+                <input class="bot-opt-en" placeholder="Option EN" value="${o.text?.en||''}">
+                <input class="bot-opt-ar" placeholder="Option AR" value="${o.text?.ar||''}">
+                <select class="bot-opt-next">
+                    <option value="">— Final Response —</option>
+                    ${otherQs.map(q => `<option value="${q._id}" ${String(o.nextQuestionId)===String(q._id)?'selected':''}>${q.text?.en}</option>`).join('')}
+                </select>
+                <textarea class="bot-opt-final-en" placeholder="Final response EN">${o.finalResponse?.en||''}</textarea>
+                <textarea class="bot-opt-final-ar" placeholder="Final response AR">${o.finalResponse?.ar||''}</textarea>
+                <button class="btn-danger btn-sm bot-opt-remove">✕</button>
+            </div>`).join('');
+
+        overlay.innerHTML = `
+            <div class="bot-form-modal">
+                <h3>${isEdit ? 'تعديل سؤال' : 'سؤال جديد'}</h3>
+                <label>النص بالإنجليزي<input id="bqEn" value="${existing?.text?.en||''}"></label>
+                <label>النص بالعربي<input id="bqAr" value="${existing?.text?.ar||''}"></label>
+                <label><input type="checkbox" id="bqRoot" ${existing?.isRoot?'checked':''}> Root Question (يظهر أول ما الشات يبدأ)</label>
+                <label>الترتيب<input type="number" id="bqOrder" value="${existing?.order||0}" style="width:80px"></label>
+                <div class="bot-section-label" style="margin:12px 0 8px">الخيارات (Answers)</div>
+                <div id="botOptList">${existingOpts}</div>
+                <button class="btn-secondary btn-sm" id="botAddOptBtn">+ إضافة خيار</button>
+                <div class="project-form-actions" style="margin-top:16px">
+                    <button class="btn-primary" id="botSaveQBtn">💾 حفظ</button>
+                    <button class="btn-ghost"   id="botCancelQBtn">إلغاء</button>
+                </div>
+                <p id="botQMsg" class="form-msg"></p>
+            </div>`;
+
+        document.body.appendChild(overlay);
+        if (window.lucide) window.lucide.createIcons();
+
+        overlay.querySelector('#botCancelQBtn').addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+        // Add option row
+        overlay.querySelector('#botAddOptBtn').addEventListener('click', () => {
+            const row = document.createElement('div');
+            row.className = 'bot-opt-row';
+            row.innerHTML = `
+                <input class="bot-opt-en" placeholder="Option EN">
+                <input class="bot-opt-ar" placeholder="Option AR">
+                <select class="bot-opt-next">
+                    <option value="">— Final Response —</option>
+                    ${qOptions}
+                </select>
+                <textarea class="bot-opt-final-en" placeholder="Final response EN"></textarea>
+                <textarea class="bot-opt-final-ar" placeholder="Final response AR"></textarea>
+                <button class="btn-danger btn-sm bot-opt-remove">✕</button>`;
+            overlay.querySelector('#botOptList').appendChild(row);
+        });
+
+        overlay.querySelector('#botOptList').addEventListener('click', (e) => {
+            if (e.target.classList.contains('bot-opt-remove')) e.target.closest('.bot-opt-row').remove();
+        });
+
+        // Save
+        overlay.querySelector('#botSaveQBtn').addEventListener('click', async () => {
+            const msgEl = overlay.querySelector('#botQMsg');
+            const en    = overlay.querySelector('#bqEn').value.trim();
+            const ar    = overlay.querySelector('#bqAr').value.trim();
+            if (!en || !ar) { msgEl.textContent = '⚠️ لازم تكتب النص بالعربي والإنجليزي'; return; }
+
+            const opts = [...overlay.querySelectorAll('.bot-opt-row')].map((row, i) => ({
+                id:            (existing?.options?.[i]?.id) || crypto.randomUUID().slice(0,8),
+                text:          { en: row.querySelector('.bot-opt-en').value.trim(), ar: row.querySelector('.bot-opt-ar').value.trim() },
+                nextQuestionId:row.querySelector('.bot-opt-next').value || null,
+                finalResponse: { en: row.querySelector('.bot-opt-final-en').value.trim(), ar: row.querySelector('.bot-opt-final-ar').value.trim() }
+            }));
+
+            const data = {
+                text:    { en, ar },
+                isRoot:  overlay.querySelector('#bqRoot').checked,
+                order:   parseInt(overlay.querySelector('#bqOrder').value) || 0,
+                options: opts
+            };
+
+            msgEl.textContent = '⏳ جارٍ الحفظ...';
+            try {
+                if (isEdit) await window.TojiAPI.BotAPI.updateQuestion(existing._id, data);
+                else        await window.TojiAPI.BotAPI.createQuestion(data);
+                overlay.remove();
+                await loadBotQuestions();
+                showBanner('✅ تم حفظ السؤال.', 'success');
+            } catch (err) {
+                msgEl.textContent = '❌ ' + err.message;
+            }
+        });
+    }
+
+    el('botAddRootBtn').addEventListener('click', () => openBotQuestionForm());
+
+    el('botQuestionsList').addEventListener('click', async (e) => {
+        const editId   = e.target.dataset.botEdit;
+        const deleteId = e.target.dataset.botDelete;
+
+        if (editId) {
+            const q = botAllQuestions.find(q => String(q._id) === editId);
+            if (q) openBotQuestionForm(q);
+        }
+
+        if (deleteId) {
+            if (!confirm('حذف هذا السؤال؟')) return;
+            try {
+                await window.TojiAPI.BotAPI.deleteQuestion(deleteId);
+                await loadBotQuestions();
+                showBanner('✅ تم حذف السؤال.', 'success');
+            } catch (err) { showBanner('❌ ' + err.message, 'error'); }
+        }
+    });
+
+    el('botSeedBtn').addEventListener('click', async () => {
+        if (!confirm('هيمسح كل الأسئلة الحالية ويحطّ الافتراضية. متابعة؟')) return;
+        try {
+            await window.TojiAPI.BotAPI.seed(true);
+            await loadBotQuestions();
+            showBanner('✅ تم بذر الأسئلة الافتراضية.', 'success');
+        } catch (err) { showBanner('❌ ' + err.message, 'error'); }
+    });
+
+    el('botRefreshQBtn').addEventListener('click', loadBotQuestions);
+
+    // ── Leads ──────────────────────────────────────────────────
+    async function loadBotLeads(page = 1) {
+        const listEl = el('botLeadsList');
+        listEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+        try {
+            const res        = await window.TojiAPI.BotAPI.getLeads(page);
+            const leads      = res?.data || [];
+            const pagination = res?.pagination || {};
+
+            if (!leads.length) { listEl.innerHTML = '<p class="projects-hint">لا توجد بيانات زوار بعد.</p>'; return; }
+
+            const rows = leads.map(l => `
+                <tr>
+                    <td>${l.name || '—'}</td>
+                    <td>${l.phone || '—'}</td>
+                    <td>${l.language === 'ar' ? '🇦🇪' : '🇬🇧'}</td>
+                    <td>${(l.conversation||[]).length} خطوة</td>
+                    <td>${new Date(l.createdAt).toLocaleString('ar-EG')}</td>
+                    <td><button class="btn-danger btn-sm" data-lead-del="${l._id}">🗑</button></td>
+                </tr>`).join('');
+
+            listEl.innerHTML = `
+                <table class="visitors-table">
+                    <thead><tr><th>الاسم</th><th>الموبايل</th><th>اللغة</th><th>المحادثة</th><th>التاريخ</th><th></th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                ${renderVisitorsPagination({ page: pagination.page, totalPages: pagination.totalPages, total: pagination.total })}`;
+
+            listEl.querySelectorAll('[data-lead-del]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!confirm('حذف هذا الزائر؟')) return;
+                    await window.TojiAPI.BotAPI.deleteLead(btn.dataset.leadDel);
+                    loadBotLeads(page);
+                });
+            });
+
+            listEl.querySelectorAll('[data-vpage]').forEach(btn => {
+                btn.addEventListener('click', () => loadBotLeads(parseInt(btn.dataset.vpage)));
+            });
+
+        } catch (err) { listEl.innerHTML = `<p class="projects-hint error">❌ ${err.message}</p>`; }
+    }
+
+    el('botRefreshLeadsBtn').addEventListener('click', () => loadBotLeads(1));
+
+    el('botDeleteAllLeadsBtn').addEventListener('click', async () => {
+        if (!confirm('مسح كل بيانات الزوار نهائياً؟')) return;
+        try {
+            await window.TojiAPI.BotAPI.deleteAllLeads();
+            showBanner('✅ تم مسح كل بيانات الزوار.', 'success');
+            loadBotLeads(1);
+        } catch (err) { showBanner('❌ ' + err.message, 'error'); }
+    });
+
+    // تحميل تلقائي
+    if (window.TojiAPI?.BotAPI) loadBotQuestions();
+
+    // ============================================================
     // JSON Panel Buttons (بدون تغيير)
     // ============================================================
     el('copyFullBtn').addEventListener('click', async () => {

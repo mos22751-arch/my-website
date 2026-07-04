@@ -258,6 +258,35 @@
                 </section>
 
 
+                <section class="panel" id="botPanel">
+                    <h2>🤖 إدارة الـ Bot الذكي</h2>
+
+                    <!-- Tabs -->
+                    <div class="bot-tabs">
+                        <button class="bot-tab active" data-tab="questions">🌳 شجرة الأسئلة</button>
+                        <button class="bot-tab" data-tab="leads">👥 زوار Bot</button>
+                    </div>
+
+                    <!-- Questions Tab -->
+                    <div class="bot-tab-content" id="botTabQuestions">
+                        <div class="projects-toolbar">
+                            <button id="botAddRootBtn" class="btn-primary">+ سؤال جديد (Root)</button>
+                            <button id="botSeedBtn" class="btn-ghost">🌱 بذر الأسئلة الافتراضية</button>
+                            <button id="botRefreshQBtn" class="btn-secondary">🔄 تحديث</button>
+                        </div>
+                        <div id="botQuestionsList"><p class="projects-hint">جارٍ التحميل...</p></div>
+                    </div>
+
+                    <!-- Leads Tab -->
+                    <div class="bot-tab-content" id="botTabLeads" hidden>
+                        <div class="projects-toolbar">
+                            <button id="botRefreshLeadsBtn" class="btn-secondary">🔄 تحديث</button>
+                            <button id="botDeleteAllLeadsBtn" class="btn-danger">🗑 مسح كل البيانات</button>
+                        </div>
+                        <div id="botLeadsList"><p class="projects-hint">اضغط تحديث لتحميل بيانات الزوار.</p></div>
+                    </div>
+                </section>
+
                 <section class="panel" id="analyticsPanel">
                     <h2>📊 لوحة الزوار والتحليلات</h2>
 

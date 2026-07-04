@@ -523,34 +523,28 @@
 
 
 
-    <!-- ==================== AI CHAT WIDGET ==================== -->
+    <!-- ==================== SMART BOT WIDGET ==================== -->
     <div class="ai-chat-overlay" id="aiChatOverlay" hidden>
-        <div class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Ask about TOJI">
+        <div class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Chat with TOJI's bot">
             <div class="ai-chat-header">
                 <div class="ai-chat-header-info">
                     <span class="ai-chat-avatar">✦</span>
                     <div>
-                        <p class="ai-chat-title">Ask about TOJI</p>
-                        <p class="ai-chat-sub">Powered by Claude AI</p>
+                        <p class="ai-chat-title" id="botHeaderTitle">TOJI Assistant</p>
+                        <p class="ai-chat-sub" id="botHeaderSub">Let me help you</p>
                     </div>
                 </div>
                 <button class="ai-chat-close" id="closeAiChat" aria-label="Close">
                     <i data-lucide="x" aria-hidden="true"></i>
                 </button>
             </div>
-            <div class="ai-chat-messages" id="aiChatMessages">
-                <div class="ai-msg ai">
-                    <p>Hey 👋 I'm an AI assistant that knows everything about TOJI. Ask me about his work, pricing, skills, or anything else!</p>
-                </div>
-            </div>
-            <div class="ai-chat-suggestions" id="aiChatSuggestions">
-                <button class="ai-suggestion" data-q="What kind of pages does TOJI build?">What does he build?</button>
-                <button class="ai-suggestion" data-q="What are the pricing packages?">Pricing?</button>
-                <button class="ai-suggestion" data-q="How can I contact TOJI?">Contact?</button>
-            </div>
-            <div class="ai-chat-input-row">
-                <input class="ai-chat-input" id="aiChatInput" type="text" placeholder="Ask anything..." autocomplete="off" maxlength="200">
-                <button class="ai-chat-send" id="aiChatSend" aria-label="Send">
+            <div class="ai-chat-messages" id="aiChatMessages"></div>
+            <!-- choices rendered here -->
+            <div class="bot-choices" id="botChoices"></div>
+            <!-- input for name/phone only -->
+            <div class="bot-input-row" id="botInputRow" hidden>
+                <input class="ai-chat-input" id="botInput" type="text" autocomplete="off" maxlength="80">
+                <button class="ai-chat-send" id="botInputSend" aria-label="Send">
                     <i data-lucide="send" aria-hidden="true"></i>
                 </button>
             </div>

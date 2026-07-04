@@ -756,132 +756,262 @@ document.addEventListener('DOMContentLoaded', () => {
     // ============================================================
     // ✦ AI CHAT — Ask about TOJI
     // ============================================================
-    (function initAiChat() {
-        const overlay   = document.getElementById('aiChatOverlay');
-        const openBtn   = document.getElementById('openAiChat');
-        const closeBtn  = document.getElementById('closeAiChat');
-        const messages  = document.getElementById('aiChatMessages');
-        const input     = document.getElementById('aiChatInput');
-        const sendBtn   = document.getElementById('aiChatSend');
-        const suggestEl = document.getElementById('aiChatSuggestions');
+    // ============================================================
+    // ✦ SMART BOT — Decision-Tree FAQ Bot
+    // ============================================================
+    (function initSmartBot() {
+        const overlay  = document.getElementById('aiChatOverlay');
+        const openBtn  = document.getElementById('openAiChat');
+        const closeBtn = document.getElementById('closeAiChat');
+        const msgEl    = document.getElementById('aiChatMessages');
+        const choices  = document.getElementById('botChoices');
+        const inputRow = document.getElementById('botInputRow');
+        const inputEl  = document.getElementById('botInput');
+        const sendBtn  = document.getElementById('botInputSend');
         if (!overlay || !openBtn) return;
 
-        // بناء system prompt من بيانات الموقع الحقيقية
-        function buildContext() {
-            const p  = window.TOJI_CONTENT?.profile  || {};
-            const m  = window.TOJI_CONTENT?.marketing || {};
-            const faq = (m.faq?.items || []).map((item, i) =>
-                `Q${i+1}: ${item.question?.en}\nA${i+1}: ${item.answer?.en}`
-            ).join('\n');
-            const packages = (m.pricing?.items || []).map((pkg) =>
-                `- ${pkg.name?.en}: ${pkg.price} — ${(pkg.features||[]).join(', ')}`
-            ).join('\n');
+        // ── State ──────────────────────────────────────────────
+        let allQuestions = [];   // كل أسئلة الشجرة من الـ backend
+        let lang         = 'en';
+        let state        = 'lang';   // lang → name → phone → chat
+        let lead         = { name: '', phone: '', language: 'en', conversation: [] };
+        let leadId       = null;
 
-            return `You are an AI assistant embedded in ${p.nickname || 'TOJI'}'s personal portfolio website.
-Your job: answer visitor questions concisely and helpfully about ${p.nickname || 'TOJI'}.
-
-ABOUT:
-Name: ${p.name || 'Mohamed Mostafa'} (known as ${p.nickname || 'TOJI'})
-Status: ${p.status?.en || 'Available for work'}
-WhatsApp: +${p.phone || '201102550730'}
-
-PACKAGES:
-${packages || 'Contact via WhatsApp for pricing.'}
-
-FAQ:
-${faq || 'No FAQ available.'}
-
-RULES:
-- Keep answers SHORT (2-3 sentences max unless asked for detail)
-- Be friendly and direct
-- If asked for contact, share the WhatsApp number
-- If you don't know something, say "I'm not sure, message TOJI directly on WhatsApp"
-- Never make up projects or prices that aren't listed above
-- Respond in the same language the visitor uses`;
-        }
-
-        const history = [];
-        let isTyping  = false;
-
-        openBtn.addEventListener('click', () => {
-            overlay.hidden = false;
-            input.focus();
-            if (window.lucide) window.lucide.createIcons();
-        });
-
-        const close = () => { overlay.hidden = true; };
-        closeBtn.addEventListener('click', close);
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+        // ── Helpers ─────────────────────────────────────────────
+        function t(obj) { return (typeof obj === 'object' ? (obj[lang] || obj.en || '') : obj) || ''; }
 
         function addMsg(text, role) {
             const div = document.createElement('div');
             div.className = `ai-msg ${role}`;
-            div.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
-            messages.appendChild(div);
-            messages.scrollTop = messages.scrollHeight;
-            return div;
+            div.innerHTML = `<p>${String(text).replace(/\n/g, '<br>')}</p>`;
+            msgEl.appendChild(div);
+            msgEl.scrollTop = msgEl.scrollHeight;
         }
 
-        function showTyping() {
-            const div = document.createElement('div');
-            div.className = 'ai-msg ai typing';
-            div.innerHTML = '<p><span></span><span></span><span></span></p>';
-            messages.appendChild(div);
-            messages.scrollTop = messages.scrollHeight;
-            return div;
+        function setChoices(opts) {
+            choices.innerHTML = opts.map(o =>
+                `<button class="bot-choice-btn" data-id="${o.id}">${o.label}</button>`
+            ).join('');
         }
 
-        async function sendMessage(text) {
-            if (!text.trim() || isTyping) return;
-            isTyping = true;
+        function clearChoices() { choices.innerHTML = ''; }
 
-            // اخفي الـ suggestions بعد أول رسالة
-            if (suggestEl) suggestEl.style.display = 'none';
+        function showInput(placeholder, type = 'text') {
+            inputEl.type        = type;
+            inputEl.placeholder = placeholder;
+            inputEl.value       = '';
+            inputRow.hidden     = false;
+            inputEl.focus();
+        }
 
-            addMsg(text, 'user');
-            history.push({ role: 'user', content: text });
-            input.value = '';
+        function hideInput() { inputRow.hidden = true; inputEl.value = ''; }
 
-            const typingEl = showTyping();
-
+        // ── Fetch questions ──────────────────────────────────────
+        async function loadQuestions() {
             try {
-                const res = await fetch('https://api.anthropic.com/v1/messages', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        model: 'claude-sonnet-4-6',
-                        max_tokens: 300,
-                        system: buildContext(),
-                        messages: history.slice(-8) // آخر 8 رسائل بس عشان مش يعدي الـ limit
-                    })
-                });
+                const res = await window.TojiAPI.BotAPI.getQuestions();
+                allQuestions = res?.data || [];
+            } catch { allQuestions = []; }
+        }
 
-                const data = await res.json();
-                typingEl.remove();
+        function getQuestion(id) {
+            return allQuestions.find(q => String(q._id) === String(id)) || null;
+        }
 
-                const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Try messaging TOJI directly on WhatsApp!";
-                addMsg(reply, 'ai');
-                history.push({ role: 'assistant', content: reply });
+        function rootQuestions() {
+            return allQuestions.filter(q => q.isRoot).sort((a,b) => a.order - b.order);
+        }
 
-            } catch {
-                typingEl.remove();
-                addMsg("Connection issue. Please try again or message TOJI directly on WhatsApp 🙏", 'ai');
+        // ── Save lead ──────────────────────────────────────────
+        async function saveLead() {
+            try {
+                const res = await window.TojiAPI.BotAPI.saveLead(lead);
+                leadId = res?.id || null;
+            } catch {}
+        }
+
+        async function updateLead(q, a) {
+            lead.conversation.push({ question: q, answer: a, at: new Date() });
+            if (leadId) {
+                try { await window.TojiAPI.BotAPI.updateLead(leadId, [{ question: q, answer: a }]); } catch {}
+            }
+        }
+
+        // ── Flow ────────────────────────────────────────────────
+        function startLangStep() {
+            state = 'lang';
+            addMsg('👋 Welcome! Choose your language | أهلاً! اختار لغتك.', 'ai');
+            setChoices([
+                { id: 'en', label: '🇬🇧 English' },
+                { id: 'ar', label: '🇦🇪 العربية' }
+            ]);
+            hideInput();
+        }
+
+        function startNameStep() {
+            state = 'name';
+            clearChoices();
+            addMsg(lang === "ar" ? "تمام 😊 اسمك إيه؟" : "Great 😊 What's your name?", "ai");
+            showInput(lang === 'ar' ? 'اكتب اسمك...' : 'Your name...');
+        }
+
+        function startPhoneStep() {
+            state = 'phone';
+            addMsg(lang === 'ar' ? 'ورقم موبايلك؟ (هنتواصل معاك عليه)' : 'And your phone number? (for follow-up)', 'ai');
+            showInput(lang === 'ar' ? 'رقم الموبايل...' : 'Phone number...', 'tel');
+        }
+
+        function startChatStep() {
+            state = 'chat';
+            hideInput();
+            saveLead();
+            const roots = rootQuestions();
+            if (!roots.length) {
+                addMsg(lang === 'ar' ? 'عذراً، لا توجد أسئلة بعد.' : 'No questions available yet.', 'ai');
+                return;
+            }
+            // عرض الأسئلة الجذرية
+            showQuestion(roots[0]);
+        }
+
+        function showQuestion(q) {
+            addMsg(t(q.text), 'ai');
+            setChoices(q.options.map(o => ({ id: o.id, label: t(o.text) })));
+        }
+
+        function handleOptionPick(optionId, question) {
+            const opt = question.options.find(o => o.id === optionId);
+            if (!opt) return;
+
+            const answerText = t(opt.text);
+            addMsg(answerText, 'user');
+            updateLead(t(question.text), answerText);
+
+            clearChoices();
+
+            // لو في سؤال تالي
+            if (opt.nextQuestionId) {
+                const next = getQuestion(opt.nextQuestionId);
+                if (next) {
+                    setTimeout(() => showQuestion(next), 400);
+                    return;
+                }
             }
 
-            isTyping = false;
+            // لو في إجابة نهائية
+            const finalText = t(opt.finalResponse);
+            if (finalText) {
+                setTimeout(() => {
+                    addMsg(finalText, 'ai');
+                    setTimeout(() => showRestartBtn(), 600);
+                }, 400);
+                return;
+            }
+
+            // fallback
+            setTimeout(() => showRestartBtn(), 400);
         }
 
-        sendBtn.addEventListener('click', () => sendMessage(input.value));
-        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(input.value); });
+        function showRestartBtn() {
+            const restart = lang === 'ar' ? '🔄 سؤال تاني' : '🔄 Ask something else';
+            const wa      = lang === 'ar' ? '💬 تواصل على واتساب' : '💬 Contact on WhatsApp';
+            setChoices([
+                { id: '__restart', label: restart },
+                { id: '__wa',      label: wa }
+            ]);
+        }
 
-        // Quick suggestions
-        document.querySelectorAll('.ai-suggestion').forEach((btn) => {
-            btn.addEventListener('click', () => sendMessage(btn.dataset.q));
+        // ── Choice click handler ──────────────────────────────
+        choices.addEventListener('click', (e) => {
+            const btn = e.target.closest('.bot-choice-btn');
+            if (!btn) return;
+            const id = btn.dataset.id;
+
+            if (state === 'lang') {
+                lang = id;
+                lead.language = lang;
+                addMsg(id === 'ar' ? '🇦🇪 العربية' : '🇬🇧 English', 'user');
+                setTimeout(() => startNameStep(), 300);
+                return;
+            }
+
+            if (id === '__restart') {
+                clearChoices();
+                const roots = rootQuestions();
+                if (roots.length) setTimeout(() => showQuestion(roots[0]), 300);
+                return;
+            }
+
+            if (id === '__wa') {
+                const phone = window.TOJI_CONTENT?.profile?.phone || '201102550730';
+                const msg   = lang === 'ar' ? 'السلام عليكم، جيت من موقع TOJI 👋' : 'Hi, I came from your portfolio site 👋';
+                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                return;
+            }
+
+            if (state === 'chat') {
+                const currentQuestion = allQuestions.find(q =>
+                    q.options.some(o => o.id === id)
+                );
+                if (currentQuestion) handleOptionPick(id, currentQuestion);
+            }
         });
+
+        // ── Input submit ────────────────────────────────────────
+        function submitInput() {
+            const val = inputEl.value.trim();
+            if (!val) return;
+
+            if (state === 'name') {
+                lead.name = val;
+                addMsg(val, 'user');
+                hideInput();
+                setTimeout(() => startPhoneStep(), 300);
+                return;
+            }
+
+            if (state === 'phone') {
+                lead.phone = val;
+                addMsg(val, 'user');
+                hideInput();
+                const greeting = lang === 'ar'
+                    ? `شكراً ${lead.name}! 🎉 إزاي أقدر أساعدك؟`
+                    : `Thanks ${lead.name}! 🎉 How can I help?`;
+                addMsg(greeting, 'ai');
+                setTimeout(() => startChatStep(), 400);
+                return;
+            }
+        }
+
+        sendBtn.addEventListener('click', submitInput);
+        inputEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitInput(); });
+
+        // ── Open / Close ────────────────────────────────────────
+        async function openBot() {
+            overlay.hidden = false;
+            msgEl.innerHTML = '';
+            choices.innerHTML = '';
+            hideInput();
+            lead = { name: '', phone: '', language: 'en', conversation: [] };
+            leadId = null;
+            lang = 'en';
+
+            if (window.lucide) window.lucide.createIcons();
+
+            // جيب الأسئلة من السيرفر
+            await loadQuestions();
+            startLangStep();
+        }
+
+        openBtn.addEventListener('click', openBot);
+
+        const close = () => { overlay.hidden = true; };
+        closeBtn.addEventListener('click', close);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.hidden) close(); });
     })();
 
-    async function loadSongs() {
+        async function loadSongs() {
         if (!window.TojiAPI?.SongsAPI) return;
         try {
             const response = await window.TojiAPI.SongsAPI.getPublic();
