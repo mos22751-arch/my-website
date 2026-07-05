@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow, noarchive">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://portfolio-backend-production-1901.up.railway.app http://localhost:5000; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; frame-src 'self'; connect-src 'self' https://portfolio-backend-production-1901.up.railway.app http://localhost:5000; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
     <title>TOJI Admin Studio</title>
-    <link rel="stylesheet" href="admin.css?v=18">
+    <link rel="stylesheet" href="admin.css?v=19">
 </head>
 <body>
     <main class="admin-shell">
+
+        <!-- ══ TOPBAR ══════════════════════════════════════════════ -->
         <header class="topbar">
             <div class="topbar-brand">
                 <p class="kicker">TOJI Studio</p>
-                <h1>لوحة تحكم موقع TOJI</h1>
+                <h1>لوحة التحكم</h1>
                 <div class="server-status" id="serverStatus">
                     <span class="status-dot" id="statusDot"></span>
-                    <span id="statusText">جارٍ التحقق من الاتصال...</span>
+                    <span id="statusText">جارٍ التحقق...</span>
                 </div>
             </div>
             <div class="actions">
@@ -25,18 +27,21 @@
                         <span class="btn-icon">☁️</span> حفظ على السيرفر
                     </button>
                     <button id="pullServerBtn" type="button" class="btn-secondary">
-                        <span class="btn-icon">⬇️</span> مزامنة من السيرفر
+                        <span class="btn-icon">⬇️</span> مزامنة
                     </button>
                 </div>
                 <div class="action-group secondary-actions">
+                    <button id="togglePreviewBtn" type="button" class="btn-ghost" title="إظهار / إخفاء المعاينة">
+                        <span class="btn-icon">👁</span> معاينة
+                    </button>
                     <a href="index.html" target="_blank" rel="noopener" class="btn-link">
-                        <span class="btn-icon">🌐</span> فتح الموقع
+                        <span class="btn-icon">🌐</span> الموقع
                     </a>
                     <button id="resetBtn" type="button" class="btn-ghost">
-                        <span class="btn-icon">↺</span> إعادة تعيين
+                        <span class="btn-icon">↺</span>
                     </button>
                     <button id="cleanFinalBtn" type="button" class="btn-danger">
-                        <span class="btn-icon">🚪</span> تسجيل خروج
+                        <span class="btn-icon">🚪</span>
                     </button>
                 </div>
             </div>
@@ -46,449 +51,462 @@
             <span id="syncBannerText"></span>
         </div>
 
-        <section class="notice">
-            <strong>طريقة العمل:</strong>
-            عدّل أي حاجة في الفورم → اضغط <strong>حفظ على السيرفر</strong> → التغيير يظهر فوراً لكل الزوار.
-            الـ autosave بيحفظ محلياً كل 30 ثانية. السيرفر بيتحدّث بس لما تضغط الزر يدوياً.
-        </section>
+        <!-- ══ WORKSPACE ════════════════════════════════════════════ -->
+        <div class="admin-workspace" id="adminWorkspace">
 
-        <div class="admin-workspace">
-            <div class="editor-column">
-                <section class="panel">
-                    <h2>1) الأساسيات والهوية</h2>
-                    <div class="subpanel">
-                        <h3>بيانات العميل والموقع</h3>
-                        <div class="grid" id="identityFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>إعدادات الموقع العامة</h3>
-                        <div class="grid" id="siteFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>اللغة والتنقل - English</h3>
-                        <div class="grid" id="navFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>اللغة والتنقل - عربي</h3>
-                        <div class="grid" id="navFieldsAr"></div>
-                    </div>
-                </section>
+            <!-- ── EDITOR COLUMN ──────────────────────────────── -->
+            <div class="editor-column" id="editorColumn">
 
-                <section class="panel">
-                    <h2>2) بداية الصفحة Hero / Profile</h2>
-                    <div class="subpanel">
-                        <h3>نصوص الهيرو - English</h3>
-                        <div class="grid" id="heroFieldsEn"></div>
+                <!-- ★ GROUP 1: المحتوى -->
+                <div class="panel-group">
+                    <div class="panel-group-header">
+                        <span class="panel-group-icon">✍️</span>
+                        <span>المحتوى والنصوص</span>
                     </div>
-                    <div class="subpanel">
-                        <h3>نصوص الهيرو - عربي</h3>
-                        <div class="grid" id="heroFieldsAr"></div>
-                    </div>
-                </section>
 
-                <section class="panel">
-                    <h2>3) قسم About</h2>
-                    <div class="subpanel">
-                        <h3>About - English</h3>
-                        <div class="grid" id="aboutFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>About - عربي</h3>
-                        <div class="grid" id="aboutFieldsAr"></div>
-                    </div>
-                </section>
-
-                <section class="panel">
-                    <h2>4) قسم Work</h2>
-                    <div class="subpanel">
-                        <h3>العنوان والتاجات - English</h3>
-                        <div class="grid" id="workFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>العنوان والتاجات - عربي</h3>
-                        <div class="grid" id="workFieldsAr"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>كروت الأعمال</h3>
-                        <p class="hint">كل سطر كارت واحد: banner|title EN|title AR|copy EN|copy AR|tags comma</p>
-                        <div class="grid" id="workBuilderFields"></div>
-                    </div>
-                </section>
-
-                <section class="panel">
-                    <h2>5) قسم Links / Contact</h2>
-                    <div class="subpanel">
-                        <h3>روابط الحسابات الأساسية</h3>
-                        <div class="grid" id="socialFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>النصوص والأزرار - English</h3>
-                        <div class="grid" id="connectFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>النصوص والأزرار - عربي</h3>
-                        <div class="grid" id="connectFieldsAr"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>روابط إضافية وأزرار CTA</h3>
-                        <p class="hint">كل مربع هنا بيعدل قائمة كاملة مرتبطة بقسم الروابط.</p>
-                        <div class="grid" id="connectBuilderFields"></div>
-                    </div>
-                </section>
-
-                <section class="panel">
-                    <h2>6) فورم واتساب</h2>
-                    <div class="subpanel">
-                        <h3>Form - English</h3>
-                        <div class="grid" id="formFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Form - عربي</h3>
-                        <div class="grid" id="formFieldsAr"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>رسائل واتساب السريعة</h3>
-                        <p class="hint">كل سطر رسالة: value|label EN|label AR|message EN|message AR</p>
-                        <div class="grid" id="formBuilderFields"></div>
-                    </div>
-                </section>
-
-                <section class="panel">
-                    <h2>7) الأقسام الإضافية</h2>
-                    <div class="subpanel">
-                        <h3>Services</h3>
-                        <div class="grid" id="servicesBuilderFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Pricing</h3>
-                        <div class="grid" id="pricingBuilderFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Reviews</h3>
-                        <div class="grid" id="testimonialsBuilderFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Gallery</h3>
-                        <div class="grid" id="galleryBuilderFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>FAQ</h3>
-                        <div class="grid" id="faqBuilderFields"></div>
-                    </div>
-                </section>
-
-                <section class="panel">
-                    <h2>8) الشكل وتشغيل الأقسام</h2>
-                    <div class="subpanel">
-                        <h3>تشغيل وإخفاء الأقسام</h3>
-                        <div class="grid" id="featureFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>الألوان والخطوط</h3>
-                        <div class="grid" id="designFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>نصوص الثيم - English</h3>
-                        <div class="grid" id="themeFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>نصوص الثيم - عربي</h3>
-                        <div class="grid" id="themeFieldsAr"></div>
-                    </div>
-                </section>
-
-                <section class="panel">
-                    <h2>9) الصور والملفات والمشاركة</h2>
-                    <div class="subpanel">
-                        <h3>ملفات وأيقونات</h3>
-                        <div class="grid" id="assetFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>رفع سريع للصور</h3>
-                        <div class="grid">
-                            <label>رفع صورة البروفايل<input id="profileUpload" type="file" accept="image/*"></label>
-                            <label>رفع صورة المشاركة<input id="previewUpload" type="file" accept="image/*"></label>
+                    <details class="panel" id="panelIdentity" open>
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🪪</span>
+                            <span>الهوية والأساسيات</span>
+                            <span class="panel-summary-sub">الاسم، الهاتف، الروابط، اللغة</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="subpanel">
+                                <h3>بيانات الملف الشخصي</h3>
+                                <div class="grid" id="identityFields"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>إعدادات الموقع العامة</h3>
+                                <div class="grid" id="siteFields"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>قائمة التنقل — English</h3>
+                                <div class="grid" id="navFieldsEn"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>قائمة التنقل — عربي</h3>
+                                <div class="grid" id="navFieldsAr"></div>
+                            </div>
                         </div>
-                        <p class="hint">لو لم تربط مجلد المشروع، سيتم حفظ الصورة كـ Data URL داخل المحتوى وتدخل في ZIP النهائي.</p>
-                    </div>
-                    <div class="subpanel">
-                        <h3>صورة المشاركة</h3>
-                        <div class="grid" id="shareFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>نصوص المشاركة - English</h3>
-                        <div class="grid" id="shareTextFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>نصوص المشاركة - عربي</h3>
-                        <div class="grid" id="shareTextFieldsAr"></div>
-                    </div>
-                </section>
+                    </details>
 
-                <section class="panel">
-                    <h2>10) SEO والتحليلات ورسائل النظام</h2>
-                    <div class="subpanel">
-                        <h3>SEO وتحليلات</h3>
-                        <div class="grid" id="analyticsFields"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Meta - English</h3>
-                        <div class="grid" id="metaFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>Meta - عربي</h3>
-                        <div class="grid" id="metaFieldsAr"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>رسائل التنبيه - English</h3>
-                        <div class="grid" id="toastFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>رسائل التنبيه - عربي</h3>
-                        <div class="grid" id="toastFieldsAr"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>ARIA وإتاحة الوصول - English</h3>
-                        <div class="grid" id="ariaFieldsEn"></div>
-                    </div>
-                    <div class="subpanel">
-                        <h3>ARIA وإتاحة الوصول - عربي</h3>
-                        <div class="grid" id="ariaFieldsAr"></div>
-                    </div>
-                </section>
-
-
-                <section class="panel" id="botPanel">
-                    <h2>🤖 إدارة الـ Bot الذكي</h2>
-
-                    <!-- Tabs -->
-                    <div class="bot-tabs">
-                        <button class="bot-tab active" data-tab="questions">🌳 شجرة الأسئلة</button>
-                        <button class="bot-tab" data-tab="leads">👥 زوار Bot</button>
-                    </div>
-
-                    <!-- Questions Tab -->
-                    <div class="bot-tab-content" id="botTabQuestions">
-                        <div class="projects-toolbar">
-                            <button id="botAddRootBtn" class="btn-primary">+ سؤال جديد (Root)</button>
-                            <button id="botSeedBtn" class="btn-ghost">🌱 بذر الأسئلة الافتراضية</button>
-                            <button id="botRefreshQBtn" class="btn-secondary">🔄 تحديث</button>
+                    <details class="panel" id="panelHero">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🦸</span>
+                            <span>Hero — الصفحة الرئيسية</span>
+                            <span class="panel-summary-sub">العنوان الكبير، الوصف، أزرار CTA</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="subpanel">
+                                <h3>نصوص الهيرو — English</h3>
+                                <div class="grid" id="heroFieldsEn"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>نصوص الهيرو — عربي</h3>
+                                <div class="grid" id="heroFieldsAr"></div>
+                            </div>
                         </div>
-                        <div id="botQuestionsList"><p class="projects-hint">جارٍ التحميل...</p></div>
-                    </div>
+                    </details>
 
-                    <!-- Leads Tab -->
-                    <div class="bot-tab-content" id="botTabLeads" hidden>
-                        <div class="projects-toolbar">
-                            <button id="botRefreshLeadsBtn" class="btn-secondary">🔄 تحديث</button>
-                            <button id="botDeleteAllLeadsBtn" class="btn-danger">🗑 مسح كل البيانات</button>
+                    <details class="panel" id="panelAbout">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">👤</span>
+                            <span>About</span>
+                            <span class="panel-summary-sub">القصة والمهارات</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="subpanel">
+                                <h3>About — English</h3>
+                                <div class="grid" id="aboutFieldsEn"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>About — عربي</h3>
+                                <div class="grid" id="aboutFieldsAr"></div>
+                            </div>
                         </div>
-                        <div id="botLeadsList"><p class="projects-hint">اضغط تحديث لتحميل بيانات الزوار.</p></div>
-                    </div>
-                </section>
+                    </details>
 
-                <section class="panel" id="analyticsPanel">
-                    <h2>📊 لوحة الزوار والتحليلات</h2>
-
-                    <div class="analytics-counts">
-                        <div class="stat-card"><span class="stat-num" id="statTotal">—</span><span class="stat-label">إجمالي الزيارات</span></div>
-                        <div class="stat-card"><span class="stat-num" id="statToday">—</span><span class="stat-label">اليوم</span></div>
-                        <div class="stat-card"><span class="stat-num" id="statWeek">—</span><span class="stat-label">الأسبوع</span></div>
-                        <div class="stat-card"><span class="stat-num" id="statMonth">—</span><span class="stat-label">الشهر</span></div>
-                        <div class="stat-card"><span class="stat-num" id="statAvgTime">—</span><span class="stat-label">متوسط الجلسة</span></div>
-                    </div>
-
-                    <div class="analytics-grid">
-                        <div class="analytics-col"><h3>📱 الأجهزة</h3><div id="deviceStats" class="stats-list"></div></div>
-                        <div class="analytics-col"><h3>👁 أكثر الأقسام مشاهدة</h3><div id="sectionStats" class="stats-list"></div></div>
-                        <div class="analytics-col"><h3>🖱 أكثر المشاريع نقرًا</h3><div id="projectStats" class="stats-list"></div></div>
-                    </div>
-
-                    <div class="analytics-visitors">
-                        <div class="analytics-visitors-header">
-                            <h3>🕐 آخر الزوار</h3>
-                            <button id="refreshAnalyticsBtn" class="btn-secondary btn-sm">🔄 تحديث</button>
+                    <details class="panel" id="panelWork">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">💼</span>
+                            <span>Work — الأعمال</span>
+                            <span class="panel-summary-sub">كروت المشاريع والعنوان</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="subpanel">
+                                <h3>العنوان — English</h3>
+                                <div class="grid" id="workFieldsEn"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>العنوان — عربي</h3>
+                                <div class="grid" id="workFieldsAr"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>كروت الأعمال</h3>
+                                <p class="hint">كل سطر كارت: banner|title EN|title AR|copy EN|copy AR|tags comma</p>
+                                <div class="grid" id="workBuilderFields"></div>
+                            </div>
                         </div>
-                        <div id="visitorsList"><p class="projects-hint">اضغط تحديث لتحميل بيانات الزوار.</p></div>
-                    </div>
-                </section>
+                    </details>
 
-                <section class="panel" id="projectsPanel">
-                    <h2>📦 إدارة المشاريع (Backend)</h2>
-
-                    <div class="projects-toolbar">
-                        <button id="loadProjectsBtn" type="button" class="btn-secondary">
-                            <span>🔄</span> تحميل المشاريع
-                        </button>
-                        <button id="addProjectBtn" type="button" class="btn-primary">
-                            <span>+</span> إضافة مشروع جديد
-                        </button>
-                    </div>
-
-                    <!-- فورم الإضافة / التعديل -->
-                    <div class="project-form" id="projectForm" hidden>
-                        <h3 id="projectFormTitle">مشروع جديد</h3>
-                        <input type="hidden" id="projectId">
-                        <div class="project-form-grid">
-                            <label>
-                                البانر (مثال: WEB، APP، BRAND)
-                                <input type="text" id="pBanner" placeholder="WEB" maxlength="20">
-                            </label>
-                            <label>
-                                العنوان — English
-                                <input type="text" id="pTitleEn" placeholder="Project Title">
-                            </label>
-                            <label>
-                                العنوان — عربي
-                                <input type="text" id="pTitleAr" placeholder="اسم المشروع">
-                            </label>
-                            <label>
-                                الوصف — English
-                                <textarea id="pCopyEn" rows="3" placeholder="Project description..."></textarea>
-                            </label>
-                            <label>
-                                الوصف — عربي
-                                <textarea id="pCopyAr" rows="3" placeholder="وصف المشروع..."></textarea>
-                            </label>
-                            <label>
-                                التاجز (مفصولة بفاصلة)
-                                <input type="text" id="pTags" placeholder="Design, Development, Branding">
-                            </label>
-                            <label>
-                                رابط المشروع (اختياري)
-                                <input type="url" id="pLiveUrl" placeholder="https://...">
-                            </label>
-                            <label>
-                                الترتيب
-                                <input type="number" id="pOrder" value="0" min="0">
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="pVisible" checked>
-                                ظاهر على الموقع
-                            </label>
+                    <details class="panel" id="panelLinks">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🔗</span>
+                            <span>Links — التواصل</span>
+                            <span class="panel-summary-sub">السوشيال، أزرار CTA، روابط إضافية</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="subpanel">
+                                <h3>روابط الحسابات</h3>
+                                <div class="grid" id="socialFields"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>النصوص — English</h3>
+                                <div class="grid" id="connectFieldsEn"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>النصوص — عربي</h3>
+                                <div class="grid" id="connectFieldsAr"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>روابط CTA إضافية</h3>
+                                <div class="grid" id="connectBuilderFields"></div>
+                            </div>
                         </div>
-                        <div class="project-form-actions">
-                            <button id="saveProjectBtn" type="button" class="btn-primary">💾 حفظ المشروع</button>
-                            <button id="cancelProjectBtn" type="button" class="btn-ghost">إلغاء</button>
+                    </details>
+
+                    <details class="panel" id="panelForm">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">💬</span>
+                            <span>فورم واتساب</span>
+                            <span class="panel-summary-sub">نصوص الفورم والرسائل السريعة</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="subpanel">
+                                <h3>Form — English</h3>
+                                <div class="grid" id="formFieldsEn"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>Form — عربي</h3>
+                                <div class="grid" id="formFieldsAr"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>رسائل سريعة</h3>
+                                <p class="hint">كل سطر: value|label EN|label AR|message EN|message AR</p>
+                                <div class="grid" id="formBuilderFields"></div>
+                            </div>
                         </div>
-                        <p id="projectFormMsg" class="form-msg"></p>
-                    </div>
+                    </details>
 
-                    <!-- قائمة المشاريع -->
-                    <div id="projectsList">
-                        <p class="projects-hint">اضغط "تحميل المشاريع" لعرض المشاريع الحالية من السيرفر.</p>
-                    </div>
-                </section>
-
-                <section class="panel" id="songsPanel">
-                    <h2>🎵 إدارة الأغاني المفضلة</h2>
-
-                    <div class="projects-toolbar">
-                        <button id="loadSongsBtn" type="button" class="btn-secondary">
-                            <span>🔄</span> تحميل الأغاني
-                        </button>
-                        <button id="addSongBtn" type="button" class="btn-primary">
-                            <span>+</span> إضافة أغنية جديدة
-                        </button>
-                    </div>
-
-                    <!-- فورم الإضافة / التعديل -->
-                    <div class="project-form" id="songForm" hidden>
-                        <h3 id="songFormTitle">أغنية جديدة</h3>
-                        <input type="hidden" id="songId">
-                        <div class="project-form-grid">
-                            <label>
-                                اسم الأغنية *
-                                <input type="text" id="sTitle" placeholder="Song Title" maxlength="100">
-                            </label>
-                            <label>
-                                الفنان *
-                                <input type="text" id="sArtist" placeholder="Artist Name" maxlength="100">
-                            </label>
-                            <label>
-                                وصف قصير (اختياري)
-                                <textarea id="sDesc" rows="2" placeholder="ليه بتحبها أو احساسها..." maxlength="300"></textarea>
-                            </label>
-                            <label>
-                                رابط Spotify (اختياري)
-                                <input type="url" id="sSpotify" placeholder="https://open.spotify.com/track/...">
-                            </label>
-                            <label>
-                                رابط YouTube (اختياري)
-                                <input type="url" id="sYoutube" placeholder="https://youtube.com/watch?v=...">
-                            </label>
-
-                            <label>
-                                رابط صورة الغلاف (اختياري)
-                                <input type="url" id="sCover" placeholder="https://i.scdn.co/image/...">
-                            </label>
-                            <label>
-                                المزاج
-                                <select id="sMood">
-                                    <option value="vibe">🎵 Vibe</option>
-                                    <option value="chill">🧊 Chill</option>
-                                    <option value="hype">🔥 Hype</option>
-                                    <option value="sad">🌧️ Sad</option>
-                                    <option value="focus">⚡ Focus</option>
-                                </select>
-                            </label>
-                            <label>
-                                الترتيب
-                                <input type="number" id="sOrder" value="0" min="0">
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="sVisible" checked>
-                                ظاهر على الموقع
-                            </label>
+                    <details class="panel" id="panelExtra">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">📑</span>
+                            <span>الأقسام الإضافية</span>
+                            <span class="panel-summary-sub">Services · Pricing · Reviews · Gallery · FAQ</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="subpanel"><h3>Services</h3><div class="grid" id="servicesBuilderFields"></div></div>
+                            <div class="subpanel"><h3>Pricing</h3><div class="grid" id="pricingBuilderFields"></div></div>
+                            <div class="subpanel"><h3>Reviews</h3><div class="grid" id="testimonialsBuilderFields"></div></div>
+                            <div class="subpanel"><h3>Gallery</h3><div class="grid" id="galleryBuilderFields"></div></div>
+                            <div class="subpanel"><h3>FAQ</h3><div class="grid" id="faqBuilderFields"></div></div>
                         </div>
-                        <div class="project-form-actions">
-                            <button id="saveSongBtn" type="button" class="btn-primary">💾 حفظ الأغنية</button>
-                            <button id="cancelSongBtn" type="button" class="btn-ghost">إلغاء</button>
+                    </details>
+                </div>
+
+                <!-- ★ GROUP 2: التصميم -->
+                <div class="panel-group">
+                    <div class="panel-group-header">
+                        <span class="panel-group-icon">🎨</span>
+                        <span>التصميم والإعدادات</span>
+                    </div>
+
+                    <details class="panel" id="panelDesign">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🖌️</span>
+                            <span>الشكل والأقسام</span>
+                            <span class="panel-summary-sub">الألوان، الخطوط، إظهار الأقسام</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="subpanel">
+                                <h3>إظهار / إخفاء الأقسام</h3>
+                                <div class="grid" id="featureFields"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>الألوان والخطوط</h3>
+                                <div class="grid" id="designFields"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>نصوص الثيم — English</h3>
+                                <div class="grid" id="themeFieldsEn"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>نصوص الثيم — عربي</h3>
+                                <div class="grid" id="themeFieldsAr"></div>
+                            </div>
                         </div>
-                        <p id="songFormMsg" class="form-msg"></p>
+                    </details>
+
+                    <details class="panel" id="panelAssets">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🖼️</span>
+                            <span>الصور والمشاركة</span>
+                            <span class="panel-summary-sub">صورة البروفايل، OG image، Share</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="subpanel">
+                                <h3>ملفات وأيقونات</h3>
+                                <div class="grid" id="assetFields"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>رفع سريع للصور</h3>
+                                <div class="grid">
+                                    <label>رفع صورة البروفايل<input id="profileUpload" type="file" accept="image/*"></label>
+                                    <label>رفع صورة المشاركة<input id="previewUpload" type="file" accept="image/*"></label>
+                                </div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>صورة المشاركة</h3>
+                                <div class="grid" id="shareFields"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>نصوص المشاركة — English</h3>
+                                <div class="grid" id="shareTextFieldsEn"></div>
+                            </div>
+                            <div class="subpanel">
+                                <h3>نصوص المشاركة — عربي</h3>
+                                <div class="grid" id="shareTextFieldsAr"></div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="panelSeo">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🔍</span>
+                            <span>SEO والنظام</span>
+                            <span class="panel-summary-sub">Meta tags، Analytics، رسائل التنبيه</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="subpanel"><h3>SEO وتحليلات</h3><div class="grid" id="analyticsFields"></div></div>
+                            <div class="subpanel"><h3>Meta — English</h3><div class="grid" id="metaFieldsEn"></div></div>
+                            <div class="subpanel"><h3>Meta — عربي</h3><div class="grid" id="metaFieldsAr"></div></div>
+                            <div class="subpanel"><h3>رسائل التنبيه — English</h3><div class="grid" id="toastFieldsEn"></div></div>
+                            <div class="subpanel"><h3>رسائل التنبيه — عربي</h3><div class="grid" id="toastFieldsAr"></div></div>
+                            <div class="subpanel"><h3>ARIA — English</h3><div class="grid" id="ariaFieldsEn"></div></div>
+                            <div class="subpanel"><h3>ARIA — عربي</h3><div class="grid" id="ariaFieldsAr"></div></div>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- ★ GROUP 3: البيكاند -->
+                <div class="panel-group">
+                    <div class="panel-group-header">
+                        <span class="panel-group-icon">🗄️</span>
+                        <span>البيانات من السيرفر</span>
                     </div>
 
-                    <!-- قائمة الأغاني -->
-                    <div id="songsList">
-                        <p class="projects-hint">اضغط "تحميل الأغاني" لعرض الأغاني الحالية من السيرفر.</p>
+                    <details class="panel" id="botPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🤖</span>
+                            <span>Bot المحادثة الذكي</span>
+                            <span class="panel-summary-sub">شجرة الأسئلة، بيانات الزوار</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="bot-tabs">
+                                <button class="bot-tab active" data-tab="questions">🌳 شجرة الأسئلة</button>
+                                <button class="bot-tab" data-tab="leads">👥 زوار Bot</button>
+                            </div>
+                            <div class="bot-tab-content" id="botTabQuestions">
+                                <div class="projects-toolbar">
+                                    <button id="botAddRootBtn" class="btn-primary">+ سؤال Root جديد</button>
+                                    <button id="botSeedBtn" class="btn-ghost">🌱 بذر الافتراضية</button>
+                                    <button id="botRefreshQBtn" class="btn-secondary">🔄 تحديث</button>
+                                </div>
+                                <div id="botQuestionsList"><p class="projects-hint">جارٍ التحميل...</p></div>
+                            </div>
+                            <div class="bot-tab-content" id="botTabLeads" hidden>
+                                <div class="projects-toolbar">
+                                    <button id="botRefreshLeadsBtn" class="btn-secondary">🔄 تحديث</button>
+                                    <button id="botDeleteAllLeadsBtn" class="btn-danger">🗑 مسح كل البيانات</button>
+                                </div>
+                                <div id="botLeadsList"><p class="projects-hint">اضغط تحديث.</p></div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="projectsPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">📦</span>
+                            <span>المشاريع</span>
+                            <span class="panel-summary-sub">إضافة وتعديل وحذف المشاريع</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="projects-toolbar">
+                                <button id="loadProjectsBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
+                                <button id="addProjectBtn" type="button" class="btn-primary"><span>+</span> مشروع جديد</button>
+                            </div>
+                            <div class="project-form" id="projectForm" hidden>
+                                <h3 id="projectFormTitle">مشروع جديد</h3>
+                                <input type="hidden" id="projectId">
+                                <div class="project-form-grid">
+                                    <label>البانر (WEB، APP...)<input type="text" id="pBanner" placeholder="WEB" maxlength="20"></label>
+                                    <label>العنوان — English<input type="text" id="pTitleEn" placeholder="Project Title"></label>
+                                    <label>العنوان — عربي<input type="text" id="pTitleAr" placeholder="اسم المشروع"></label>
+                                    <label>الوصف — English<textarea id="pCopyEn" rows="3" placeholder="Project description..."></textarea></label>
+                                    <label>الوصف — عربي<textarea id="pCopyAr" rows="3" placeholder="وصف المشروع..."></textarea></label>
+                                    <label>التاجز (مفصولة بفاصلة)<input type="text" id="pTags" placeholder="Design, Dev"></label>
+                                    <label>رابط المشروع<input type="url" id="pLiveUrl" placeholder="https://..."></label>
+                                    <label>الترتيب<input type="number" id="pOrder" value="0" min="0"></label>
+                                    <label class="checkbox-label"><input type="checkbox" id="pVisible" checked> ظاهر على الموقع</label>
+                                </div>
+                                <div class="project-form-actions">
+                                    <button id="saveProjectBtn" type="button" class="btn-primary">💾 حفظ</button>
+                                    <button id="cancelProjectBtn" type="button" class="btn-ghost">إلغاء</button>
+                                </div>
+                                <p id="projectFormMsg" class="form-msg"></p>
+                            </div>
+                            <div id="projectsList"><p class="projects-hint">اضغط "تحميل" لعرض المشاريع.</p></div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="songsPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🎵</span>
+                            <span>الأغاني المفضلة</span>
+                            <span class="panel-summary-sub">Spotify · YouTube · Cover</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="projects-toolbar">
+                                <button id="loadSongsBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
+                                <button id="addSongBtn" type="button" class="btn-primary"><span>+</span> أغنية جديدة</button>
+                            </div>
+                            <div class="project-form" id="songForm" hidden>
+                                <h3 id="songFormTitle">أغنية جديدة</h3>
+                                <input type="hidden" id="songId">
+                                <div class="project-form-grid">
+                                    <label>اسم الأغنية *<input type="text" id="sTitle" placeholder="Song Title" maxlength="100"></label>
+                                    <label>الفنان *<input type="text" id="sArtist" placeholder="Artist Name" maxlength="100"></label>
+                                    <label>وصف قصير<textarea id="sDesc" rows="2" placeholder="ليه بتحبها..." maxlength="300"></textarea></label>
+                                    <label>رابط Spotify<input type="url" id="sSpotify" placeholder="https://open.spotify.com/track/..."></label>
+                                    <label>رابط YouTube<input type="url" id="sYoutube" placeholder="https://youtube.com/watch?v=..."></label>
+                                    <label>رابط صورة الغلاف<input type="url" id="sCover" placeholder="https://i.scdn.co/image/..."></label>
+                                    <label>المزاج
+                                        <select id="sMood">
+                                            <option value="vibe">🎵 Vibe</option>
+                                            <option value="chill">🧊 Chill</option>
+                                            <option value="hype">🔥 Hype</option>
+                                            <option value="sad">🌧️ Sad</option>
+                                            <option value="focus">⚡ Focus</option>
+                                        </select>
+                                    </label>
+                                    <label>الترتيب<input type="number" id="sOrder" value="0" min="0"></label>
+                                    <label class="checkbox-label"><input type="checkbox" id="sVisible" checked> ظاهر على الموقع</label>
+                                </div>
+                                <div class="project-form-actions">
+                                    <button id="saveSongBtn" type="button" class="btn-primary">💾 حفظ</button>
+                                    <button id="cancelSongBtn" type="button" class="btn-ghost">إلغاء</button>
+                                </div>
+                                <p id="songFormMsg" class="form-msg"></p>
+                            </div>
+                            <div id="songsList"><p class="projects-hint">اضغط "تحميل" لعرض الأغاني.</p></div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="analyticsPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">📊</span>
+                            <span>تحليلات الزوار</span>
+                            <span class="panel-summary-sub">أجهزة · أقسام · جدول الزيارات</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="analytics-counts">
+                                <div class="stat-card"><span class="stat-num" id="statTotal">—</span><span class="stat-label">الإجمالي</span></div>
+                                <div class="stat-card"><span class="stat-num" id="statToday">—</span><span class="stat-label">اليوم</span></div>
+                                <div class="stat-card"><span class="stat-num" id="statWeek">—</span><span class="stat-label">الأسبوع</span></div>
+                                <div class="stat-card"><span class="stat-num" id="statMonth">—</span><span class="stat-label">الشهر</span></div>
+                                <div class="stat-card"><span class="stat-num" id="statAvgTime">—</span><span class="stat-label">متوسط الجلسة</span></div>
+                            </div>
+                            <div class="analytics-grid">
+                                <div class="analytics-col"><h3>📱 الأجهزة</h3><div id="deviceStats" class="stats-list"></div></div>
+                                <div class="analytics-col"><h3>👁 أكثر الأقسام</h3><div id="sectionStats" class="stats-list"></div></div>
+                                <div class="analytics-col"><h3>🖱 أكثر المشاريع</h3><div id="projectStats" class="stats-list"></div></div>
+                            </div>
+                            <div class="analytics-visitors">
+                                <div class="analytics-visitors-header">
+                                    <h3>🕐 آخر الزوار</h3>
+                                    <button id="refreshAnalyticsBtn" class="btn-secondary btn-sm">🔄 تحديث</button>
+                                </div>
+                                <div id="visitorsList"><p class="projects-hint">اضغط تحديث.</p></div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- ★ GROUP 4: متقدم -->
+                <div class="panel-group">
+                    <div class="panel-group-header">
+                        <span class="panel-group-icon">⚙️</span>
+                        <span>متقدم</span>
                     </div>
-                </section>
 
+                    <details class="panel" id="panelJson">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">{ }</span>
+                            <span>محرر JSON</span>
+                            <span class="panel-summary-sub">تعديل مباشر على البيانات الكاملة</span>
+                        </summary>
+                        <div class="panel-body">
+                            <label class="full-width">
+                                JSON كامل
+                                <textarea id="fullJson" rows="14" spellcheck="false"></textarea>
+                            </label>
+                            <div class="actions">
+                                <button id="loadFullBtn" type="button">تطبيق JSON</button>
+                                <button id="copyFullBtn" type="button">نسخ JSON</button>
+                            </div>
+                            <p id="msg" role="status" aria-live="polite"></p>
+                        </div>
+                    </details>
+                </div>
 
-                    <label class="full-width">
-                        JSON كامل
-                        <textarea id="fullJson" rows="14" spellcheck="false"></textarea>
-                    </label>
-                    <div class="actions">
-                        <button id="loadFullBtn" type="button">تطبيق JSON الكامل</button>
-                        <button id="copyFullBtn" type="button">نسخ JSON</button>
-                    </div>
-                    <p id="msg" role="status" aria-live="polite"></p>
-                </section>
-            </div>
+            </div><!-- /editor-column -->
 
-            <aside class="preview-column" aria-label="معاينة أماكن التعديل">
+            <!-- ── LIVE PREVIEW COLUMN ────────────────────────── -->
+            <aside class="preview-column" id="previewColumn" aria-label="معاينة الموقع الحي">
                 <div class="preview-sticky">
                     <div class="preview-toolbar">
-                        <div>
-                            <p class="kicker">Live Map</p>
-                            <h2>مكان التعديل في الموقع</h2>
+                        <div class="preview-toolbar-info">
+                            <p class="kicker">Live Preview</p>
+                            <h2 id="previewSectionTitle">المعاينة الحية</h2>
                         </div>
-                        <span id="previewLangBadge">EN</span>
+                        <div class="preview-toolbar-actions">
+                            <span id="previewLangBadge">EN</span>
+                            <button class="preview-refresh-btn" id="previewRefreshBtn" title="تحديث المعاينة">🔄</button>
+                        </div>
                     </div>
                     <div class="preview-device">
-                        <div class="preview-device-bar" aria-hidden="true">
-                            <span></span>
+                        <div class="preview-device-bar" aria-hidden="true"><span></span></div>
+                        <div class="live-preview-wrap">
+                            <iframe
+                                id="livePreviewFrame"
+                                src="index.html"
+                                title="Live site preview"
+                                loading="lazy"
+                                sandbox="allow-same-origin allow-scripts allow-forms"
+                            ></iframe>
+                            <div class="preview-click-hint" id="previewClickHint">
+                                اضغط على أي عنصر في الموقع للانتقال لمكان تعديله
+                            </div>
                         </div>
-                        <div class="site-preview" id="adminPreview"></div>
                     </div>
                 </div>
             </aside>
-        </div>
+
+        </div><!-- /admin-workspace -->
     </main>
 
     <script src="content.js?v=18"></script>
     <script src="api.js?v=19"></script>
-    <script src="admin.js?v=18"></script>
+    <script src="admin.js?v=19"></script>
 </body>
 </html>

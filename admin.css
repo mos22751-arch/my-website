@@ -1958,3 +1958,266 @@ code {
     margin: 0;
 }
 
+
+
+/* ============================================================
+   NEW ADMIN LAYOUT — Groups + Collapsible Panels + iframe
+   ============================================================ */
+
+/* Workspace splits */
+.admin-workspace {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    min-height: calc(100vh - 120px);
+    transition: grid-template-columns 0.35s cubic-bezier(0.23,1,0.32,1);
+}
+
+.admin-workspace.preview-open {
+    grid-template-columns: 1fr 420px;
+}
+
+/* Panel Groups */
+.panel-group {
+    margin-bottom: 8px;
+}
+
+.panel-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    margin-bottom: 6px;
+    margin-top: 18px;
+}
+
+.panel-group-icon { font-size: 0.85rem; opacity: 0.7; }
+
+/* Collapsible panels — details/summary */
+.panel {
+    margin-bottom: 6px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    overflow: hidden;
+}
+
+.panel[open] { border-color: rgba(57,208,255,0.2); }
+
+.panel-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 16px;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    transition: background 0.18s;
+}
+
+.panel-summary::-webkit-details-marker { display: none; }
+.panel-summary::marker { display: none; }
+
+.panel-summary:hover { background: rgba(255,255,255,0.04); }
+.panel[open] .panel-summary { border-bottom: 1px solid rgba(255,255,255,0.06); }
+
+.panel-summary-icon {
+    font-size: 1rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(57,208,255,0.1);
+    border: 1px solid rgba(57,208,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.panel-summary > span:nth-child(2) {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--fg);
+    flex: 1;
+}
+
+.panel-summary-sub {
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 220px;
+}
+
+/* Collapse arrow */
+.panel-summary::after {
+    content: '›';
+    font-size: 1.1rem;
+    color: var(--muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+.panel[open] .panel-summary::after { transform: rotate(90deg); }
+
+.panel-body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ── Live Preview Sidebar ─────────────────────────────── */
+.preview-column {
+    display: none;
+    border-right: 1px solid var(--border);
+    background: rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+.admin-workspace.preview-open .preview-column { display: block; }
+
+.preview-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.4);
+    flex-shrink: 0;
+}
+
+.preview-toolbar-info .kicker {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0;
+}
+
+.preview-toolbar-info h2 {
+    font-size: 0.82rem;
+    margin: 0;
+    color: var(--fg);
+}
+
+.preview-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.preview-refresh-btn {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: background 0.15s, color 0.15s;
+}
+.preview-refresh-btn:hover { background: rgba(255,255,255,0.08); color: var(--fg); }
+
+.preview-device {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 10px;
+    gap: 8px;
+}
+
+.preview-device-bar {
+    height: 24px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px 8px 0 0;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-bottom: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.preview-device-bar span {
+    width: 48px; height: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.1);
+}
+
+.live-preview-wrap {
+    flex: 1;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    background: #000;
+}
+
+.live-preview-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    transform-origin: top left;
+}
+
+/* Click hint overlay */
+.preview-click-hint {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    padding: 8px 12px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+/* Highlight flash when field is found */
+.panel-highlight {
+    animation: panelFlash 1.5s ease;
+}
+@keyframes panelFlash {
+    0%,100% { border-color: var(--border); }
+    30%      { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(57,208,255,0.15); }
+}
+
+.field-highlight label,
+.field-highlight input,
+.field-highlight textarea {
+    animation: fieldFlash 1.5s ease;
+}
+@keyframes fieldFlash {
+    0%,100% { background: transparent; }
+    30%      { background: rgba(57,208,255,0.1); }
+}
+
+/* Mobile: hide preview */
+@media (max-width: 900px) {
+    .admin-workspace.preview-open {
+        grid-template-columns: 1fr;
+    }
+    .admin-workspace.preview-open .preview-column { display: none; }
+    .panel-summary-sub { display: none; }
+}

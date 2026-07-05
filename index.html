@@ -557,4 +557,18 @@
         </div>
     </div>
 
+
+    <!-- Admin preview click tracking -->
+    <script>
+    (function() {
+        if (window.self === window.top) return; // not in iframe
+        // Mark as preview mode
+        document.documentElement.dataset.adminPreview = '1';
+        // Disable service worker in preview
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+        }
+    })();
+    </script>
+
 </body></html>

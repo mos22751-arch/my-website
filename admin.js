@@ -1782,6 +1782,142 @@ Do not resell the customized public version as a separate template unless your s
     // ============================================================
 
     // --- حالة الاتصال بالسيرفر ---
+    // ============================================================
+    // 👁 LIVE PREVIEW — iframe + toggle + click-to-edit
+    // ============================================================
+
+    const workspace       = document.getElementById('adminWorkspace');
+    const previewFrame    = document.getElementById('livePreviewFrame');
+    const togglePreviewBtn= document.getElementById('togglePreviewBtn');
+    const previewRefreshBtn=document.getElementById('previewRefreshBtn');
+    const clickHint       = document.getElementById('previewClickHint');
+    const previewTitle    = document.getElementById('previewSectionTitle');
+
+    // Map: section IDs on the site → admin panel ID + panel element
+    const sectionToPanel = {
+        'home':             { panelId: 'panelHero',     label: 'Hero — الصفحة الرئيسية' },
+        'expertise':        { panelId: 'panelAbout',    label: 'About' },
+        'work':             { panelId: 'panelWork',     label: 'Work — الأعمال' },
+        'projects':         { panelId: 'projectsPanel', label: 'المشاريع' },
+        'wip':              { panelId: 'analyticsPanel', label: 'البيانات' },
+        'songs':            { panelId: 'songsPanel',    label: 'الأغاني المفضلة' },
+        'connect':          { panelId: 'panelLinks',    label: 'Links — التواصل' },
+        'quickMessageForm': { panelId: 'panelForm',     label: 'فورم واتساب' },
+        'themePanel':       { panelId: 'panelDesign',   label: 'الشكل والأقسام' },
+        'faq':              { panelId: 'panelExtra',    label: 'الأقسام الإضافية' },
+        'services':         { panelId: 'panelExtra',    label: 'الأقسام الإضافية' },
+        'pricing':          { panelId: 'panelExtra',    label: 'الأقسام الإضافية' },
+    };
+
+    // Toggle preview open/close
+    let previewOpen = false;
+    function setPreview(open) {
+        previewOpen = open;
+        workspace.classList.toggle('preview-open', open);
+        if (togglePreviewBtn) {
+            togglePreviewBtn.innerHTML = open
+                ? '<span class="btn-icon">✕</span> إغلاق المعاينة'
+                : '<span class="btn-icon">👁</span> معاينة';
+        }
+        if (open && previewFrame && !previewFrame.src.includes('index.html')) {
+            previewFrame.src = 'index.html';
+        }
+    }
+
+    if (togglePreviewBtn) {
+        togglePreviewBtn.addEventListener('click', () => setPreview(!previewOpen));
+    }
+
+    if (previewRefreshBtn && previewFrame) {
+        previewRefreshBtn.addEventListener('click', () => {
+            previewFrame.src = previewFrame.src;
+        });
+    }
+
+    // ── Click-to-edit via postMessage ──────────────────────────
+    // لما الـ iframe يتحمّل، نحقن script فيه يبعت postMessage لما يضغط على أي section
+    if (previewFrame) {
+        previewFrame.addEventListener('load', () => {
+            try {
+                const iframeDoc = previewFrame.contentDocument;
+                if (!iframeDoc) return;
+
+                // Inject click tracker into iframe
+                const script = iframeDoc.createElement('script');
+                script.textContent = `
+                    (function() {
+                        if (window.__adminTracker) return;
+                        window.__adminTracker = true;
+
+                        // Add visual cursor hint to sections
+                        document.querySelectorAll('section[id]').forEach(function(sec) {
+                            sec.style.cursor = 'crosshair';
+                            sec.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                window.parent.postMessage({
+                                    type: 'toji-section-click',
+                                    sectionId: sec.id,
+                                    tag: e.target.tagName,
+                                    text: (e.target.textContent || '').slice(0, 60)
+                                }, '*');
+                            }, true);
+                        });
+
+                        // Prevent actual navigation in preview
+                        document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+                            a.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                var targetId = a.getAttribute('href').slice(1);
+                                window.parent.postMessage({
+                                    type: 'toji-section-click',
+                                    sectionId: targetId
+                                }, '*');
+                            });
+                        });
+                    })();
+                `;
+                iframeDoc.head.appendChild(script);
+                if (clickHint) clickHint.style.opacity = '1';
+            } catch (err) {
+                console.warn('[Admin] Cannot inject into iframe:', err.message);
+            }
+        });
+
+        // Receive section clicks from iframe
+        window.addEventListener('message', (e) => {
+            if (e.data?.type !== 'toji-section-click') return;
+            const sectionId = e.data.sectionId;
+            const mapping   = sectionToPanel[sectionId];
+            if (!mapping) return;
+
+            // Update title
+            if (previewTitle) previewTitle.textContent = mapping.label;
+
+            // Find the panel
+            const targetPanel = document.getElementById(mapping.panelId);
+            if (!targetPanel) return;
+
+            // Open the panel if it's a details element
+            if (targetPanel.tagName === 'DETAILS') targetPanel.open = true;
+
+            // Scroll to it smoothly
+            targetPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Flash highlight
+            targetPanel.classList.remove('panel-highlight');
+            void targetPanel.offsetWidth;
+            targetPanel.classList.add('panel-highlight');
+
+            setTimeout(() => targetPanel.classList.remove('panel-highlight'), 1600);
+
+            // Hide hint after first use
+            if (clickHint) {
+                clickHint.style.opacity = '0';
+                setTimeout(() => clickHint.remove(), 400);
+            }
+        });
+    }
+
     async function checkServerStatus() {
         const dot  = el('statusDot');
         const text = el('statusText');
