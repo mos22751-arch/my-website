@@ -1238,8 +1238,6 @@
         if (brandName) brandName.textContent = nickname;
         const brandLink = doc.querySelector('.brand');
         if (brandLink) brandLink.setAttribute('aria-label', `${nickname} home`);
-        const loaderBrand = doc.getElementById('loaderBrand');
-        if (loaderBrand) loaderBrand.textContent = profile.loaderMark || nickname;
         const profileCardName = doc.getElementById('profileCardName');
         if (profileCardName) profileCardName.textContent = nickname;
         const profilePhoto = doc.getElementById('profilePhoto');
@@ -2080,6 +2078,7 @@ Do not resell the customized public version as a separate template unless your s
 
             list.innerHTML = projects.map((p) => `
                 <div class="project-card" data-id="${p._id}">
+                    ${p.imageUrl ? `<div class="project-card-thumb"><img src="${p.imageUrl}" alt="${p.title?.en || ''}"></div>` : ''}
                     <div class="project-card-header">
                         <span class="project-badge">${p.banner}</span>
                         <div class="project-card-title">
@@ -2111,11 +2110,70 @@ Do not resell the customized public version as a separate template unless your s
         }
     }
 
+    // --- عرض معاينة الصورة ---
+    function renderProjectImagePreview(url) {
+        const preview = el('projectImagePreview');
+        const removeBtn = el('removeProjectImageBtn');
+        if (url) {
+            preview.innerHTML = `<img src="${url}" alt="معاينة المشروع">`;
+            removeBtn.hidden = false;
+        } else {
+            preview.innerHTML = '<span class="project-image-placeholder">🖼️ لا توجد صورة</span>';
+            removeBtn.hidden = true;
+        }
+    }
+
+    // --- رفع صورة على Cloudinary عبر الباك اند ---
+    el('pImageFile').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const statusEl = el('projectImageStatus');
+        statusEl.textContent = '⏳ جارٍ رفع الصورة...';
+        statusEl.className = 'project-image-status';
+
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const token = window.TojiAPI.TokenManager.get();
+            const res = await fetch(`${window.TojiAPI.API_BASE_URL}/upload/image`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(data.message || 'فشل رفع الصورة');
+            }
+
+            el('pImageUrl').value = data.url;
+            renderProjectImagePreview(data.url);
+            statusEl.textContent = '✅ تم رفع الصورة بنجاح.';
+            statusEl.className = 'project-image-status success';
+        } catch (err) {
+            statusEl.textContent = '❌ ' + err.message;
+            statusEl.className = 'project-image-status error';
+        } finally {
+            e.target.value = ''; // reset input عشان يقدر يرفع نفس الملف تاني لو عايز
+        }
+    });
+
+    el('removeProjectImageBtn').addEventListener('click', () => {
+        el('pImageUrl').value = '';
+        renderProjectImagePreview('');
+        el('projectImageStatus').textContent = '';
+    });
+
     // --- فتح فورم إضافة ---
     function openAddForm() {
         editingProjectId = null;
         el('projectFormTitle').textContent = 'مشروع جديد';
         el('projectId').value = '';
+        el('pImageUrl').value = '';
+        renderProjectImagePreview('');
+        el('projectImageStatus').textContent = '';
         el('pBanner').value = '';
         el('pTitleEn').value = '';
         el('pTitleAr').value = '';
@@ -2140,6 +2198,9 @@ Do not resell the customized public version as a separate template unless your s
             editingProjectId = id;
             el('projectFormTitle').textContent = 'تعديل المشروع';
             el('projectId').value = id;
+            el('pImageUrl').value = project.imageUrl || '';
+            renderProjectImagePreview(project.imageUrl || '');
+            el('projectImageStatus').textContent = '';
             el('pBanner').value = project.banner || '';
             el('pTitleEn').value = project.title?.en || '';
             el('pTitleAr').value = project.title?.ar || '';
@@ -2180,6 +2241,7 @@ Do not resell the customized public version as a separate template unless your s
             copy:  { en: copyEn,  ar: copyAr  },
             tags:  el('pTags').value.split(',').map((t) => t.trim()).filter(Boolean),
             liveUrl:   el('pLiveUrl').value.trim(),
+            imageUrl:  el('pImageUrl').value.trim(),
             order:     parseInt(el('pOrder').value) || 0,
             isVisible: el('pVisible').checked
         };

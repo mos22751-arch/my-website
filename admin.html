@@ -348,6 +348,20 @@
                             <div class="project-form" id="projectForm" hidden>
                                 <h3 id="projectFormTitle">مشروع جديد</h3>
                                 <input type="hidden" id="projectId">
+                                <input type="hidden" id="pImageUrl">
+                                <div class="project-image-upload">
+                                    <div class="project-image-preview" id="projectImagePreview">
+                                        <span class="project-image-placeholder">🖼️ لا توجد صورة</span>
+                                    </div>
+                                    <div class="project-image-actions">
+                                        <label class="btn-secondary btn-sm project-image-upload-btn">
+                                            📤 رفع صورة
+                                            <input type="file" id="pImageFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+                                        </label>
+                                        <button type="button" class="btn-danger btn-sm" id="removeProjectImageBtn" hidden>🗑 إزالة</button>
+                                    </div>
+                                    <p class="project-image-status" id="projectImageStatus"></p>
+                                </div>
                                 <div class="project-form-grid">
                                     <label>البانر (WEB، APP...)<input type="text" id="pBanner" placeholder="WEB" maxlength="20"></label>
                                     <label>العنوان — English<input type="text" id="pTitleEn" placeholder="Project Title"></label>

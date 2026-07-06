@@ -192,4 +192,4 @@ const BotAPI = {
     seed:          (force)      => apiFetch('/bot/seed',         { method: 'POST',  body: JSON.stringify({ force }) })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, BotAPI };
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, BotAPI, API_BASE_URL };

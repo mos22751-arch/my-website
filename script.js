@@ -48,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const brandName = document.getElementById('brandName');
     const profileCardName = document.getElementById('profileCardName');
     const profilePhoto = document.getElementById('profilePhoto');
-    const loaderBrand = document.getElementById('loaderBrand');
     const installApp = document.getElementById('installApp');
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const mobileViewport = window.matchMedia('(max-width: 720px)');
@@ -141,6 +140,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const profileNickname = profileConfig.nickname || 'TOJI';
     const profileImage = profileConfig.image || profilePlaceholderImage;
     const profileLoaderMark = profileConfig.loaderMark || profileNickname;
+
+    // ============================================================
+    // 🔤 Loader Letters — دايمًا تعكس اسم/علامة العميل من الأدمن (loaderMark)
+    // بيتبنى بأسرع وقت ممكن (فور ما النص يتحدد) عشان الأنيميشن يبدأ فورًا
+    // ============================================================
+    (function buildLoaderLetters() {
+        const mark = document.getElementById('loaderMark');
+        if (!mark) return;
+
+        // نص العلامة + نقطة اختيارية في الآخر، بحد أقصى معقول لعدد الحروف
+        const raw  = String(profileLoaderMark || 'TOJI').trim().slice(0, 10);
+        const word = /[.!؟?]$/.test(raw) ? raw : raw + '.';
+        const centerIndex = (word.length - 1) / 2;
+
+        mark.innerHTML = word.split('').map((ch, i) => {
+            // اتجاه عشوائي مختلف لكل حرف — يبعد عن مكانه النهائي بمسافة كبيرة
+            const angle    = (Math.random() * 360) * (Math.PI / 180);
+            const distance = 90 + Math.random() * 70; // بكسل
+            const dx = Math.round(Math.cos(angle) * distance);
+            const dy = Math.round(Math.sin(angle) * distance) - 20; // ميل بسيط لفوق
+            const rot   = Math.round((Math.random() - 0.5) * 140); // درجة دوران ابتدائية
+            const delay = Math.round(Math.abs(i - centerIndex) * 40 + Math.random() * 40); // ms
+
+            const isAccent = /[.!؟?]/.test(ch);
+            const label = ch === ' ' ? '&nbsp;' : ch;
+
+            return `<span class="loader-letter${isAccent ? ' is-accent' : ''}"
+                style="--dx:${dx}px; --dy:${dy}px; --rot:${rot}deg; --delay:${delay}ms"
+                aria-hidden="true">${label}</span>`;
+        }).join('');
+    })();
 
     function ensureOwnerCredit() {
         let credit = document.querySelector('[data-owner-credit]');
@@ -1083,11 +1113,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await window.TojiAPI.ProjectsAPI.getPublic();
             if (response && Array.isArray(response.data) && response.data.length > 0) {
                 const apiCards = response.data.map((p) => ({
-                    banner:  p.banner,
-                    title:   p.title,
-                    copy:    p.copy,
-                    tags:    p.tags || [],
-                    liveUrl: p.liveUrl || ''
+                    banner:   p.banner,
+                    title:    p.title,
+                    copy:     p.copy,
+                    tags:     p.tags || [],
+                    liveUrl:  p.liveUrl || '',
+                    imageUrl: p.imageUrl || ''
                 }));
                 // ✅ Projects section فقط — Work section مبيتأثرش
                 renderProjectsSection(apiCards);
@@ -1124,9 +1155,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const link  = card.liveUrl
                 ? `<a href="${card.liveUrl}" target="_blank" rel="noreferrer" class="live-project-link">View Project →</a>`
                 : '';
+
+            // ✅ لو عندها صورة مرفوعة من الأدمن، اعرضها فوق الكارت بدل صندوق البانر النصي
+            const media = card.imageUrl
+                ? `<div class="live-project-media">
+                       <img src="${card.imageUrl}" alt="${title}" loading="lazy">
+                       <span class="live-project-banner live-project-banner-overlay">${card.banner || String(i+1).padStart(2,'0')}</span>
+                   </div>`
+                : `<span class="live-project-banner">${card.banner || String(i+1).padStart(2,'0')}</span>`;
+
             return `
-                <article class="live-project-card reveal-up ${i ? `delay-${Math.min(i, 3)}` : ''}">
-                    <span class="live-project-banner">${card.banner || String(i+1).padStart(2,'0')}</span>
+                <article class="live-project-card ${card.imageUrl ? 'has-media' : ''} reveal-up ${i ? `delay-${Math.min(i, 3)}` : ''}">
+                    ${media}
                     <h3>${title}</h3>
                     <p>${copy}</p>
                     <div class="live-project-tags">${tags}</div>
@@ -1412,7 +1452,6 @@ document.addEventListener('DOMContentLoaded', () => {
             profilePhoto.src = profileImage;
             profilePhoto.alt = profileNickname;
         }
-        if (loaderBrand) loaderBrand.textContent = profileLoaderMark;
         if (qrFallback) qrFallback.textContent = profileNickname;
         document.querySelector('.brand')?.setAttribute('aria-label', `${profileNickname} home`);
     }
@@ -1451,6 +1490,17 @@ document.addEventListener('DOMContentLoaded', () => {
         graphite: () => ({ primary: '#e5e7eb', accent: '#39d0ff', mint: '#ff7a3d', glow: 'rgba(229, 231, 235, 0.16)' })
     };
 
+    // ✅ نسخة فاتحة من كل الثيمات — ألوان أغمق وأعلى تباين تصلح فوق خلفية فاتحة
+    const presetTokensLight = {
+        neon:     () => ({ primary: '#0077b6', accent: '#d85f2a', mint: '#07845d', glow: 'rgba(0, 119, 182, 0.18)' }),
+        midnight: () => ({ primary: '#0369a1', accent: '#7c3aed', mint: '#047857', glow: 'rgba(3, 105, 161, 0.16)' }),
+        emerald:  () => ({ primary: '#047857', accent: '#b45309', mint: '#0369a1', glow: 'rgba(4, 120, 87, 0.16)' }),
+        sunset:   () => ({ primary: '#c2410c', accent: '#be123c', mint: '#0369a1', glow: 'rgba(194, 65, 12, 0.16)' }),
+        aurora:   () => ({ primary: '#0e7490', accent: '#7e22ce', mint: '#047857', glow: 'rgba(14, 116, 144, 0.16)' }),
+        royal:    () => ({ primary: '#a16207', accent: '#6d28d9', mint: '#047857', glow: 'rgba(161, 98, 7, 0.16)' }),
+        graphite: () => ({ primary: '#374151', accent: '#0e7490', mint: '#c2410c', glow: 'rgba(55, 65, 81, 0.14)' })
+    };
+
     const accentTokens = {
         orange: { primary: '#ff7a3d', accent: '#39d0ff', glow: 'rgba(255, 122, 61, 0.28)' },
         green: { primary: '#5ee2a0', accent: '#ff7a3d', glow: 'rgba(94, 226, 160, 0.28)' },
@@ -1458,14 +1508,27 @@ document.addEventListener('DOMContentLoaded', () => {
         gold: { primary: '#f6c95f', accent: '#39d0ff', glow: 'rgba(246, 201, 95, 0.26)' }
     };
 
+    // ✅ نفس الفكرة للـ accent swatches — نسخة أغمق تصلح فوق خلفية فاتحة
+    const accentTokensLight = {
+        orange: { primary: '#c2410c', accent: '#0369a1', glow: 'rgba(194, 65, 12, 0.16)' },
+        green:  { primary: '#047857', accent: '#c2410c', glow: 'rgba(4, 120, 87, 0.16)' },
+        violet: { primary: '#6d28d9', accent: '#0369a1', glow: 'rgba(109, 40, 217, 0.16)' },
+        gold:   { primary: '#a16207', accent: '#0369a1', glow: 'rgba(161, 98, 7, 0.14)' }
+    };
+
     function applyColorTokens(preset = 'neon', accent = 'cyan') {
-        const base = (presetTokens[preset] || presetTokens.neon)();
+        // ✅ اختار مجموعة الألوان المناسبة حسب الوضع الحالي (فاتح/غامق)
+        const isLight  = body.classList.contains('light-theme');
+        const presets  = isLight ? presetTokensLight : presetTokens;
+        const accents  = isLight ? accentTokensLight : accentTokens;
+
+        const base = (presets[preset] || presets.neon)();
         body.style.setProperty('--primary', base.primary);
         body.style.setProperty('--accent', base.accent);
         body.style.setProperty('--mint', base.mint);
         body.style.setProperty('--glow-color', base.glow);
 
-        const accentToken = accentTokens[accent];
+        const accentToken = accents[accent];
         if (accentToken) {
             body.style.setProperty('--primary', accentToken.primary);
             body.style.setProperty('--accent', accentToken.accent);
@@ -1633,6 +1696,12 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('toji_theme', theme);
         themeToggle?.setAttribute('aria-label', isLight ? t('theme.toDark') : t('theme.toLight'));
         document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isLight ? '#f7f5ef' : '#050506');
+
+        // ✅ إعادة تطبيق ألوان البريست/الأكسنت الحالية — عشان تتحول لنسخة تناسب
+        // الوضع الجديد (فاتح/غامق) بدل ما تفضل عالقة على ألوان الوضع القديم
+        const currentPreset = localStorage.getItem('toji_theme_preset') || 'neon';
+        const currentAccent = localStorage.getItem('toji_accent') || 'cyan';
+        applyColorTokens(currentPreset, currentAccent);
     }
 
     setTheme(localStorage.getItem('toji_theme') === 'light' ? 'light' : 'dark');
@@ -2592,11 +2661,15 @@ document.addEventListener('DOMContentLoaded', () => {
         playDockIntro();
     }
 
+    // ✅ الأنيميشن الجديد بياخد حوالي 1.9 ثانية (آخر حرف delay + مدة الحركة)
+    // فبنستنى المدة دي كاملة قبل ما نقفل شاشة التحميل عشان الحركة تتفرج عليها كاملة
+    const LOADER_MIN_DURATION = mobileViewport.matches ? 1650 : 1900;
+
     window.addEventListener('load', () => {
-        setTimeout(finishLoading, mobileViewport.matches ? 220 : 360);
+        setTimeout(finishLoading, LOADER_MIN_DURATION);
     }, { once: true });
 
-    setTimeout(finishLoading, 1200);
+    setTimeout(finishLoading, LOADER_MIN_DURATION + 600); // fallback لو load event اتأخر
 
     window.addEventListener('storage', (event) => {
         if (previewMode && event.key === 'toji_content_override') {

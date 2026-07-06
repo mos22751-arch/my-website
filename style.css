@@ -85,7 +85,7 @@ a:focus-visible {
     z-index: 5000;
     display: grid;
     place-items: center;
-    gap: 1rem;
+    gap: 1.1rem;
     align-content: center;
     background:
         radial-gradient(circle at 28% 24%, rgba(57, 208, 255, 0.18), transparent 24rem),
@@ -93,6 +93,7 @@ a:focus-visible {
         var(--bg-base);
     color: var(--text-main);
     transition: opacity 0.42s ease, visibility 0.42s ease;
+    overflow: hidden;
 }
 
 body:not(.is-loading) .page-loader {
@@ -101,13 +102,95 @@ body:not(.is-loading) .page-loader {
     pointer-events: none;
 }
 
+/* ============================================================
+   🔤 Loader letters — scatter → rush together → collide/bounce
+   → settle calmly. Each letter gets its own random --dx/--dy/--rot
+   via inline custom properties set by JS.
+   ============================================================ */
 .loader-mark {
+    position: relative;
+    display: flex;
     font-size: clamp(2.4rem, 8vw, 5rem);
     font-weight: 900;
+    line-height: 1;
 }
 
-.loader-mark span {
-    color: var(--accent);
+.loader-letter {
+    display: inline-block;
+    color: var(--text-main);
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.5);
+    animation: loaderLetterAssemble 1.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: var(--delay, 0s);
+    will-change: transform, opacity;
+}
+
+/* آخر حرف (النقطة) بلون الأكسنت */
+.loader-letter.is-accent { color: var(--accent); }
+
+@keyframes loaderLetterAssemble {
+    0% {
+        opacity: 0;
+        transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.5);
+    }
+    38% {
+        opacity: 1;
+    }
+    /* اللحظة اللي بتقرب فيها الحروف من بعض قوي - شبه هتتخبط */
+    48% {
+        transform: translate(calc(var(--dx) * 0.06), calc(var(--dy) * 0.06))
+                   rotate(calc(var(--rot) * 0.12)) scale(1.14);
+    }
+    /* الخبطة — بترتد الحروف لبرة تاني بهزة خفيفة */
+    58% {
+        transform: translate(calc(var(--dx) * -0.09), calc(var(--dy) * -0.07))
+                   rotate(calc(var(--rot) * -0.16)) scale(0.9);
+    }
+    /* بترجع تتجمع بهدوء بعد الارتداد */
+    72% {
+        transform: translate(calc(var(--dx) * 0.03), calc(var(--dy) * 0.025))
+                   rotate(calc(var(--rot) * 0.05)) scale(1.035);
+    }
+    86% {
+        transform: translate(calc(var(--dx) * -0.008), calc(var(--dy) * -0.006))
+                   rotate(calc(var(--rot) * -0.012)) scale(0.99);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0deg) scale(1);
+    }
+}
+
+/* نبضة ضوء خفيفة في لحظة "الاصطدام" بتضيف إحساس بالتأثير */
+.loader-impact {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--primary), transparent 70%);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+    animation: loaderImpactPulse 1.5s ease-out both;
+    animation-delay: 0.62s;
+    pointer-events: none;
+}
+
+@keyframes loaderImpactPulse {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    8%   { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+    35%  { opacity: 0; transform: translate(-50%, -50%) scale(14); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(14); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .loader-letter {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+    .loader-impact { display: none; }
 }
 
 .loader-line {
@@ -116,6 +199,14 @@ body:not(.is-loading) .page-loader {
     overflow: hidden;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    animation: loaderLineIn 0.5s ease forwards;
+    animation-delay: 1.15s;
+}
+
+@keyframes loaderLineIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .loader-line::after {
@@ -1351,7 +1442,9 @@ body.accent-gold {
     --glow-color: rgba(246, 201, 95, 0.26);
 }
 
-body.preset-midnight {
+/* ✅ :not(.light-theme) — البريستس دول بتحدد خلفية غامقة، تتطبق بس في الوضع الغامق
+   وتسيب متغيرات .light-theme (الخلفية الفاتحة) زي ما هي لو الوضع فاتح */
+body.preset-midnight:not(.light-theme) {
     --primary: #8bd3ff;
     --accent: #c8a7ff;
     --mint: #7ef0c1;
@@ -1363,7 +1456,7 @@ body.preset-midnight {
     --glow-color: rgba(139, 211, 255, 0.22);
 }
 
-body.preset-emerald {
+body.preset-emerald:not(.light-theme) {
     --primary: #5ee2a0;
     --accent: #f7c948;
     --mint: #39d0ff;
@@ -1375,7 +1468,7 @@ body.preset-emerald {
     --glow-color: rgba(94, 226, 160, 0.24);
 }
 
-body.preset-sunset {
+body.preset-sunset:not(.light-theme) {
     --primary: #ff9f43;
     --accent: #ff5f7e;
     --mint: #39d0ff;
@@ -1387,7 +1480,7 @@ body.preset-sunset {
     --glow-color: rgba(255, 122, 61, 0.26);
 }
 
-body.preset-aurora {
+body.preset-aurora:not(.light-theme) {
     --primary: #7dd3fc;
     --accent: #d8b4fe;
     --mint: #86efac;
@@ -1399,7 +1492,7 @@ body.preset-aurora {
     --glow-color: rgba(125, 211, 252, 0.23);
 }
 
-body.preset-royal {
+body.preset-royal:not(.light-theme) {
     --primary: #f6c95f;
     --accent: #a78bfa;
     --mint: #5ee2a0;
@@ -1411,7 +1504,7 @@ body.preset-royal {
     --glow-color: rgba(246, 201, 95, 0.22);
 }
 
-body.preset-graphite {
+body.preset-graphite:not(.light-theme) {
     --primary: #e5e7eb;
     --accent: #39d0ff;
     --mint: #ff7a3d;
@@ -1421,6 +1514,82 @@ body.preset-graphite {
     --glass-strong: rgba(229, 231, 235, 0.11);
     --glass-border: rgba(229, 231, 235, 0.16);
     --glow-color: rgba(229, 231, 235, 0.16);
+}
+
+/* ============================================================
+   ✅ نسخ الوضع الفاتح من نفس البريستس — خلفيات فاتحة بلمسة لون
+   مميزة لكل بريست، وألوان primary/accent أغمق عشان التباين يفضل واضح
+   ============================================================ */
+body.light-theme.preset-midnight {
+    --primary: #0369a1;
+    --accent: #7c3aed;
+    --mint: #047857;
+    --bg-base: #eef4fb;
+    --bg-soft: #ffffff;
+    --glass-bg: rgba(3, 105, 161, 0.06);
+    --glass-strong: rgba(3, 105, 161, 0.1);
+    --glass-border: rgba(3, 105, 161, 0.16);
+    --glow-color: rgba(3, 105, 161, 0.14);
+}
+
+body.light-theme.preset-emerald {
+    --primary: #047857;
+    --accent: #b45309;
+    --mint: #0369a1;
+    --bg-base: #eef8f3;
+    --bg-soft: #ffffff;
+    --glass-bg: rgba(4, 120, 87, 0.06);
+    --glass-strong: rgba(4, 120, 87, 0.1);
+    --glass-border: rgba(4, 120, 87, 0.16);
+    --glow-color: rgba(4, 120, 87, 0.14);
+}
+
+body.light-theme.preset-sunset {
+    --primary: #c2410c;
+    --accent: #be123c;
+    --mint: #0369a1;
+    --bg-base: #fdf3ee;
+    --bg-soft: #ffffff;
+    --glass-bg: rgba(194, 65, 12, 0.06);
+    --glass-strong: rgba(194, 65, 12, 0.1);
+    --glass-border: rgba(194, 65, 12, 0.16);
+    --glow-color: rgba(194, 65, 12, 0.14);
+}
+
+body.light-theme.preset-aurora {
+    --primary: #0e7490;
+    --accent: #7e22ce;
+    --mint: #047857;
+    --bg-base: #eef8fa;
+    --bg-soft: #ffffff;
+    --glass-bg: rgba(14, 116, 144, 0.06);
+    --glass-strong: rgba(14, 116, 144, 0.1);
+    --glass-border: rgba(14, 116, 144, 0.16);
+    --glow-color: rgba(14, 116, 144, 0.14);
+}
+
+body.light-theme.preset-royal {
+    --primary: #a16207;
+    --accent: #6d28d9;
+    --mint: #047857;
+    --bg-base: #faf6ec;
+    --bg-soft: #ffffff;
+    --glass-bg: rgba(161, 98, 7, 0.06);
+    --glass-strong: rgba(161, 98, 7, 0.1);
+    --glass-border: rgba(161, 98, 7, 0.16);
+    --glow-color: rgba(161, 98, 7, 0.13);
+}
+
+body.light-theme.preset-graphite {
+    --primary: #374151;
+    --accent: #0e7490;
+    --mint: #c2410c;
+    --bg-base: #f5f5f6;
+    --bg-soft: #ffffff;
+    --glass-bg: rgba(55, 65, 81, 0.05);
+    --glass-strong: rgba(55, 65, 81, 0.09);
+    --glass-border: rgba(55, 65, 81, 0.14);
+    --glow-color: rgba(55, 65, 81, 0.1);
 }
 
 body.demo-personal {
