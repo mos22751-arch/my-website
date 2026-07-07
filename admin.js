@@ -84,10 +84,10 @@
                                 <span class="auth-method-arrow">←</span>
                             </button>
                             <button type="button" class="auth-method-btn" data-method="phone" id="methodPhoneBtn">
-                                <span class="auth-method-icon">📱</span>
+                                <span class="auth-method-icon">💬</span>
                                 <span class="auth-method-text">
-                                    <strong>عن طريق رسالة SMS</strong>
-                                    <small>هيوصلك كود على رقم الهاتف المسجل</small>
+                                    <strong>عن طريق واتساب</strong>
+                                    <small>هيوصلك كود على واتساب الرقم المسجل</small>
                                 </span>
                                 <span class="auth-method-arrow">←</span>
                             </button>
@@ -3297,6 +3297,34 @@ Do not resell the customized public version as a separate template unless your s
     el('botRefreshQBtn').addEventListener('click', loadBotQuestions);
 
     // ── Leads ──────────────────────────────────────────────────
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function renderConversationSummary(conversation) {
+        if (!conversation || !conversation.length) {
+            return '<p class="projects-hint">مفيش أسئلة اتسألت.</p>';
+        }
+        return `<ul class="lead-conversation-list">${conversation.map((step) => `
+            <li>
+                <span class="lead-conv-q">❓ ${escapeHtml(step.question)}</span>
+                <span class="lead-conv-a">↳ ${escapeHtml(step.answer)}</span>
+            </li>
+        `).join('')}</ul>`;
+    }
+
+    // ملخص سريع لآخر اهتمام أبداه الزائر — من غير ما تحتاج تدوس تفتح التفاصيل
+    function renderLeadQuickSummary(conversation) {
+        if (!conversation || !conversation.length) return '—';
+        const last = conversation[conversation.length - 1];
+        const preview = String(last?.answer || last?.question || '').trim();
+        if (!preview) return '—';
+        const truncated = preview.length > 40 ? preview.slice(0, 40) + '…' : preview;
+        return escapeHtml(truncated);
+    }
+
     async function loadBotLeads(page = 1) {
         const listEl = el('botLeadsList');
         listEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
@@ -3308,21 +3336,37 @@ Do not resell the customized public version as a separate template unless your s
             if (!leads.length) { listEl.innerHTML = '<p class="projects-hint">لا توجد بيانات زوار بعد.</p>'; return; }
 
             const rows = leads.map(l => `
-                <tr>
+                <tr class="lead-row" data-lead-row="${l._id}">
                     <td>${l.name || '—'}</td>
+                    <td><code>${l.ip || '—'}</code></td>
                     <td>${l.phone || '—'}</td>
                     <td>${l.language === 'ar' ? '🇦🇪' : '🇬🇧'}</td>
-                    <td>${(l.conversation||[]).length} خطوة</td>
+                    <td class="lead-quick-summary" title="${renderLeadQuickSummary(l.conversation)}">${renderLeadQuickSummary(l.conversation)}</td>
+                    <td>
+                        <button class="btn-secondary btn-sm" data-lead-toggle="${l._id}">
+                            👁 ${(l.conversation||[]).length} خطوة
+                        </button>
+                    </td>
                     <td>${new Date(l.createdAt).toLocaleString('ar-EG')}</td>
                     <td><button class="btn-danger btn-sm" data-lead-del="${l._id}">🗑</button></td>
+                </tr>
+                <tr class="lead-conv-row" id="leadConv_${l._id}" hidden>
+                    <td colspan="8">${renderConversationSummary(l.conversation)}</td>
                 </tr>`).join('');
 
             listEl.innerHTML = `
                 <table class="visitors-table">
-                    <thead><tr><th>الاسم</th><th>الموبايل</th><th>اللغة</th><th>المحادثة</th><th>التاريخ</th><th></th></tr></thead>
+                    <thead><tr><th>الاسم</th><th>IP</th><th>الموبايل</th><th>اللغة</th><th>آخر اهتمام</th><th>المحادثة</th><th>التاريخ</th><th></th></tr></thead>
                     <tbody>${rows}</tbody>
                 </table>
                 ${renderVisitorsPagination({ page: pagination.page, totalPages: pagination.totalPages, total: pagination.total })}`;
+
+            listEl.querySelectorAll('[data-lead-toggle]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const row = el('leadConv_' + btn.dataset.leadToggle);
+                    if (row) row.hidden = !row.hidden;
+                });
+            });
 
             listEl.querySelectorAll('[data-lead-del]').forEach(btn => {
                 btn.addEventListener('click', async () => {

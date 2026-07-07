@@ -2883,17 +2883,44 @@ window.addEventListener('beforeunload', () => {
         } catch {}
     }
 
-    // تحديث الجلسة عند المغادرة
-    function updateSession() {
-        if (!sessionData.visitId) return;
-        const body = JSON.stringify({
+    // تحديث الجلسة (بيانات الوقت + الأقسام + المشاريع)
+    // ✅ بنستخدم sendBeacon وقت الخروج (أضمن إنه يتبعت حتى لو الصفحة بتقفل)
+    //    وكمان بنعمل تحديث دوري كل 20 ثانية بـ fetch عادي، عشان لو
+    //    المتصفح (خصوصًا الموبايل) ملقاش فرصة يستدعي حدث الخروج أصلاً
+    function buildSessionBody() {
+        return JSON.stringify({
             sectionsViewed:  [...sessionData.sectionsViewed],
             projectsClicked: sessionData.projectsClicked,
             linksClicked:    sessionData.linksClicked,
             timeOnSite:      Math.round((Date.now() - sessionData.startTime) / 1000)
         });
-        // استخدام sendBeacon عشان يكمل حتى لو الصفحة بتقفل
-        navigator.sendBeacon(`${API}/visit/${sessionData.visitId}`, new Blob([body], { type: 'application/json' }));
+    }
+
+    function updateSession() {
+        if (!sessionData.visitId) return;
+        const body = buildSessionBody();
+        // ✅ مهم جدًا: لازم "text/plain" مش "application/json".
+        //    السبب: sendBeacon() لما بيبعت عبر نطاقات مختلفة (الفرونت إند
+        //    على Vercel والباك إند على Railway)، أي Content-Type "غير بسيط"
+        //    زي application/json بيحتاج CORS preflight (طلب OPTIONS الأول)،
+        //    لكن sendBeacon() مقدرش يعمل preflight أصلاً — فبراوزرات زي
+        //    Chrome كانت بتلغي الطلب بصمت من غير أي خطأ ظاهر في الكونسول.
+        //    ده كان السبب إن "الوقت على الصفحة" و"الأقسام" و"المشاريع"
+        //    كانوا دايمًا بيفضلوا فاضيين لأي زيارة قصيرة (تحت 20 ثانية).
+        //    text/plain من الأنواع "البسيطة" اللي مبيحتاجش preflight،
+        //    فالطلب بيتبعت فعليًا. الباك إند بيتعامل معاه كـ JSON برضو.
+        navigator.sendBeacon(`${API}/visit/${sessionData.visitId}`, new Blob([body], { type: 'text/plain' }));
+    }
+
+    // نسخة عادية بـ fetch (للتحديث الدوري وقت ما الصفحة لسه مفتوحة)
+    function syncSession() {
+        if (!sessionData.visitId) return;
+        fetch(`${API}/visit/${sessionData.visitId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: buildSessionBody(),
+            keepalive: true
+        }).catch(() => {});
     }
 
     // تتبع الأقسام بالـ IntersectionObserver
@@ -2927,9 +2954,14 @@ window.addEventListener('beforeunload', () => {
         await trackVisit();
         trackSections();
         trackClicks();
+        // تحديث دوري كل 20 ثانية — شبكة أمان لو الزائر ماقفلش التاب
+        // بطريقة عادية (زي تبديل التطبيقات على الموبايل)
+        setInterval(syncSession, 20000);
     }, 1000);
 
     window.addEventListener('beforeunload', updateSession);
+    // pagehide أضمن من beforeunload على أغلب متصفحات الموبايل (خصوصًا Safari)
+    window.addEventListener('pagehide', updateSession);
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') updateSession();
     });
