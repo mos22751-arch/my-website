@@ -15,53 +15,296 @@
     const _existingToken = _api?.TokenManager?.get?.();
 
     if (!_existingToken) {
-        // No token found → show login form connected to backend
+        // No token found → show the auth experience (login + forgot-password) connected to backend
+        renderAuthExperience(_api);
+        return;
+    }
+
+    // ============================================================
+    // Auth Experience — تسجيل الدخول + نسيت كلمة المرور
+    // شاشة واحدة بتتنقل بين 4 أقسام: دخول / اختيار طريقة الاستعادة /
+    // إدخال الكود وكلمة مرور جديدة / نجاح العملية
+    // ============================================================
+    function renderAuthExperience(api) {
         document.body.innerHTML = `
-            <main class="login-shell">
-                <form class="login-panel" id="adminLoginForm">
-                    <p class="kicker">TOJI Admin Studio</p>
-                    <h1>تسجيل دخول الأدمن</h1>
-                    <label>
-                        الإيميل
-                        <input id="adminEmailInput" type="email" autocomplete="email" autofocus placeholder="admin@toji.dev">
-                    </label>
-                    <label>
-                        كلمة المرور
-                        <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="••••••••">
-                    </label>
-                    <button type="submit" id="loginSubmitBtn">دخول</button>
-                    <p id="adminLoginMsg" class="hint"></p>
-                </form>
+            <main class="auth-shell">
+                <div class="auth-orb auth-orb-1"></div>
+                <div class="auth-orb auth-orb-2"></div>
+
+                <div class="auth-card" id="authCard">
+                    <div class="auth-brand">
+                        <span class="auth-logo">T</span>
+                        <div>
+                            <p class="auth-brand-kicker">TOJI ADMIN STUDIO</p>
+                            <p class="auth-brand-sub">لوحة تحكم الموقع</p>
+                        </div>
+                    </div>
+
+                    <!-- ══ شاشة: تسجيل الدخول ══ -->
+                    <section class="auth-screen" id="screenLogin">
+                        <h1 class="auth-title">أهلاً بيك 👋</h1>
+                        <p class="auth-subtitle">سجّل دخولك عشان توصل للوحة التحكم</p>
+
+                        <form class="auth-form" id="adminLoginForm" novalidate>
+                            <label class="auth-field">
+                                <span class="auth-field-label">الإيميل</span>
+                                <div class="auth-input-wrap">
+                                    <span class="auth-input-icon" aria-hidden="true">✉️</span>
+                                    <input id="adminEmailInput" type="email" autocomplete="email" autofocus placeholder="admin@toji.dev">
+                                </div>
+                            </label>
+                            <label class="auth-field">
+                                <span class="auth-field-label">كلمة المرور</span>
+                                <div class="auth-input-wrap">
+                                    <span class="auth-input-icon" aria-hidden="true">🔒</span>
+                                    <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="••••••••">
+                                    <button type="button" class="auth-visibility-btn" id="toggleLoginPw" aria-label="إظهار كلمة المرور">👁</button>
+                                </div>
+                            </label>
+
+                            <button type="submit" class="auth-submit-btn" id="loginSubmitBtn"><span>دخول</span></button>
+                            <button type="button" class="auth-link-btn auth-forgot-link" id="showForgotBtn">نسيت كلمة المرور؟</button>
+
+                            <p class="auth-msg" id="adminLoginMsg" role="status" aria-live="polite"></p>
+                        </form>
+                    </section>
+
+                    <!-- ══ شاشة: اختيار طريقة الاستعادة ══ -->
+                    <section class="auth-screen" id="screenForgotChoose" hidden>
+                        <h1 class="auth-title">استعادة كلمة المرور</h1>
+                        <p class="auth-subtitle">هتستلم كود تحقق مكوّن من 6 أرقام. اختار إزاي تستلمه:</p>
+
+                        <div class="auth-method-list">
+                            <button type="button" class="auth-method-btn" data-method="email" id="methodEmailBtn">
+                                <span class="auth-method-icon">✉️</span>
+                                <span class="auth-method-text">
+                                    <strong>عن طريق الإيميل</strong>
+                                    <small>هيوصلك كود على إيميل الاستعادة المسجل</small>
+                                </span>
+                                <span class="auth-method-arrow">←</span>
+                            </button>
+                            <button type="button" class="auth-method-btn" data-method="phone" id="methodPhoneBtn">
+                                <span class="auth-method-icon">📱</span>
+                                <span class="auth-method-text">
+                                    <strong>عن طريق رسالة SMS</strong>
+                                    <small>هيوصلك كود على رقم الهاتف المسجل</small>
+                                </span>
+                                <span class="auth-method-arrow">←</span>
+                            </button>
+                        </div>
+
+                        <p class="auth-msg" id="forgotChooseMsg" role="status" aria-live="polite"></p>
+                        <button type="button" class="auth-link-btn" id="backToLoginBtn1">↩ رجوع لتسجيل الدخول</button>
+                    </section>
+
+                    <!-- ══ شاشة: إدخال الكود + كلمة مرور جديدة ══ -->
+                    <section class="auth-screen" id="screenForgotVerify" hidden>
+                        <h1 class="auth-title">تأكيد الكود</h1>
+                        <p class="auth-subtitle" id="verifySubtitle">اكتب الكود اللي وصلك وكلمة مرور جديدة</p>
+
+                        <form class="auth-form" id="resetPasswordForm" novalidate>
+                            <label class="auth-field">
+                                <span class="auth-field-label">كود التحقق (6 أرقام)</span>
+                                <div class="auth-input-wrap">
+                                    <span class="auth-input-icon" aria-hidden="true">🔑</span>
+                                    <input id="resetCodeInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" placeholder="000000" class="auth-code-input">
+                                </div>
+                            </label>
+                            <label class="auth-field">
+                                <span class="auth-field-label">كلمة المرور الجديدة</span>
+                                <div class="auth-input-wrap">
+                                    <span class="auth-input-icon" aria-hidden="true">🔒</span>
+                                    <input id="newPasswordInput" type="password" autocomplete="new-password" placeholder="8 حروف على الأقل">
+                                    <button type="button" class="auth-visibility-btn" id="toggleNewPw" aria-label="إظهار كلمة المرور">👁</button>
+                                </div>
+                            </label>
+                            <label class="auth-field">
+                                <span class="auth-field-label">تأكيد كلمة المرور</span>
+                                <div class="auth-input-wrap">
+                                    <span class="auth-input-icon" aria-hidden="true">🔒</span>
+                                    <input id="confirmPasswordInput" type="password" autocomplete="new-password" placeholder="اعد كتابة كلمة المرور">
+                                </div>
+                            </label>
+
+                            <button type="submit" class="auth-submit-btn" id="resetSubmitBtn"><span>تغيير كلمة المرور</span></button>
+
+                            <div class="auth-secondary-row">
+                                <button type="button" class="auth-link-btn" id="resendCodeBtn">إعادة إرسال الكود</button>
+                                <button type="button" class="auth-link-btn" id="backToLoginBtn2">↩ رجوع لتسجيل الدخول</button>
+                            </div>
+
+                            <p class="auth-msg" id="resetMsg" role="status" aria-live="polite"></p>
+                        </form>
+                    </section>
+
+                    <!-- ══ شاشة: نجاح العملية ══ -->
+                    <section class="auth-screen auth-screen-center" id="screenForgotSuccess" hidden>
+                        <div class="auth-success-icon">✅</div>
+                        <h1 class="auth-title">تم بنجاح</h1>
+                        <p class="auth-subtitle">اتغيرت كلمة المرور. سجّل دخولك بكلمة المرور الجديدة.</p>
+                        <button type="button" class="auth-submit-btn" id="goToLoginBtn"><span>تسجيل الدخول</span></button>
+                    </section>
+                </div>
             </main>
         `;
 
-        document.getElementById('adminLoginForm').addEventListener('submit', async (event) => {
+        const $ = (id) => document.getElementById(id);
+        const screens = ['screenLogin', 'screenForgotChoose', 'screenForgotVerify', 'screenForgotSuccess'];
+        const showScreen = (id) => {
+            screens.forEach((s) => { $(s).hidden = (s !== id); });
+        };
+
+        let currentMethod = null;
+        let resendTimer = null;
+
+        const startResendCooldown = (seconds) => {
+            const btn = $('resendCodeBtn');
+            if (!btn) return;
+            clearInterval(resendTimer);
+            let remaining = seconds;
+            btn.disabled = true;
+            const tick = () => {
+                btn.textContent = remaining > 0 ? `إعادة الإرسال بعد ${remaining} ث` : 'إعادة إرسال الكود';
+                if (remaining <= 0) {
+                    clearInterval(resendTimer);
+                    btn.disabled = false;
+                }
+                remaining -= 1;
+            };
+            tick();
+            resendTimer = setInterval(tick, 1000);
+        };
+
+        const requestCode = async (method, msgTargetId) => {
+            const msgEl = $(msgTargetId);
+            try {
+                const response = await api.AuthAPI.forgotPassword(method);
+                currentMethod = method;
+                $('verifySubtitle').textContent = response.message || 'تم إرسال الكود.';
+                showScreen('screenForgotVerify');
+                $('resetMsg').textContent = '';
+                $('resetCodeInput').value = '';
+                startResendCooldown(60);
+                return true;
+            } catch (error) {
+                if (msgEl) msgEl.textContent = error.message || 'حصل خطأ أثناء إرسال الكود.';
+                return false;
+            }
+        };
+
+        // ---- تبديل إظهار كلمة المرور ----
+        const wireVisibilityToggle = (btnId, inputId) => {
+            const btn = $(btnId);
+            const input = $(inputId);
+            if (!btn || !input) return;
+            btn.addEventListener('click', () => {
+                const isPw = input.type === 'password';
+                input.type = isPw ? 'text' : 'password';
+                btn.textContent = isPw ? '🙈' : '👁';
+            });
+        };
+        wireVisibilityToggle('toggleLoginPw', 'adminPasswordInput');
+        wireVisibilityToggle('toggleNewPw', 'newPasswordInput');
+
+        // ---- نموذج تسجيل الدخول ----
+        $('adminLoginForm').addEventListener('submit', async (event) => {
             event.preventDefault();
-            const email    = document.getElementById('adminEmailInput').value.trim();
-            const password = document.getElementById('adminPasswordInput').value;
-            const btn      = document.getElementById('loginSubmitBtn');
-            const msgEl    = document.getElementById('adminLoginMsg');
+            const email    = $('adminEmailInput').value.trim();
+            const password = $('adminPasswordInput').value;
+            const btn      = $('loginSubmitBtn');
+            const msgEl    = $('adminLoginMsg');
 
             if (!email || !password) {
                 msgEl.textContent = 'من فضلك أدخل الإيميل وكلمة المرور.';
                 return;
             }
 
-            btn.disabled    = true;
-            btn.textContent = 'جاري التحقق...';
+            btn.disabled = true;
+            btn.classList.add('is-loading');
             msgEl.textContent = '';
 
             try {
-                const response = await _api.AuthAPI.login(email, password);
-                _api.TokenManager.set(response.token);
+                const response = await api.AuthAPI.login(email, password);
+                api.TokenManager.set(response.token);
                 window.location.reload();
             } catch (error) {
                 msgEl.textContent = error.message || 'الإيميل أو كلمة المرور غلط.';
-                btn.disabled    = false;
-                btn.textContent = 'دخول';
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
             }
         });
-        return;
+
+        // ---- الانتقال لشاشة اختيار طريقة الاستعادة ----
+        $('showForgotBtn').addEventListener('click', () => {
+            $('forgotChooseMsg').textContent = '';
+            showScreen('screenForgotChoose');
+        });
+
+        // ---- اختيار طريقة الاستعادة (إيميل / هاتف) ----
+        ['methodEmailBtn', 'methodPhoneBtn'].forEach((id) => {
+            $(id).addEventListener('click', async () => {
+                const method = $(id).dataset.method;
+                document.querySelectorAll('.auth-method-btn').forEach((b) => { b.disabled = true; });
+                $('forgotChooseMsg').textContent = 'جاري إرسال الكود...';
+                const ok = await requestCode(method, 'forgotChooseMsg');
+                document.querySelectorAll('.auth-method-btn').forEach((b) => { b.disabled = false; });
+                if (ok) $('forgotChooseMsg').textContent = '';
+            });
+        });
+
+        // ---- إعادة إرسال الكود ----
+        $('resendCodeBtn').addEventListener('click', async () => {
+            if (!currentMethod || $('resendCodeBtn').disabled) return;
+            $('resetMsg').textContent = '';
+            await requestCode(currentMethod, 'resetMsg');
+        });
+
+        // ---- تأكيد الكود وتعيين كلمة مرور جديدة ----
+        $('resetPasswordForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const code            = $('resetCodeInput').value.trim();
+            const newPassword     = $('newPasswordInput').value;
+            const confirmPassword = $('confirmPasswordInput').value;
+            const btn             = $('resetSubmitBtn');
+            const msgEl           = $('resetMsg');
+
+            if (!/^\d{6}$/.test(code)) {
+                msgEl.textContent = 'اكتب كود التحقق المكوّن من 6 أرقام.';
+                return;
+            }
+            if (newPassword.length < 8) {
+                msgEl.textContent = 'كلمة المرور لازم تكون 8 حروف على الأقل.';
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                msgEl.textContent = 'كلمة المرور وتأكيدها مش متطابقين.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.classList.add('is-loading');
+            msgEl.textContent = '';
+
+            try {
+                await api.AuthAPI.resetPassword(code, newPassword);
+                clearInterval(resendTimer);
+                showScreen('screenForgotSuccess');
+            } catch (error) {
+                msgEl.textContent = error.message || 'حصل خطأ أثناء تغيير كلمة المرور.';
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
+            }
+        });
+
+        // ---- أزرار الرجوع لتسجيل الدخول ----
+        ['backToLoginBtn1', 'backToLoginBtn2', 'goToLoginBtn'].forEach((id) => {
+            $(id).addEventListener('click', () => {
+                clearInterval(resendTimer);
+                $('adminLoginMsg').textContent = '';
+                showScreen('screenLogin');
+            });
+        });
     }
 
     // ---- Token exists — proceed to admin panel ----

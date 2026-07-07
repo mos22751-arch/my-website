@@ -72,7 +72,21 @@ const AuthAPI = {
 
     verify: () => apiFetch('/auth/verify'),
 
-    logout: () => TokenManager.remove()
+    logout: () => TokenManager.remove(),
+
+    // "نسيت كلمة المرور" — يبعت كود تحقق بالإيميل أو الهاتف
+    forgotPassword: (method) =>
+        apiFetch('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ method })
+        }),
+
+    // تأكيد الكود وتغيير كلمة المرور
+    resetPassword: (code, newPassword) =>
+        apiFetch('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify({ code, newPassword })
+        })
 };
 
 // ============================================================
