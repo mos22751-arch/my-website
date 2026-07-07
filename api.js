@@ -34,10 +34,16 @@ async function apiFetch(endpoint, options = {}) {
         ...(token && { Authorization: `Bearer ${token}` })
     };
 
+    // ✅ حد أقصى 25 ثانية للطلب — لو السيرفر مش بيرد، بنوقف الطلب
+    //    ونرجّع خطأ واضح بدل ما الزرار يفضل شغال (loading) للأبد
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
+
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             ...options,
-            headers: { ...defaultHeaders, ...options.headers }
+            headers: { ...defaultHeaders, ...options.headers },
+            signal: controller.signal
         });
 
         const data = await response.json();
@@ -55,8 +61,15 @@ async function apiFetch(endpoint, options = {}) {
 
         return data;
     } catch (error) {
+        if (error.name === 'AbortError') {
+            const timeoutError = new Error('السيرفر مبيردش. جرب تاني بعد شوية أو تأكد إن الباك إند شغال.');
+            console.error('API Error: request timed out ->', endpoint);
+            throw timeoutError;
+        }
         console.error('API Error:', error.message);
         throw error;
+    } finally {
+        clearTimeout(timeoutId);
     }
 }
 
