@@ -84,10 +84,10 @@
                                 <span class="auth-method-arrow">←</span>
                             </button>
                             <button type="button" class="auth-method-btn" data-method="phone" id="methodPhoneBtn">
-                                <span class="auth-method-icon">💬</span>
+                                <span class="auth-method-icon">📨</span>
                                 <span class="auth-method-text">
-                                    <strong>عن طريق واتساب</strong>
-                                    <small>هيوصلك كود على واتساب الرقم المسجل</small>
+                                    <strong>عن طريق تليجرام</strong>
+                                    <small>هيوصلك كود على تليجرام</small>
                                 </span>
                                 <span class="auth-method-arrow">←</span>
                             </button>
@@ -3335,13 +3335,19 @@ Do not resell the customized public version as a separate template unless your s
 
             if (!leads.length) { listEl.innerHTML = '<p class="projects-hint">لا توجد بيانات زوار بعد.</p>'; return; }
 
-            const rows = leads.map(l => `
+            const rows = leads.map(l => {
+                const hasMsg = l.message && l.message.trim();
+                const msgCell = hasMsg
+                    ? `<span class="lead-msg-badge" title="${escapeHtml(l.message)}">✉️</span>`
+                    : '—';
+                return `
                 <tr class="lead-row" data-lead-row="${l._id}">
                     <td>${l.name || '—'}</td>
                     <td><code>${l.ip || '—'}</code></td>
                     <td>${l.phone || '—'}</td>
                     <td>${l.language === 'ar' ? '🇦🇪' : '🇬🇧'}</td>
                     <td class="lead-quick-summary" title="${renderLeadQuickSummary(l.conversation)}">${renderLeadQuickSummary(l.conversation)}</td>
+                    <td class="lead-msg-cell">${msgCell}</td>
                     <td>
                         <button class="btn-secondary btn-sm" data-lead-toggle="${l._id}">
                             👁 ${(l.conversation||[]).length} خطوة
@@ -3351,12 +3357,16 @@ Do not resell the customized public version as a separate template unless your s
                     <td><button class="btn-danger btn-sm" data-lead-del="${l._id}">🗑</button></td>
                 </tr>
                 <tr class="lead-conv-row" id="leadConv_${l._id}" hidden>
-                    <td colspan="8">${renderConversationSummary(l.conversation)}</td>
-                </tr>`).join('');
+                    <td colspan="9">
+                        ${hasMsg ? `<div class="lead-message-full"><strong>✉️ الرسالة:</strong> ${escapeHtml(l.message)}</div>` : ''}
+                        ${renderConversationSummary(l.conversation)}
+                    </td>
+                </tr>`;
+            }).join('');
 
             listEl.innerHTML = `
                 <table class="visitors-table">
-                    <thead><tr><th>الاسم</th><th>IP</th><th>الموبايل</th><th>اللغة</th><th>آخر اهتمام</th><th>المحادثة</th><th>التاريخ</th><th></th></tr></thead>
+                    <thead><tr><th>الاسم</th><th>IP</th><th>الموبايل</th><th>اللغة</th><th>آخر اهتمام</th><th>الرسالة</th><th>المحادثة</th><th>التاريخ</th><th></th></tr></thead>
                     <tbody>${rows}</tbody>
                 </table>
                 ${renderVisitorsPagination({ page: pagination.page, totalPages: pagination.totalPages, total: pagination.total })}`;

@@ -209,6 +209,7 @@ const BotAPI = {
     getQuestions:  ()           => apiFetch('/bot/questions'),
     saveLead:      (data)       => apiFetch('/bot/lead', { method: 'POST',  body: JSON.stringify(data) }),
     updateLead:    (id, steps)  => apiFetch(`/bot/lead/${id}`, { method: 'PATCH', body: JSON.stringify({ steps }) }),
+    leaveMessage:  (id, message) => apiFetch(`/bot/lead/${id}/message`, { method: 'PATCH', body: JSON.stringify({ message }) }),
     // Admin
     getLeads:      (page = 1)   => apiFetch(`/bot/leads?page=${page}`),
     deleteLead:    (id)         => apiFetch(`/bot/leads/${id}`,  { method: 'DELETE' }),

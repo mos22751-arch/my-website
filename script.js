@@ -808,6 +808,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let lead         = { name:'', phone:'', language:'en', conversation:[] };
         let leadId       = null;
         let historyStack = [];   // stack of { question, options } for Back button
+        let pendingLeaveMsgReturn = false;
 
         // ── helpers ────────────────────────────────────────────
         const t = (obj) => (typeof obj === 'object' ? (obj[lang] || obj.en || '') : obj) || '';
@@ -850,6 +851,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 { id:'__home', label: lang==='ar' ? '🏠 الرئيسية' : '🏠 Home', cls:'bot-nav-btn' }
             ] : [];
 
+            // متاح دايمًا طول ما إحنا في وضع المحادثة، حتى لو من غير Back/Home
+            if (state === 'chat') {
+                navBtns.push({ id:'__leaveMsg', label: lang==='ar' ? '✉️ سيب رسالة لـ TOJI' : '✉️ Leave TOJI a message', cls:'bot-nav-btn bot-leave-msg-btn' });
+            }
+
             choices.innerHTML =
                 opts.map(o =>
                     '<button class="bot-choice-btn" data-id="' + o.id + '">' + o.label + '</button>'
@@ -858,6 +864,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     navBtns.map(b =>
                         '<button class="' + b.cls + '" data-id="' + b.id + '">' + b.label + '</button>'
                     ).join('') + '</div>' : '');
+        }
+
+        function redisplayCurrentChoices() {
+            const current = historyStack[historyStack.length - 1];
+            if (current) { setChoices(current.options.map(o=>({id:o.id,label:t(o.text)})), historyStack.length > 1); }
+            else {
+                const roots = rootQuestions();
+                if (roots.length) setChoices(roots[0].options.map(o=>({id:o.id,label:t(o.text)})), false);
+            }
         }
 
         function showInput(placeholder, type) {
@@ -994,6 +1009,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            if (id === '__leaveMsg') {
+                clearChoices();
+                pendingLeaveMsgReturn = true;
+                await typeThen(lang==='ar' ? 'تمام، اكتب رسالتك وهتوصلني ✍️' : "Sure, type your message and it'll reach TOJI ✍️", 1400);
+                showInput(lang==='ar' ? 'اكتب رسالتك هنا...' : 'Type your message...');
+                state = 'leaveMessage';
+                return;
+            }
+
             if (id === '__wa') {
                 const phone = window.TOJI_CONTENT?.profile?.phone || '201102550730';
                 const msg = lang==='ar'?'السلام عليكم، جيت من موقع TOJI 👋':'Hi, I came from your portfolio 👋';
@@ -1018,6 +1042,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state === 'phone') {
                 lead.phone = val; addMsg(val,'user'); hideInput();
                 await startChatStep(); return;
+            }
+            if (state === 'leaveMessage') {
+                addMsg(val,'user'); hideInput();
+                state = 'chat';
+                if (leadId) { try { await window.TojiAPI.BotAPI.leaveMessage(leadId, val); } catch {} }
+                await typeThen(lang==='ar' ? 'وصلت! شكرًا 🙏' : 'Got it, thank you! 🙏', 1400);
+                if (pendingLeaveMsgReturn) { pendingLeaveMsgReturn = false; redisplayCurrentChoices(); }
+                return;
             }
         }
         sendBtn.addEventListener('click', submitInput);
