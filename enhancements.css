@@ -1774,6 +1774,8 @@ body.lang-ar .project-card h3 {
     padding: 10px 14px;
     border-radius: 16px;
     word-break: break-word;
+    direction: rtl;
+    text-align: right;
 }
 .ai-msg.user p {
     background: linear-gradient(135deg, var(--primary,#39d0ff), #4fc3ff);
@@ -1811,6 +1813,7 @@ body.lang-ar .project-card h3 {
     max-height: 230px; overflow-y: auto;
     scrollbar-width: thin;
     flex-shrink: 0;
+    direction: rtl;
 }
 .bot-choice-btn {
     width: 100%;
@@ -1872,6 +1875,7 @@ body.lang-ar .project-card h3 {
 }
 .ai-chat-input:focus { border-color: var(--primary, #39d0ff); background: rgba(255,255,255,0.07); }
 .ai-chat-input::placeholder { color: rgba(255,255,255,0.3); }
+.ai-chat-input:disabled { opacity: 0.55; cursor: not-allowed; }
 .ai-chat-send {
     width: 40px; height: 40px;
     border-radius: 13px;
@@ -1884,6 +1888,7 @@ body.lang-ar .project-card h3 {
     flex-shrink: 0;
 }
 .ai-chat-send:hover { filter: brightness(1.1); transform: scale(1.06); }
+.ai-chat-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
 .ai-chat-send svg { width: 15px; height: 15px; }
 
 @media (max-width: 480px) {

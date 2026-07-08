@@ -527,9 +527,9 @@
 
 
 
-    <!-- ==================== SMART BOT WIDGET ==================== -->
+    <!-- ==================== AI CHAT WIDGET (Gemini, Egyptian Arabic) ==================== -->
     <div class="ai-chat-overlay" id="aiChatOverlay" hidden>
-        <div class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Chat with TOJI's bot">
+        <div class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Chat with TOJI's AI assistant">
             <div class="ai-chat-header">
                 <div class="ai-chat-header-info">
                     <span class="ai-chat-avatar-wrap">
@@ -538,7 +538,7 @@
                     </span>
                     <div>
                         <p class="ai-chat-title" id="botHeaderTitle">TOJI Assistant</p>
-                        <p class="ai-chat-sub" id="botHeaderSub"><span class="ai-chat-online-dot" aria-hidden="true"></span>Let me help you</p>
+                        <p class="ai-chat-sub" id="botHeaderSub"><span class="ai-chat-online-dot" aria-hidden="true"></span>بيتكلم مصري 🇪🇬</p>
                     </div>
                 </div>
                 <button class="ai-chat-close" id="closeAiChat" aria-label="Close">
@@ -546,11 +546,11 @@
                 </button>
             </div>
             <div class="ai-chat-messages" id="aiChatMessages"></div>
-            <!-- choices rendered here -->
+            <!-- quick-suggestion chips -->
             <div class="bot-choices" id="botChoices"></div>
-            <!-- input for name/phone only -->
-            <div class="bot-input-row" id="botInputRow" hidden>
-                <input class="ai-chat-input" id="botInput" type="text" autocomplete="off" maxlength="80">
+            <!-- free-text chat input -->
+            <div class="bot-input-row" id="botInputRow">
+                <input class="ai-chat-input" id="botInput" type="text" autocomplete="off" maxlength="300" dir="rtl" placeholder="اكتب سؤالك هنا...">
                 <button class="ai-chat-send" id="botInputSend" aria-label="Send">
                     <i data-lucide="send" aria-hidden="true"></i>
                 </button>

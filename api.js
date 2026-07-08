@@ -220,4 +220,17 @@ const BotAPI = {
     seed:          (force)      => apiFetch('/bot/seed',         { method: 'POST',  body: JSON.stringify({ force }) })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, BotAPI, API_BASE_URL };
+// ============================================================
+// AI API — Gemini-powered chat assistant (server-side proxy)
+// ============================================================
+const AiAPI = {
+    // messages: [{ role: 'user'|'assistant', content: string }, ...]
+    // system:   string system instruction (persona + hardcoded knowledge)
+    chat: (messages, system) =>
+        apiFetch('/ai/chat', {
+            method: 'POST',
+            body: JSON.stringify({ messages, system })
+        })
+};
+
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, BotAPI, AiAPI, API_BASE_URL };

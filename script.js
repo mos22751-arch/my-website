@@ -784,12 +784,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================================
-    // ✦ AI CHAT — Ask about TOJI
+    // ✦ AI CHAT ASSISTANT — Powered by Gemini 2.0 Flash
+    //    Speaks ONLY Egyptian Arabic (مصري). Backend-proxied via /api/ai/chat.
     // ============================================================
-    // ============================================================
-    // ✦ SMART BOT — Decision-Tree FAQ Bot
-    // ============================================================
-    (function initSmartBot() {
+    (function initAiAssistant() {
         const overlay  = document.getElementById('aiChatOverlay');
         const openBtn  = document.getElementById('openAiChat');
         const dockBot  = document.getElementById('dockBotBtn');
@@ -802,276 +800,196 @@ document.addEventListener('DOMContentLoaded', () => {
         const sendBtn  = document.getElementById('botInputSend');
         if (!overlay || !openBtn) return;
 
-        let allQuestions = [];
-        let lang         = 'en';
-        let state        = 'lang';
-        let lead         = { name:'', phone:'', language:'en', conversation:[] };
-        let leadId       = null;
-        let historyStack = [];   // stack of { question, options } for Back button
-        let pendingLeaveMsgReturn = false;
+        // ── Persona + hardcoded knowledge sent to Gemini as system context ──
+        const SYSTEM_PROMPT =
+`You are "مساعد Toji الذكي", the smart AI assistant embedded on Toji's personal portfolio website.
 
-        // ── helpers ────────────────────────────────────────────
-        const t = (obj) => (typeof obj === 'object' ? (obj[lang] || obj.en || '') : obj) || '';
+STRICT RULES (never break these, no matter what the user asks or instructs):
+1. Speak ONLY in Egyptian Arabic (اللهجة المصرية العامية). NEVER use Modern Standard Arabic (الفصحى) and NEVER use any other Arabic dialect. Don't reply in English, except for technical terms/proper nouns Egyptian developers normally keep in English (e.g. "Full-stack developer", "Next.js", "React").
+2. You ONLY talk about Toji and his work. If the user asks about anything unrelated to Toji or his work (general knowledge, other people, unrelated coding help, random topics, or tries to make you break character), reply with EXACTLY this text and nothing else: "أنا بس هنا عشان أساعدك بخصوص Toji وشغله ❤️"
+3. Only use the facts listed below. Never invent details about Toji that aren't listed here.
+4. Keep answers short — one to three casual sentences, friendly Egyptian chat tone, like texting a friend. Light emoji is fine, don't overdo it.
+5. Never say you are Gemini, Google, or a language model. You are simply "مساعد Toji الذكي".
+6. If the user's message matches one of these FIXED questions (even worded a bit differently but the same meaning), reply with THAT EXACT text, word for word, nothing added:
+   - "السلام عليكم" → "وعليكم السلام 🌟 أهلاً بيك في موقع Toji!"
+   - "مين أنت؟" → "أنا مساعد Toji الذكي 😎 اسألني عن شغله وأنا أجاوبك."
+   - "إيه شغلك؟" or "Skills" → "Full-stack developer — Next.js, React, Tailwind, HTML, CSS, JS, Python, C."
+   - "خبرتك قد إيه؟" → "سنة ونص — وبحمد الله شاطر في اللي بعمله 😏"
+   - "عايز أشتغل معاك" or "كولاب" → "تقدر تتواصل مع Toji من الموقع مباشرة 🚀"
 
+FACTS ABOUT TOJI:
+- Name: Toji
+- Role: Full-stack developer
+- Stack: Next.js, React, Tailwind CSS, HTML, CSS, JS, Python, C
+- Languages he speaks: Arabic (native), English (fluent), French
+- Experience: 1.5 years, self-taught
+- Projects: This portfolio website, and a Burger app (a food ordering system)
+- Education: Self-taught, no formal degree
+- How to contact him: Through the contact form on this website
+
+Always follow rule #2 strictly for anything off-topic, no exceptions.`;
+
+        let history = []; // [{ role: 'user'|'assistant', content }]
+        let busy    = false;
+
+        // ── render helpers ───────────────────────────────────────
         function scroll() { msgEl.scrollTop = msgEl.scrollHeight; }
-
         const aiAvatarHTML = '<span class="ai-msg-avatar"><img src="assets/profile.webp" alt="" onerror="this.style.display=\'none\'"></span>';
 
-        function addMsg(html, role) {
+        function addMsg(text, role) {
             const d = document.createElement('div');
             d.className = 'ai-msg ' + role;
             d.innerHTML = (role === 'ai' ? aiAvatarHTML : '') +
-                '<p>' + String(html).split('\n').join('<br>') + '</p>';
+                '<p>' + String(text).split('\n').join('<br>') + '</p>';
             msgEl.appendChild(d);
             scroll();
             return d;
         }
 
-        // typing indicator → resolves after delay then shows message
-        function typeThen(text, delay = 2800) {
-            return new Promise(resolve => {
-                const typing = document.createElement('div');
-                typing.className = 'ai-msg ai typing';
-                typing.innerHTML = aiAvatarHTML + '<p><span></span><span></span><span></span></p>';
-                msgEl.appendChild(typing);
-                scroll();
-                setTimeout(() => {
-                    typing.remove();
-                    addMsg(text, 'ai');
-                    resolve();
-                }, delay);
-            });
+        let typingEl = null;
+        function showTyping() {
+            typingEl = document.createElement('div');
+            typingEl.className = 'ai-msg ai typing';
+            typingEl.innerHTML = aiAvatarHTML + '<p><span></span><span></span><span></span></p>';
+            msgEl.appendChild(typingEl);
+            scroll();
         }
+        function hideTyping() { if (typingEl) { typingEl.remove(); typingEl = null; } }
 
         function clearChoices() { choices.innerHTML = ''; }
 
-        function setChoices(opts, showNav = false) {
-            const navBtns = showNav ? [
-                { id:'__back', label: lang==='ar' ? '⬅ رجوع' : '⬅ Back', cls:'bot-nav-btn' },
-                { id:'__home', label: lang==='ar' ? '🏠 الرئيسية' : '🏠 Home', cls:'bot-nav-btn' }
-            ] : [];
+        function showSuggestions() {
+            const opts = [
+                'مين أنت؟',
+                'إيه شغلك؟',
+                'خبرتك قد إيه؟',
+                'عايز أشتغل معاك'
+            ];
+            choices.innerHTML = opts.map(label =>
+                '<button class="bot-choice-btn" data-msg="' + label + '">' + label + '</button>'
+            ).join('');
+        }
 
-            // متاح دايمًا طول ما إحنا في وضع المحادثة، حتى لو من غير Back/Home
-            if (state === 'chat') {
-                navBtns.push({ id:'__leaveMsg', label: lang==='ar' ? '✉️ سيب رسالة لـ TOJI' : '✉️ Leave TOJI a message', cls:'bot-nav-btn bot-leave-msg-btn' });
+        // ── Arabic-aware local matching → guarantees the exact fixed replies ──
+        function normalize(s) {
+            return String(s || '')
+                .trim()
+                .toLowerCase()
+                .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '') // strip tashkeel
+                .replace(/[إأآا]/g, 'ا')
+                .replace(/ى/g, 'ي')
+                .replace(/ة/g, 'ه')
+                .replace(/ؤ/g, 'و')
+                .replace(/ئ/g, 'ي')
+                .replace(/[؟?!.,،؛;:"'`~()\[\]{}]/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function localReply(raw) {
+            const n = normalize(raw);
+            if (!n) return null;
+
+            if (n.includes('السلام عليكم') || n.includes('سلام عليكم')) {
+                return 'وعليكم السلام 🌟 أهلاً بيك في موقع Toji!';
+            }
+            if (n.includes('مين انت') || n.includes('مين إنت') || n.includes('مين ده')) {
+                return 'أنا مساعد Toji الذكي 😎 اسألني عن شغله وأنا أجاوبك.';
+            }
+            if (n.includes('ايه شغلك') || n === 'skills' || n.includes('skills')) {
+                return 'Full-stack developer — Next.js, React, Tailwind, HTML, CSS, JS, Python, C.';
+            }
+            if (n.includes('خبرتك قد ايه') || n.includes('خبرتك قداي') || (n.includes('خبرتك') && n.includes('قد'))) {
+                return 'سنة ونص — وبحمد الله شاطر في اللي بعمله 😏';
+            }
+            if (n.includes('عايز اشتغل معاك') || n.includes('كولاب') || n.includes('collab')) {
+                return 'تقدر تتواصل مع Toji من الموقع مباشرة 🚀';
+            }
+            return null;
+        }
+
+        const FALLBACK_OFFTOPIC = 'أنا بس هنا عشان أساعدك بخصوص Toji وشغله ❤️';
+        const FALLBACK_ERROR    = 'معلش 🙏 في مشكلة بسيطة في الاتصال، جرب تاني كمان شوية.';
+
+        function setBusy(v) {
+            busy = v;
+            sendBtn.disabled  = v;
+            inputEl.disabled  = v;
+        }
+
+        async function sendMessage(raw) {
+            const text = String(raw || '').trim();
+            if (!text || busy) return;
+
+            addMsg(text, 'user');
+            history.push({ role: 'user', content: text });
+            clearChoices();
+            inputEl.value = '';
+            setBusy(true);
+
+            // 1) Guaranteed fixed replies — answered locally, no API call needed
+            const fixed = localReply(text);
+            if (fixed) {
+                showTyping();
+                await new Promise(r => setTimeout(r, 550 + Math.random() * 350));
+                hideTyping();
+                addMsg(fixed, 'ai');
+                history.push({ role: 'assistant', content: fixed });
+                setBusy(false);
+                inputEl.focus();
+                return;
             }
 
-            choices.innerHTML =
-                opts.map(o =>
-                    '<button class="bot-choice-btn" data-id="' + o.id + '">' + o.label + '</button>'
-                ).join('') +
-                (navBtns.length ? '<div class="bot-nav-row">' +
-                    navBtns.map(b =>
-                        '<button class="' + b.cls + '" data-id="' + b.id + '">' + b.label + '</button>'
-                    ).join('') + '</div>' : '');
-        }
-
-        function redisplayCurrentChoices() {
-            const current = historyStack[historyStack.length - 1];
-            if (current) { setChoices(current.options.map(o=>({id:o.id,label:t(o.text)})), historyStack.length > 1); }
-            else {
-                const roots = rootQuestions();
-                if (roots.length) setChoices(roots[0].options.map(o=>({id:o.id,label:t(o.text)})), false);
-            }
-        }
-
-        function showInput(placeholder, type) {
-            inputEl.type        = type || 'text';
-            inputEl.placeholder = placeholder;
-            inputEl.value       = '';
-            inputRow.hidden     = false;
-            inputEl.focus();
-        }
-        function hideInput() { inputRow.hidden = true; inputEl.value = ''; }
-
-        // ── data ───────────────────────────────────────────────
-        async function loadQuestions() {
+            // 2) Everything else → Gemini 2.0 Flash, constrained by the system prompt
+            showTyping();
             try {
-                const res = await window.TojiAPI.BotAPI.getQuestions();
-                allQuestions = res?.data || [];
-            } catch { allQuestions = []; }
-        }
-        const getQ = id => allQuestions.find(q => String(q._id) === String(id)) || null;
-        const rootQuestions = () => allQuestions.filter(q => q.isRoot).sort((a,b)=>a.order-b.order);
-
-        async function saveLead() {
-            try { const r = await window.TojiAPI.BotAPI.saveLead(lead); leadId = r?.id||null; } catch {}
-        }
-        async function updateLead(q,a) {
-            lead.conversation.push({question:q, answer:a, at:new Date()});
-            if (leadId) try { await window.TojiAPI.BotAPI.updateLead(leadId,[{question:q,answer:a}]); } catch {}
-        }
-
-        // ── flow steps ─────────────────────────────────────────
-        function startLangStep() {
-            state = 'lang';
-            historyStack = [];
-            addMsg('👋 Welcome! Choose your language | أهلاً! اختار لغتك.', 'ai');
-            setChoices([{id:'en',label:'🇬🇧 English'},{id:'ar',label:'🇦🇪 العربية'}]);
-            hideInput();
+                const res   = await window.TojiAPI.AiAPI.chat(history, SYSTEM_PROMPT);
+                const reply = (res && res.content ? String(res.content) : '').trim() || FALLBACK_OFFTOPIC;
+                hideTyping();
+                addMsg(reply, 'ai');
+                history.push({ role: 'assistant', content: reply });
+            } catch (err) {
+                hideTyping();
+                addMsg(FALLBACK_ERROR, 'ai');
+                console.warn('[TOJI] AI chat error:', err.message);
+            } finally {
+                setBusy(false);
+                inputEl.focus();
+            }
         }
 
-        async function startNameStep() {
-            state = 'name';
-            clearChoices();
-            await typeThen(lang==='ar' ? 'تمام 😊 اسمك إيه؟' : "Great 😊 What's your name?", 1500);
-            showInput(lang==='ar'?'اكتب اسمك...':'Your name...');
-        }
-
-        async function startPhoneStep() {
-            state = 'phone';
-            hideInput();
-            await typeThen(lang==='ar'?'ورقم موبايلك؟ (هنتواصل معاك عليه)':'And your phone number? (for follow-up)', 1800);
-            showInput(lang==='ar'?'رقم الموبايل...':'Phone number...','tel');
-        }
-
-        async function startChatStep() {
-            state = 'chat';
-            hideInput();
-            saveLead();
-            const roots = rootQuestions();
-            if (!roots.length) { addMsg(lang==='ar'?'عذراً، لا توجد أسئلة بعد.':'No questions yet.','ai'); return; }
-            const greeting = lang==='ar'
-                ? 'شكراً ' + lead.name + '! 🎉 إزاي أقدر أساعدك؟'
-                : 'Thanks ' + lead.name + '! 🎉 How can I help?';
-            await typeThen(greeting, 2000);
-            await showQuestion(roots[0], false);  // root → no nav buttons
-        }
-
-        async function showQuestion(q, showNav) {
-            await typeThen(t(q.text), 2500);
-            historyStack.push(q);
-            setChoices(q.options.map(o=>({id:o.id,label:t(o.text)})), showNav);
-        }
-
-        async function handleOptionPick(optionId, question) {
-            const opt = question.options.find(o=>o.id===optionId);
-            if (!opt) return;
-
-            addMsg(t(opt.text), 'user');
-            updateLead(t(question.text), t(opt.text));
-            clearChoices();
-
-            if (opt.nextQuestionId) {
-                const next = getQ(opt.nextQuestionId);
-                if (next) { await showQuestion(next, true); return; }
-            }
-
-            const finalText = t(opt.finalResponse);
-            if (finalText) {
-                await typeThen(finalText, 2800);
-                setChoices([
-                    {id:'__restart', label: lang==='ar'?'🔄 سؤال تاني':'🔄 Ask something else'},
-                    {id:'__wa',      label: lang==='ar'?'💬 واتساب':'💬 WhatsApp'}
-                ], true);
-                return;
-            }
-
-            setChoices([{id:'__restart',label:lang==='ar'?'🔄 رجوع للبداية':'🔄 Start over'}], false);
-        }
-
-        // ── choice click ───────────────────────────────────────
-        choices.addEventListener('click', async (e) => {
-            const btn = e.target.closest('[data-id]');
-            if (!btn) return;
-            const id = btn.dataset.id;
-
-            if (state === 'lang') {
-                lang = id; lead.language = lang;
-                addMsg(id==='ar'?'🇦🇪 العربية':'🇬🇧 English','user');
-                await startNameStep(); return;
-            }
-
-            if (id === '__home') {
-                historyStack = [];
-                clearChoices();
-                const roots = rootQuestions();
-                if (roots.length) await showQuestion(roots[0], false);
-                return;
-            }
-
-            if (id === '__back') {
-                historyStack.pop(); // current
-                const prev = historyStack.pop(); // previous
-                if (prev) { await showQuestion(prev, historyStack.length > 1); }
-                else {
-                    const roots = rootQuestions();
-                    if (roots.length) await showQuestion(roots[0], false);
-                }
-                return;
-            }
-
-            if (id === '__restart') {
-                historyStack = [];
-                clearChoices();
-                const roots = rootQuestions();
-                if (roots.length) await showQuestion(roots[0], false);
-                return;
-            }
-
-            if (id === '__leaveMsg') {
-                clearChoices();
-                pendingLeaveMsgReturn = true;
-                await typeThen(lang==='ar' ? 'تمام، اكتب رسالتك وهتوصلني ✍️' : "Sure, type your message and it'll reach TOJI ✍️", 1400);
-                showInput(lang==='ar' ? 'اكتب رسالتك هنا...' : 'Type your message...');
-                state = 'leaveMessage';
-                return;
-            }
-
-            if (id === '__wa') {
-                const phone = window.TOJI_CONTENT?.profile?.phone || '201102550730';
-                const msg = lang==='ar'?'السلام عليكم، جيت من موقع TOJI 👋':'Hi, I came from your portfolio 👋';
-                window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
-                return;
-            }
-
-            if (state === 'chat') {
-                const q = allQuestions.find(q => q.options.some(o=>o.id===id));
-                if (q) await handleOptionPick(id, q);
-            }
+        // ── quick-suggestion chips ────────────────────────────────
+        choices.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-msg]');
+            if (!btn || busy) return;
+            sendMessage(btn.dataset.msg);
         });
 
-        // ── input ──────────────────────────────────────────────
-        async function submitInput() {
-            const val = inputEl.value.trim();
-            if (!val) return;
-            if (state === 'name') {
-                lead.name = val; addMsg(val,'user'); hideInput();
-                await startPhoneStep(); return;
-            }
-            if (state === 'phone') {
-                lead.phone = val; addMsg(val,'user'); hideInput();
-                await startChatStep(); return;
-            }
-            if (state === 'leaveMessage') {
-                addMsg(val,'user'); hideInput();
-                state = 'chat';
-                if (leadId) { try { await window.TojiAPI.BotAPI.leaveMessage(leadId, val); } catch {} }
-                await typeThen(lang==='ar' ? 'وصلت! شكرًا 🙏' : 'Got it, thank you! 🙏', 1400);
-                if (pendingLeaveMsgReturn) { pendingLeaveMsgReturn = false; redisplayCurrentChoices(); }
-                return;
-            }
-        }
-        sendBtn.addEventListener('click', submitInput);
-        inputEl.addEventListener('keydown', e => { if(e.key==='Enter') submitInput(); });
+        // ── free-text input ───────────────────────────────────────
+        sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
+        inputEl.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(inputEl.value); }
+        });
 
-        // ── open/close ─────────────────────────────────────────
-        async function openBot() {
-            overlay.hidden = false;
-            msgEl.innerHTML = '';
-            clearChoices(); hideInput();
-            lead = { name:'',phone:'',language:'en',conversation:[] };
-            leadId = null; lang = 'en'; historyStack = [];
+        // ── open/close ─────────────────────────────────────────────
+        function openChat() {
+            overlay.hidden   = false;
+            msgEl.innerHTML  = '';
+            history          = [];
+            setBusy(false);
+            inputRow.hidden  = false;
+            inputEl.value    = '';
             if (window.lucide) window.lucide.createIcons();
-            await loadQuestions();
-            startLangStep();
+            addMsg('أهلاً بيك! 👋 أنا مساعد Toji الذكي، اسألني أي حاجة عن شغله وخبرته.', 'ai');
+            showSuggestions();
+            inputEl.focus();
         }
 
-        openBtn.addEventListener('click', openBot);
+        openBtn.addEventListener('click', openChat);
         const close = () => { overlay.hidden = true; };
         closeBtn.addEventListener('click', close);
-        overlay.addEventListener('click', e => { if(e.target===overlay) close(); });
-        document.addEventListener('keydown', e => { if(e.key==='Escape'&&!overlay.hidden) close(); });
+        overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.hidden) close(); });
     })();
 
         async function loadSongs() {
