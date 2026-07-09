@@ -305,31 +305,49 @@
                         <span>البيانات من السيرفر</span>
                     </div>
 
-                    <details class="panel" id="botPanel">
+                    <details class="panel" id="aiPanel">
                         <summary class="panel-summary">
                             <span class="panel-summary-icon">🤖</span>
-                            <span>Bot المحادثة الذكي</span>
-                            <span class="panel-summary-sub">شجرة الأسئلة، بيانات الزوار</span>
+                            <span>مساعد الـ AI</span>
+                            <span class="panel-summary-sub">التحكم في المساعد، أسئلة الزوار</span>
                         </summary>
                         <div class="panel-body">
                             <div class="bot-tabs">
-                                <button class="bot-tab active" data-tab="questions">🌳 شجرة الأسئلة</button>
-                                <button class="bot-tab" data-tab="leads">👥 زوار Bot</button>
+                                <button class="bot-tab active" data-tab="settings">⚙️ الإعدادات</button>
+                                <button class="bot-tab" data-tab="logs">💬 أسئلة الزوار</button>
                             </div>
-                            <div class="bot-tab-content" id="botTabQuestions">
-                                <div class="projects-toolbar">
-                                    <button id="botAddRootBtn" class="btn-primary">+ سؤال Root جديد</button>
-                                    <button id="botSeedBtn" class="btn-ghost">🌱 بذر الافتراضية</button>
-                                    <button id="botRefreshQBtn" class="btn-secondary">🔄 تحديث</button>
+
+                            <div class="bot-tab-content" id="aiTabSettings">
+                                <label class="checkbox-label" style="margin-bottom:14px">
+                                    <span>تفعيل الشات على الموقع</span>
+                                    <input type="checkbox" id="aiEnabledToggle">
+                                </label>
+                                <p class="projects-hint" style="margin:-8px 0 14px">لو قفلت الخيار ده، زرار الشات هيختفي تمامًا من الموقع للزوار.</p>
+
+                                <div class="grid">
+                                    <label>الاسم<input id="aiFieldName" type="text"></label>
+                                    <label>الدور الوظيفي<input id="aiFieldRole" type="text"></label>
+                                    <label class="full-width">التقنيات (Stack)<input id="aiFieldStack" type="text"></label>
+                                    <label class="full-width">اللغات<input id="aiFieldLanguages" type="text"></label>
+                                    <label>الخبرة<input id="aiFieldExperience" type="text"></label>
+                                    <label>التعليم<input id="aiFieldEducation" type="text"></label>
+                                    <label class="full-width">المشاريع<textarea id="aiFieldProjects" rows="2"></textarea></label>
+                                    <label class="full-width">طريقة التواصل<input id="aiFieldContact" type="text"></label>
                                 </div>
-                                <div id="botQuestionsList"><p class="projects-hint">جارٍ التحميل...</p></div>
+
+                                <div class="projects-toolbar" style="margin-top:14px">
+                                    <button id="aiSaveSettingsBtn" class="btn-primary">💾 حفظ الإعدادات</button>
+                                    <button id="aiRefreshSettingsBtn" class="btn-secondary">🔄 تحديث</button>
+                                </div>
+                                <p id="aiSettingsMsg" class="form-msg"></p>
                             </div>
-                            <div class="bot-tab-content" id="botTabLeads" hidden>
+
+                            <div class="bot-tab-content" id="aiTabLogs" hidden>
                                 <div class="projects-toolbar">
-                                    <button id="botRefreshLeadsBtn" class="btn-secondary">🔄 تحديث</button>
-                                    <button id="botDeleteAllLeadsBtn" class="btn-danger">🗑 مسح كل البيانات</button>
+                                    <button id="aiRefreshLogsBtn" class="btn-secondary">🔄 تحديث</button>
+                                    <button id="aiDeleteAllLogsBtn" class="btn-danger">🗑 مسح كل الأسئلة</button>
                                 </div>
-                                <div id="botLeadsList"><p class="projects-hint">اضغط تحديث.</p></div>
+                                <div id="aiLogsList"><p class="projects-hint">اضغط تحديث.</p></div>
                             </div>
                         </div>
                     </details>

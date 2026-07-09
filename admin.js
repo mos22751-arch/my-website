@@ -2894,8 +2894,9 @@ Do not resell the customized public version as a separate template unless your s
     // تحميل تلقائي عند فتح الأدمن
     if (window.TojiAPI?.AnalyticsAPI) loadAnalytics();
 
+
     // ============================================================
-    // 🤖 BOT ADMIN — إدارة الأسئلة والـ Leads
+    // 🤖 AI ADMIN — إعدادات المساعد الذكي + أسئلة الزوار
     // ============================================================
 
     // ── Tabs ──────────────────────────────────────────────────
@@ -2904,508 +2905,138 @@ Do not resell the customized public version as a separate template unless your s
             document.querySelectorAll('.bot-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             const target = tab.dataset.tab;
-            document.getElementById('botTabQuestions').hidden = target !== 'questions';
-            document.getElementById('botTabLeads').hidden     = target !== 'leads';
-            if (target === 'leads') loadBotLeads(1);
-            if (target === 'questions') loadBotQuestions();
+            document.getElementById('aiTabSettings').hidden = target !== 'settings';
+            document.getElementById('aiTabLogs').hidden     = target !== 'logs';
+            if (target === 'logs') loadAiLogs(1);
+            if (target === 'settings') loadAiSettings();
         });
     });
 
-    // ── Questions ──────────────────────────────────────────────
-    let botAllQuestions = [];
-
-    async function loadBotQuestions() {
-        const listEl = el('botQuestionsList');
-        listEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+    // ── Settings ──────────────────────────────────────────────
+    async function loadAiSettings() {
+        const msgEl = el('aiSettingsMsg');
+        msgEl.textContent = '';
         try {
-            const res = await window.TojiAPI.BotAPI.getQuestions();
-            botAllQuestions = res?.data || [];
-            renderBotTree();
+            const res = await window.TojiAPI.AiAPI.getSettings();
+            const s   = res?.data || {};
+            el('aiEnabledToggle').checked   = s.enabled !== false;
+            el('aiFieldName').value         = s.name       || '';
+            el('aiFieldRole').value         = s.role       || '';
+            el('aiFieldStack').value        = s.stack      || '';
+            el('aiFieldLanguages').value    = s.languages  || '';
+            el('aiFieldExperience').value   = s.experience || '';
+            el('aiFieldEducation').value    = s.education  || '';
+            el('aiFieldProjects').value     = s.projects   || '';
+            el('aiFieldContact').value      = s.contact    || '';
         } catch (err) {
-            listEl.innerHTML = `<p class="projects-hint error">❌ ${err.message}</p>`;
+            msgEl.textContent = '❌ ' + err.message;
+            msgEl.className = 'form-msg error';
         }
     }
 
-    function renderBotTree() {
-        const listEl = el('botQuestionsList');
-        if (!botAllQuestions.length) {
-            listEl.innerHTML = '<p class="projects-hint">لا توجد أسئلة. اضغط "بذر الأسئلة الافتراضية" للبدء.</p>';
-            return;
-        }
-
-        const getQ    = id => botAllQuestions.find(q => String(q._id) === String(id));
-        const roots   = botAllQuestions.filter(q => q.isRoot).sort((a,b) => a.order - b.order);
-        const visited = new Set(); // prevent infinite loops
-
-        // ── render one node (question box) ───────────────────────
-        function nodeHTML(q) {
-            return `
-            <div class="tq-node" data-id="${q._id}">
-                <div class="tq-box ${q.isRoot ? 'tq-box-root' : 'tq-box-child'}">
-                    <div class="tq-box-label">${q.isRoot ? '🌱 Root' : '📌'}</div>
-                    <div class="tq-box-en">${escapeHtml(q.text?.en || '')}</div>
-                    <div class="tq-box-ar">${escapeHtml(q.text?.ar || '')}</div>
-                    <div class="tq-box-actions">
-                        <button class="btn-secondary btn-sm" data-bot-edit="${q._id}">✏️</button>
-                        <button class="btn-danger btn-sm"   data-bot-delete="${q._id}">🗑</button>
-                    </div>
-                </div>
-            </div>`;
-        }
-
-        // ── render children level ─────────────────────────────────
-        function childrenHTML(q) {
-            if (visited.has(String(q._id))) return '';
-            visited.add(String(q._id));
-
-            const opts = (q.options || []);
-            if (!opts.length) return '';
-
-            // Build each option branch
-            const branches = opts.map(o => {
-                const nextQ     = o.nextQuestionId ? getQ(o.nextQuestionId) : null;
-                const finalText = o.finalResponse?.en || o.finalResponse?.ar || '';
-
-                // The leaf content: either a sub-question tree or a final answer box
-                let leafHTML = '';
-                if (nextQ) {
-                    leafHTML = treeHTML(nextQ);
-                } else if (finalText) {
-                    leafHTML = `<div class="tq-leaf">
-                        <div class="tq-leaf-icon">✓</div>
-                        <p class="tq-leaf-text">${escapeHtml(finalText.slice(0, 60))}${finalText.length > 60 ? '…' : ''}</p>
-                    </div>`;
-                } else {
-                    leafHTML = `<div class="tq-leaf tq-leaf-empty"><span>—</span></div>`;
-                }
-
-                return `<div class="tq-branch">
-                    <div class="tq-branch-label">${escapeHtml(o.text?.en || '')} / ${escapeHtml(o.text?.ar || '')}</div>
-                    <div class="tq-branch-connector"></div>
-                    ${leafHTML}
-                </div>`;
-            }).join('');
-
-            return `<div class="tq-children">
-                <div class="tq-children-line"></div>
-                <div class="tq-children-row">${branches}</div>
-            </div>`;
-        }
-
-        // ── full sub-tree for one question ────────────────────────
-        function treeHTML(q) {
-            return `<div class="tq-subtree">
-                ${nodeHTML(q)}
-                ${childrenHTML(q)}
-            </div>`;
-        }
-
-        listEl.innerHTML = `
-            <div class="tq-legend">
-                <span>🌱 Root = سؤال ابتدائي</span>
-                <span>📌 = سؤال فرعي</span>
-                <span class="tq-legend-final">✓ = إجابة نهائية</span>
-            </div>
-            <div class="tq-forest">
-                ${roots.map(q => treeHTML(q)).join('')}
-            </div>`;
-    }
-
-
-    // ── Add / Edit Question (tree-style: branch inline, no ID hunting) ──
-
-    // Builds the "linked to" chip + actions for a branch option, or the
-    // "create branch" button when nothing is linked yet.
-    function botBranchFieldsHTML(nextId) {
-        const nextQ = nextId ? botAllQuestions.find(q => String(q._id) === String(nextId)) : null;
-        if (nextId && nextQ) {
-            return `
-                <div class="bot-opt-branch-display">
-                    <span class="bot-opt-branch-chip">🔗 ${escapeHtml(nextQ.text?.en || '')} <span class="bot-opt-branch-chip-ar">/ ${escapeHtml(nextQ.text?.ar || '')}</span></span>
-                    <button type="button" class="btn-secondary btn-sm bot-opt-edit-branch">✏️ فتح السؤال المتفرع</button>
-                    <button type="button" class="btn-ghost btn-sm bot-opt-unlink-branch">✕ فك الربط</button>
-                </div>`;
-        }
-        if (nextId && !nextQ) {
-            // linked to a question that no longer exists
-            return `
-                <div class="bot-opt-branch-display">
-                    <span class="bot-opt-branch-chip bot-opt-branch-chip-missing">⚠️ السؤال المرتبط محذوف</span>
-                    <button type="button" class="btn-ghost btn-sm bot-opt-unlink-branch">✕ فك الربط</button>
-                </div>`;
-        }
-        return `
-            <div class="bot-opt-branch-display">
-                <button type="button" class="btn-primary btn-sm bot-opt-add-branch">➕ أنشئ سؤال متفرع هنا</button>
-            </div>`;
-    }
-
-    function botOptionRowHTML(opt, otherQs) {
-        const optId    = opt?.id || '';
-        const nextId   = opt?.nextQuestionId ? String(opt.nextQuestionId) : '';
-        const isBranch = !!nextId;
-        const modeName = 'bot-opt-mode-' + (optId || Math.random().toString(36).slice(2));
-        const advancedSelect = `
-            <details class="bot-opt-advanced">
-                <summary>أو اربط بسؤال موجود بالفعل</summary>
-                <select class="bot-opt-next">
-                    <option value="">— اختر سؤال —</option>
-                    ${otherQs.map(q => `<option value="${q._id}" ${nextId===String(q._id)?'selected':''}>${q.isRoot?'🌱 ':'📌 '}${escapeHtml(q.text?.en||'')}</option>`).join('')}
-                </select>
-            </details>`;
-
-        return `
-            <div class="bot-opt-row" data-opt-id="${optId}" data-next-id="${nextId}">
-                <div class="bot-opt-row-top">
-                    <input class="bot-opt-en" placeholder="نص الاختيار EN" value="${opt?.text?.en||''}">
-                    <input class="bot-opt-ar" placeholder="نص الاختيار AR" value="${opt?.text?.ar||''}">
-                    <button type="button" class="btn-danger btn-sm bot-opt-remove" title="حذف الاختيار">✕</button>
-                </div>
-                <div class="bot-opt-mode">
-                    <label class="bot-opt-mode-choice">
-                        <input type="radio" class="bot-opt-mode-final" name="${modeName}" ${!isBranch?'checked':''}> إجابة نهائية
-                    </label>
-                    <label class="bot-opt-mode-choice">
-                        <input type="radio" class="bot-opt-mode-branch" name="${modeName}" ${isBranch?'checked':''}> يتفرع لسؤال تاني
-                    </label>
-                </div>
-                <div class="bot-opt-final-fields" ${isBranch?'hidden':''}>
-                    <textarea class="bot-opt-final-en" placeholder="الإجابة النهائية EN">${opt?.finalResponse?.en||''}</textarea>
-                    <textarea class="bot-opt-final-ar" placeholder="الإجابة النهائية AR">${opt?.finalResponse?.ar||''}</textarea>
-                </div>
-                <div class="bot-opt-branch-fields" ${!isBranch?'hidden':''}>
-                    ${botBranchFieldsHTML(nextId)}
-                    ${advancedSelect}
-                </div>
-            </div>`;
-    }
-
-    function refreshOptRowBranchUI(rowEl, nextId) {
-        rowEl.dataset.nextId = nextId || '';
-        const branchFields = rowEl.querySelector('.bot-opt-branch-fields');
-        const display = branchFields.querySelector('.bot-opt-branch-display');
-        display.outerHTML = botBranchFieldsHTML(nextId);
-        const sel = rowEl.querySelector('.bot-opt-next');
-        if (sel) sel.value = nextId || '';
-    }
-
-    // Small nested modal to spin up a brand-new sub-question in one step
-    function openQuickSubQuestionModal(onCreated) {
-        const nested = document.createElement('div');
-        nested.className = 'bot-form-overlay bot-form-overlay-nested';
-        nested.innerHTML = `
-            <div class="bot-form-modal bot-form-modal-sm">
-                <h3>➕ سؤال متفرع جديد</h3>
-                <p class="bot-form-hint">هيظهر هذا السؤال لما الزائر يختار الاختيار ده. تقدر بعدين تفتحه من الشجرة وتضيفله اختيارات وتفرعات تانية.</p>
-                <label>نص السؤال بالإنجليزي<input id="subQEn"></label>
-                <label>نص السؤال بالعربي<input id="subQAr"></label>
-                <div class="project-form-actions" style="margin-top:14px">
-                    <button class="btn-primary" id="subQSaveBtn">💾 إنشاء وربط</button>
-                    <button class="btn-ghost" id="subQCancelBtn">إلغاء</button>
-                </div>
-                <p id="subQMsg" class="form-msg"></p>
-            </div>`;
-        document.body.appendChild(nested);
-
-        nested.querySelector('#subQCancelBtn').addEventListener('click', () => nested.remove());
-        nested.addEventListener('click', (e) => { if (e.target === nested) nested.remove(); });
-
-        nested.querySelector('#subQSaveBtn').addEventListener('click', async () => {
-            const msgEl = nested.querySelector('#subQMsg');
-            const en = nested.querySelector('#subQEn').value.trim();
-            const ar = nested.querySelector('#subQAr').value.trim();
-            if (!en || !ar) { msgEl.textContent = '⚠️ لازم تكتب النص بالعربي والإنجليزي'; return; }
-            msgEl.textContent = '⏳ جارٍ الإنشاء...';
-            try {
-                const res = await window.TojiAPI.BotAPI.createQuestion({ text: { en, ar }, isRoot: false, order: 0, options: [] });
-                if (res?.data) botAllQuestions.push(res.data);
-                nested.remove();
-                onCreated(res.data);
-            } catch (err) { msgEl.textContent = '❌ ' + err.message; }
-        });
-    }
-
-    function openBotQuestionForm(existing = null, onSaved = null) {
-        const isEdit  = !!existing;
-        const overlay = document.createElement('div');
-        overlay.className = 'bot-form-overlay';
-
-        const otherQs = botAllQuestions.filter(q => !existing || String(q._id) !== String(existing._id));
-        const existingOpts = (existing?.options || []).map(o => botOptionRowHTML(o, otherQs)).join('');
-
-        overlay.innerHTML = `
-            <div class="bot-form-modal">
-                <h3>${isEdit ? '✏️ تعديل سؤال' : '➕ سؤال جديد'}</h3>
-                <label>النص بالإنجليزي<input id="bqEn" value="${existing?.text?.en||''}"></label>
-                <label>النص بالعربي<input id="bqAr" value="${existing?.text?.ar||''}"></label>
-                <label><input type="checkbox" id="bqRoot" ${existing?.isRoot?'checked':''}> سؤال بداية (Root) — يظهر أول ما الشات يبدأ</label>
-                <label>الترتيب<input type="number" id="bqOrder" value="${existing?.order||0}" style="width:80px"></label>
-                <div class="bot-section-label" style="margin:12px 0 4px">الاختيارات (Options)</div>
-                <p class="bot-form-hint">لكل اختيار: اختار إما "إجابة نهائية" أو "يتفرع لسؤال تاني" وأنشئ السؤال الفرعي من هنا مباشرة.</p>
-                <div id="botOptList">${existingOpts}</div>
-                <button class="btn-secondary btn-sm" id="botAddOptBtn">+ إضافة اختيار</button>
-                <div class="project-form-actions" style="margin-top:16px">
-                    <button class="btn-primary" id="botSaveQBtn">💾 حفظ</button>
-                    <button class="btn-ghost"   id="botCancelQBtn">إلغاء</button>
-                </div>
-                <p id="botQMsg" class="form-msg"></p>
-            </div>`;
-
-        document.body.appendChild(overlay);
-        if (window.lucide) window.lucide.createIcons();
-
-        const optList = overlay.querySelector('#botOptList');
-
-        overlay.querySelector('#botCancelQBtn').addEventListener('click', () => overlay.remove());
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-
-        // Add a blank option row
-        overlay.querySelector('#botAddOptBtn').addEventListener('click', () => {
-            const wrap = document.createElement('div');
-            wrap.innerHTML = botOptionRowHTML(null, otherQs);
-            optList.appendChild(wrap.firstElementChild);
-        });
-
-        // Delegated events for all option rows (existing + newly added)
-        optList.addEventListener('click', (e) => {
-            const row = e.target.closest('.bot-opt-row');
-            if (!row) return;
-
-            if (e.target.classList.contains('bot-opt-remove')) { row.remove(); return; }
-
-            if (e.target.classList.contains('bot-opt-add-branch')) {
-                openQuickSubQuestionModal((newQ) => {
-                    if (!newQ) return;
-                    refreshOptRowBranchUI(row, newQ._id);
-                });
-                return;
-            }
-
-            if (e.target.classList.contains('bot-opt-edit-branch')) {
-                const childId = row.dataset.nextId;
-                const child = botAllQuestions.find(q => String(q._id) === childId);
-                if (child) {
-                    openBotQuestionForm(child, (updatedQ) => {
-                        if (updatedQ) refreshOptRowBranchUI(row, updatedQ._id);
-                    });
-                }
-                return;
-            }
-
-            if (e.target.classList.contains('bot-opt-unlink-branch')) {
-                refreshOptRowBranchUI(row, '');
-                return;
-            }
-        });
-
-        optList.addEventListener('change', (e) => {
-            const row = e.target.closest('.bot-opt-row');
-            if (!row) return;
-
-            if (e.target.classList.contains('bot-opt-mode-final')) {
-                row.querySelector('.bot-opt-final-fields').hidden = false;
-                row.querySelector('.bot-opt-branch-fields').hidden = true;
-            }
-            if (e.target.classList.contains('bot-opt-mode-branch')) {
-                row.querySelector('.bot-opt-final-fields').hidden = true;
-                row.querySelector('.bot-opt-branch-fields').hidden = false;
-            }
-            if (e.target.classList.contains('bot-opt-next')) {
-                refreshOptRowBranchUI(row, e.target.value);
-                if (e.target.value) row.querySelector('.bot-opt-mode-branch').checked = true;
-            }
-        });
-
-        // Save
-        overlay.querySelector('#botSaveQBtn').addEventListener('click', async () => {
-            const msgEl = overlay.querySelector('#botQMsg');
-            const en    = overlay.querySelector('#bqEn').value.trim();
-            const ar    = overlay.querySelector('#bqAr').value.trim();
-            if (!en || !ar) { msgEl.textContent = '⚠️ لازم تكتب النص بالعربي والإنجليزي'; return; }
-
-            const opts = [...optList.querySelectorAll('.bot-opt-row')].map((row) => {
-                const isBranch = row.querySelector('.bot-opt-mode-branch').checked;
-                return {
-                    id:             row.dataset.optId || crypto.randomUUID().slice(0,8),
-                    text:           { en: row.querySelector('.bot-opt-en').value.trim(), ar: row.querySelector('.bot-opt-ar').value.trim() },
-                    nextQuestionId: isBranch ? (row.dataset.nextId || null) : null,
-                    finalResponse:  isBranch ? { en:'', ar:'' } : {
-                        en: row.querySelector('.bot-opt-final-en').value.trim(),
-                        ar: row.querySelector('.bot-opt-final-ar').value.trim()
-                    }
-                };
-            });
-
-            const data = {
-                text:    { en, ar },
-                isRoot:  overlay.querySelector('#bqRoot').checked,
-                order:   parseInt(overlay.querySelector('#bqOrder').value) || 0,
-                options: opts
-            };
-
-            msgEl.textContent = '⏳ جارٍ الحفظ...';
-            try {
-                const res = isEdit
-                    ? await window.TojiAPI.BotAPI.updateQuestion(existing._id, data)
-                    : await window.TojiAPI.BotAPI.createQuestion(data);
-                overlay.remove();
-                await loadBotQuestions();
-                showBanner('✅ تم حفظ السؤال.', 'success');
-                if (onSaved) onSaved(res?.data || { ...data, _id: existing?._id });
-            } catch (err) {
-                msgEl.textContent = '❌ ' + err.message;
-            }
-        });
-    }
-
-    el('botAddRootBtn').addEventListener('click', () => openBotQuestionForm());
-
-    el('botQuestionsList').addEventListener('click', async (e) => {
-        const editId   = e.target.dataset.botEdit;
-        const deleteId = e.target.dataset.botDelete;
-
-        if (editId) {
-            const q = botAllQuestions.find(q => String(q._id) === editId);
-            if (q) openBotQuestionForm(q);
-        }
-
-        if (deleteId) {
-            const usedElsewhere = botAllQuestions.some(q =>
-                String(q._id) !== deleteId && (q.options||[]).some(o => String(o.nextQuestionId) === deleteId)
-            );
-            const warning = usedElsewhere
-                ? 'تنبيه: في اختيارات في أسئلة تانية بتتفرع للسؤال ده، وهتفضل الروابط دي فاضية بعد الحذف. متابعة؟'
-                : 'حذف هذا السؤال؟';
-            if (!confirm(warning)) return;
-            try {
-                await window.TojiAPI.BotAPI.deleteQuestion(deleteId);
-                await loadBotQuestions();
-                showBanner('✅ تم حذف السؤال.', 'success');
-            } catch (err) { showBanner('❌ ' + err.message, 'error'); }
-        }
-    });
-
-    el('botSeedBtn').addEventListener('click', async () => {
-        if (!confirm('هيمسح كل الأسئلة الحالية ويحطّ الافتراضية. متابعة؟')) return;
+    el('aiSaveSettingsBtn').addEventListener('click', async () => {
+        const msgEl = el('aiSettingsMsg');
+        msgEl.textContent = '⏳ جارٍ الحفظ...';
+        msgEl.className = 'form-msg';
         try {
-            await window.TojiAPI.BotAPI.seed(true);
-            await loadBotQuestions();
-            showBanner('✅ تم بذر الأسئلة الافتراضية.', 'success');
-        } catch (err) { showBanner('❌ ' + err.message, 'error'); }
+            await window.TojiAPI.AiAPI.updateSettings({
+                enabled:    el('aiEnabledToggle').checked,
+                name:       el('aiFieldName').value.trim(),
+                role:       el('aiFieldRole').value.trim(),
+                stack:      el('aiFieldStack').value.trim(),
+                languages:  el('aiFieldLanguages').value.trim(),
+                experience: el('aiFieldExperience').value.trim(),
+                education:  el('aiFieldEducation').value.trim(),
+                projects:   el('aiFieldProjects').value.trim(),
+                contact:    el('aiFieldContact').value.trim()
+            });
+            msgEl.textContent = '✅ تم الحفظ بنجاح.';
+            msgEl.className = 'form-msg success';
+        } catch (err) {
+            msgEl.textContent = '❌ ' + err.message;
+            msgEl.className = 'form-msg error';
+        }
     });
 
-    el('botRefreshQBtn').addEventListener('click', loadBotQuestions);
+    el('aiRefreshSettingsBtn').addEventListener('click', loadAiSettings);
 
-    // ── Leads ──────────────────────────────────────────────────
-    function escapeHtml(str) {
-        return String(str ?? '').replace(/[&<>"']/g, (c) => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[c]));
+    // ── Logs (أسئلة الزوار) ───────────────────────────────────
+    const AI_SOURCE_LABEL = { fixed: '⚡ جاهز', ai: '🤖 Gemini', error: '⚠️ خطأ', disabled: '⛔ متوقف' };
+
+    function renderAiLogsPagination(pagination) {
+        const { page, totalPages, total } = pagination;
+        if (totalPages <= 1) return `<p class="visitors-total-count">إجمالي ${total} سؤال</p>`;
+        let start = Math.max(1, page - 2);
+        let end   = Math.min(totalPages, start + 4);
+        start = Math.max(1, end - 4);
+        let pages = '';
+        if (start > 1) { pages += `<button class="vpage-btn" data-vpage="1">1</button>`; if (start > 2) pages += `<span class="vpage-dots">…</span>`; }
+        for (let p = start; p <= end; p++) pages += `<button class="vpage-btn ${p === page ? 'active' : ''}" data-vpage="${p}">${p}</button>`;
+        if (end < totalPages) { if (end < totalPages - 1) pages += `<span class="vpage-dots">…</span>`; pages += `<button class="vpage-btn" data-vpage="${totalPages}">${totalPages}</button>`; }
+        return `
+            <div class="visitors-pagination">
+                <button class="vpage-btn vpage-nav" data-vpage="${Math.max(1, page-1)}" ${page===1?'disabled':''}>‹ السابق</button>
+                ${pages}
+                <button class="vpage-btn vpage-nav" data-vpage="${Math.min(totalPages, page+1)}" ${page===totalPages?'disabled':''}>التالي ›</button>
+                <span class="visitors-total-count">إجمالي ${total} سؤال</span>
+            </div>`;
     }
 
-    function renderConversationSummary(conversation) {
-        if (!conversation || !conversation.length) {
-            return '<p class="projects-hint">مفيش أسئلة اتسألت.</p>';
-        }
-        return `<ul class="lead-conversation-list">${conversation.map((step) => `
-            <li>
-                <span class="lead-conv-q">❓ ${escapeHtml(step.question)}</span>
-                <span class="lead-conv-a">↳ ${escapeHtml(step.answer)}</span>
-            </li>
-        `).join('')}</ul>`;
-    }
-
-    // ملخص سريع لآخر اهتمام أبداه الزائر — من غير ما تحتاج تدوس تفتح التفاصيل
-    function renderLeadQuickSummary(conversation) {
-        if (!conversation || !conversation.length) return '—';
-        const last = conversation[conversation.length - 1];
-        const preview = String(last?.answer || last?.question || '').trim();
-        if (!preview) return '—';
-        const truncated = preview.length > 40 ? preview.slice(0, 40) + '…' : preview;
-        return escapeHtml(truncated);
-    }
-
-    async function loadBotLeads(page = 1) {
-        const listEl = el('botLeadsList');
+    async function loadAiLogs(page = 1) {
+        const listEl = el('aiLogsList');
         listEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
         try {
-            const res        = await window.TojiAPI.BotAPI.getLeads(page);
-            const leads      = res?.data || [];
+            const res        = await window.TojiAPI.AiAPI.getLogs(page);
+            const logs       = res?.data || [];
             const pagination = res?.pagination || {};
 
-            if (!leads.length) { listEl.innerHTML = '<p class="projects-hint">لا توجد بيانات زوار بعد.</p>'; return; }
+            if (!logs.length) { listEl.innerHTML = '<p class="projects-hint">لسه مفيش أسئلة من الزوار.</p>'; return; }
 
-            const rows = leads.map(l => {
-                const hasMsg = l.message && l.message.trim();
-                const msgCell = hasMsg
-                    ? `<span class="lead-msg-badge" title="${escapeHtml(l.message)}">✉️</span>`
-                    : '—';
-                return `
-                <tr class="lead-row" data-lead-row="${l._id}">
-                    <td>${l.name || '—'}</td>
+            const rows = logs.map(l => `
+                <tr class="lead-row" data-log-row="${l._id}">
+                    <td class="lead-quick-summary" title="${escapeHtml(l.question)}">${escapeHtml(l.question)}</td>
+                    <td class="lead-quick-summary" title="${escapeHtml(l.answer)}">${escapeHtml(l.answer)}</td>
+                    <td>${AI_SOURCE_LABEL[l.source] || l.source}</td>
                     <td><code>${l.ip || '—'}</code></td>
-                    <td>${l.phone || '—'}</td>
-                    <td>${l.language === 'ar' ? '🇦🇪' : '🇬🇧'}</td>
-                    <td class="lead-quick-summary" title="${renderLeadQuickSummary(l.conversation)}">${renderLeadQuickSummary(l.conversation)}</td>
-                    <td class="lead-msg-cell">${msgCell}</td>
-                    <td>
-                        <button class="btn-secondary btn-sm" data-lead-toggle="${l._id}">
-                            👁 ${(l.conversation||[]).length} خطوة
-                        </button>
-                    </td>
                     <td>${new Date(l.createdAt).toLocaleString('ar-EG')}</td>
-                    <td><button class="btn-danger btn-sm" data-lead-del="${l._id}">🗑</button></td>
-                </tr>
-                <tr class="lead-conv-row" id="leadConv_${l._id}" hidden>
-                    <td colspan="9">
-                        ${hasMsg ? `<div class="lead-message-full"><strong>✉️ الرسالة:</strong> ${escapeHtml(l.message)}</div>` : ''}
-                        ${renderConversationSummary(l.conversation)}
-                    </td>
-                </tr>`;
-            }).join('');
+                    <td><button class="btn-danger btn-sm" data-log-del="${l._id}">🗑</button></td>
+                </tr>`).join('');
 
             listEl.innerHTML = `
                 <table class="visitors-table">
-                    <thead><tr><th>الاسم</th><th>IP</th><th>الموبايل</th><th>اللغة</th><th>آخر اهتمام</th><th>الرسالة</th><th>المحادثة</th><th>التاريخ</th><th></th></tr></thead>
+                    <thead><tr><th>السؤال</th><th>الرد</th><th>المصدر</th><th>IP</th><th>التاريخ</th><th></th></tr></thead>
                     <tbody>${rows}</tbody>
                 </table>
-                ${renderVisitorsPagination({ page: pagination.page, totalPages: pagination.totalPages, total: pagination.total })}`;
+                ${renderAiLogsPagination({ page: pagination.page, totalPages: pagination.totalPages, total: pagination.total })}`;
 
-            listEl.querySelectorAll('[data-lead-toggle]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const row = el('leadConv_' + btn.dataset.leadToggle);
-                    if (row) row.hidden = !row.hidden;
-                });
-            });
-
-            listEl.querySelectorAll('[data-lead-del]').forEach(btn => {
+            listEl.querySelectorAll('[data-log-del]').forEach(btn => {
                 btn.addEventListener('click', async () => {
-                    if (!confirm('حذف هذا الزائر؟')) return;
-                    await window.TojiAPI.BotAPI.deleteLead(btn.dataset.leadDel);
-                    loadBotLeads(page);
+                    if (!confirm('حذف هذا السؤال؟')) return;
+                    await window.TojiAPI.AiAPI.deleteLog(btn.dataset.logDel);
+                    loadAiLogs(page);
                 });
             });
 
             listEl.querySelectorAll('[data-vpage]').forEach(btn => {
-                btn.addEventListener('click', () => loadBotLeads(parseInt(btn.dataset.vpage)));
+                btn.addEventListener('click', () => loadAiLogs(parseInt(btn.dataset.vpage)));
             });
 
         } catch (err) { listEl.innerHTML = `<p class="projects-hint error">❌ ${err.message}</p>`; }
     }
 
-    el('botRefreshLeadsBtn').addEventListener('click', () => loadBotLeads(1));
+    el('aiRefreshLogsBtn').addEventListener('click', () => loadAiLogs(1));
 
-    el('botDeleteAllLeadsBtn').addEventListener('click', async () => {
-        if (!confirm('مسح كل بيانات الزوار نهائياً؟')) return;
+    el('aiDeleteAllLogsBtn').addEventListener('click', async () => {
+        if (!confirm('مسح كل أسئلة الزوار نهائياً؟')) return;
         try {
-            await window.TojiAPI.BotAPI.deleteAllLeads();
-            showBanner('✅ تم مسح كل بيانات الزوار.', 'success');
-            loadBotLeads(1);
+            await window.TojiAPI.AiAPI.deleteAllLogs();
+            showBanner('✅ تم مسح كل الأسئلة.', 'success');
+            loadAiLogs(1);
         } catch (err) { showBanner('❌ ' + err.message, 'error'); }
     });
 
     // تحميل تلقائي
-    if (window.TojiAPI?.BotAPI) loadBotQuestions();
+    if (window.TojiAPI?.AiAPI) loadAiSettings();
 
     // ============================================================
     // JSON Panel Buttons (بدون تغيير)

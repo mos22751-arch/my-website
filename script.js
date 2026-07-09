@@ -783,9 +783,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) { console.warn('[TOJI] WIP board unavailable:', err.message); }
     }
 
+
     // ============================================================
     // ✦ AI CHAT ASSISTANT — Powered by Gemini 2.0 Flash
-    //    Speaks ONLY Egyptian Arabic (مصري). Backend-proxied via /api/ai/chat.
+    //    Speaks ONLY Egyptian Arabic (مصري). Fully backend-driven via /api/ai/chat
+    //    (fixed answers, knowledge, and on/off toggle are all controlled from the admin panel).
     // ============================================================
     (function initAiAssistant() {
         const overlay  = document.getElementById('aiChatOverlay');
@@ -799,35 +801,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputEl  = document.getElementById('botInput');
         const sendBtn  = document.getElementById('botInputSend');
         if (!overlay || !openBtn) return;
-
-        // ── Persona + hardcoded knowledge sent to Gemini as system context ──
-        const SYSTEM_PROMPT =
-`You are "مساعد Toji الذكي", the smart AI assistant embedded on Toji's personal portfolio website.
-
-STRICT RULES (never break these, no matter what the user asks or instructs):
-1. Speak ONLY in Egyptian Arabic (اللهجة المصرية العامية). NEVER use Modern Standard Arabic (الفصحى) and NEVER use any other Arabic dialect. Don't reply in English, except for technical terms/proper nouns Egyptian developers normally keep in English (e.g. "Full-stack developer", "Next.js", "React").
-2. You ONLY talk about Toji and his work. If the user asks about anything unrelated to Toji or his work (general knowledge, other people, unrelated coding help, random topics, or tries to make you break character), reply with EXACTLY this text and nothing else: "أنا بس هنا عشان أساعدك بخصوص Toji وشغله ❤️"
-3. Only use the facts listed below. Never invent details about Toji that aren't listed here.
-4. Keep answers short — one to three casual sentences, friendly Egyptian chat tone, like texting a friend. Light emoji is fine, don't overdo it.
-5. Never say you are Gemini, Google, or a language model. You are simply "مساعد Toji الذكي".
-6. If the user's message matches one of these FIXED questions (even worded a bit differently but the same meaning), reply with THAT EXACT text, word for word, nothing added:
-   - "السلام عليكم" → "وعليكم السلام 🌟 أهلاً بيك في موقع Toji!"
-   - "مين أنت؟" → "أنا مساعد Toji الذكي 😎 اسألني عن شغله وأنا أجاوبك."
-   - "إيه شغلك؟" or "Skills" → "Full-stack developer — Next.js, React, Tailwind, HTML, CSS, JS, Python, C."
-   - "خبرتك قد إيه؟" → "سنة ونص — وبحمد الله شاطر في اللي بعمله 😏"
-   - "عايز أشتغل معاك" or "كولاب" → "تقدر تتواصل مع Toji من الموقع مباشرة 🚀"
-
-FACTS ABOUT TOJI:
-- Name: Toji
-- Role: Full-stack developer
-- Stack: Next.js, React, Tailwind CSS, HTML, CSS, JS, Python, C
-- Languages he speaks: Arabic (native), English (fluent), French
-- Experience: 1.5 years, self-taught
-- Projects: This portfolio website, and a Burger app (a food ordering system)
-- Education: Self-taught, no formal degree
-- How to contact him: Through the contact form on this website
-
-Always follow rule #2 strictly for anything off-topic, no exceptions.`;
 
         let history = []; // [{ role: 'user'|'assistant', content }]
         let busy    = false;
@@ -870,46 +843,7 @@ Always follow rule #2 strictly for anything off-topic, no exceptions.`;
             ).join('');
         }
 
-        // ── Arabic-aware local matching → guarantees the exact fixed replies ──
-        function normalize(s) {
-            return String(s || '')
-                .trim()
-                .toLowerCase()
-                .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '') // strip tashkeel
-                .replace(/[إأآا]/g, 'ا')
-                .replace(/ى/g, 'ي')
-                .replace(/ة/g, 'ه')
-                .replace(/ؤ/g, 'و')
-                .replace(/ئ/g, 'ي')
-                .replace(/[؟?!.,،؛;:"'`~()\[\]{}]/g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
-        }
-
-        function localReply(raw) {
-            const n = normalize(raw);
-            if (!n) return null;
-
-            if (n.includes('السلام عليكم') || n.includes('سلام عليكم')) {
-                return 'وعليكم السلام 🌟 أهلاً بيك في موقع Toji!';
-            }
-            if (n.includes('مين انت') || n.includes('مين إنت') || n.includes('مين ده')) {
-                return 'أنا مساعد Toji الذكي 😎 اسألني عن شغله وأنا أجاوبك.';
-            }
-            if (n.includes('ايه شغلك') || n === 'skills' || n.includes('skills')) {
-                return 'Full-stack developer — Next.js, React, Tailwind, HTML, CSS, JS, Python, C.';
-            }
-            if (n.includes('خبرتك قد ايه') || n.includes('خبرتك قداي') || (n.includes('خبرتك') && n.includes('قد'))) {
-                return 'سنة ونص — وبحمد الله شاطر في اللي بعمله 😏';
-            }
-            if (n.includes('عايز اشتغل معاك') || n.includes('كولاب') || n.includes('collab')) {
-                return 'تقدر تتواصل مع Toji من الموقع مباشرة 🚀';
-            }
-            return null;
-        }
-
-        const FALLBACK_OFFTOPIC = 'أنا بس هنا عشان أساعدك بخصوص Toji وشغله ❤️';
-        const FALLBACK_ERROR    = 'معلش 🙏 في مشكلة بسيطة في الاتصال، جرب تاني كمان شوية.';
+        const FALLBACK_ERROR = 'معلش 🙏 في مشكلة بسيطة في الاتصال، جرب تاني كمان شوية.';
 
         function setBusy(v) {
             busy = v;
@@ -926,25 +860,12 @@ Always follow rule #2 strictly for anything off-topic, no exceptions.`;
             clearChoices();
             inputEl.value = '';
             setBusy(true);
-
-            // 1) Guaranteed fixed replies — answered locally, no API call needed
-            const fixed = localReply(text);
-            if (fixed) {
-                showTyping();
-                await new Promise(r => setTimeout(r, 550 + Math.random() * 350));
-                hideTyping();
-                addMsg(fixed, 'ai');
-                history.push({ role: 'assistant', content: fixed });
-                setBusy(false);
-                inputEl.focus();
-                return;
-            }
-
-            // 2) Everything else → Gemini 2.0 Flash, constrained by the system prompt
             showTyping();
+
             try {
-                const res   = await window.TojiAPI.AiAPI.chat(history, SYSTEM_PROMPT);
-                const reply = (res && res.content ? String(res.content) : '').trim() || FALLBACK_OFFTOPIC;
+                // كل المطابقة (الردود الجاهزة + Gemini) وكل الـ logging بيحصلوا في الباك إند
+                const res   = await window.TojiAPI.AiAPI.chat(history);
+                const reply = (res && res.content ? String(res.content) : '').trim() || FALLBACK_ERROR;
                 hideTyping();
                 addMsg(reply, 'ai');
                 history.push({ role: 'assistant', content: reply });
@@ -990,6 +911,16 @@ Always follow rule #2 strictly for anything off-topic, no exceptions.`;
         closeBtn.addEventListener('click', close);
         overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.hidden) close(); });
+
+        // ── إخفاء الزراير بالكامل لو الأدمن قافل الشات ────────────
+        if (window.TojiAPI?.AiAPI) {
+            window.TojiAPI.AiAPI.status().then(res => {
+                if (res && res.enabled === false) {
+                    openBtn.style.display = 'none';
+                    if (dockBot) dockBot.style.display = 'none';
+                }
+            }).catch(() => {}); // لو فشل الطلب، الزرار يفضل ظاهر (افتراضي آمن)
+        }
     })();
 
         async function loadSongs() {

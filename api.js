@@ -56,7 +56,7 @@ async function apiFetch(endpoint, options = {}) {
         }
 
         if (!response.ok) {
-            throw new Error(data.message || 'حدث خطأ في السيرفر');
+            throw new Error(data.error || data.message || 'حدث خطأ في السيرفر');
         }
 
         return data;
@@ -203,34 +203,18 @@ const WipAPI = {
 };
 
 // ============================================================
-// Bot API — Smart FAQ Bot
-// ============================================================
-const BotAPI = {
-    getQuestions:  ()           => apiFetch('/bot/questions'),
-    saveLead:      (data)       => apiFetch('/bot/lead', { method: 'POST',  body: JSON.stringify(data) }),
-    updateLead:    (id, steps)  => apiFetch(`/bot/lead/${id}`, { method: 'PATCH', body: JSON.stringify({ steps }) }),
-    leaveMessage:  (id, message) => apiFetch(`/bot/lead/${id}/message`, { method: 'PATCH', body: JSON.stringify({ message }) }),
-    // Admin
-    getLeads:      (page = 1)   => apiFetch(`/bot/leads?page=${page}`),
-    deleteLead:    (id)         => apiFetch(`/bot/leads/${id}`,  { method: 'DELETE' }),
-    deleteAllLeads:()           => apiFetch('/bot/leads',        { method: 'DELETE' }),
-    createQuestion:(data)       => apiFetch('/bot/questions',    { method: 'POST',  body: JSON.stringify(data) }),
-    updateQuestion:(id, data)   => apiFetch(`/bot/questions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    deleteQuestion:(id)         => apiFetch(`/bot/questions/${id}`, { method: 'DELETE' }),
-    seed:          (force)      => apiFetch('/bot/seed',         { method: 'POST',  body: JSON.stringify({ force }) })
-};
-
-// ============================================================
 // AI API — Gemini-powered chat assistant (server-side proxy)
 // ============================================================
 const AiAPI = {
     // messages: [{ role: 'user'|'assistant', content: string }, ...]
-    // system:   string system instruction (persona + hardcoded knowledge)
-    chat: (messages, system) =>
-        apiFetch('/ai/chat', {
-            method: 'POST',
-            body: JSON.stringify({ messages, system })
-        })
+    chat:   (messages)  => apiFetch('/ai/chat', { method: 'POST', body: JSON.stringify({ messages }) }),
+    status: ()           => apiFetch('/ai/status'),
+    // Admin
+    getSettings:    ()      => apiFetch('/ai/settings'),
+    updateSettings: (data)  => apiFetch('/ai/settings', { method: 'PUT', body: JSON.stringify(data) }),
+    getLogs:        (page = 1) => apiFetch(`/ai/logs?page=${page}`),
+    deleteLog:      (id)    => apiFetch(`/ai/logs/${id}`, { method: 'DELETE' }),
+    deleteAllLogs:  ()      => apiFetch('/ai/logs', { method: 'DELETE' })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, BotAPI, AiAPI, API_BASE_URL };
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, API_BASE_URL };
