@@ -2993,13 +2993,19 @@ Do not resell the customized public version as a separate template unless your s
             if (!logs.length) { listEl.innerHTML = '<p class="projects-hint">لسه مفيش أسئلة من الزوار.</p>'; return; }
 
             const rows = logs.map(l => `
-                <tr class="lead-row" data-log-row="${l._id}">
+                <tr class="lead-row" data-log-row="${l._id}" style="cursor:pointer">
                     <td class="lead-quick-summary" title="${escapeHtml(l.question)}">${escapeHtml(l.question)}</td>
                     <td class="lead-quick-summary" title="${escapeHtml(l.answer)}">${escapeHtml(l.answer)}</td>
                     <td>${AI_SOURCE_LABEL[l.source] || l.source}</td>
                     <td><code>${l.ip || '—'}</code></td>
                     <td>${new Date(l.createdAt).toLocaleString('ar-EG')}</td>
                     <td><button class="btn-danger btn-sm" data-log-del="${l._id}">🗑</button></td>
+                </tr>
+                <tr class="lead-conv-row" data-log-detail="${l._id}" hidden>
+                    <td colspan="6">
+                        <p style="margin:0 0 6px"><strong>السؤال الكامل:</strong> ${escapeHtml(l.question)}</p>
+                        <p style="margin:0; white-space:pre-wrap; word-break:break-word;"><strong>الرد الكامل:</strong> ${escapeHtml(l.answer)}</p>
+                    </td>
                 </tr>`).join('');
 
             listEl.innerHTML = `
@@ -3008,6 +3014,14 @@ Do not resell the customized public version as a separate template unless your s
                     <tbody>${rows}</tbody>
                 </table>
                 ${renderAiLogsPagination({ page: pagination.page, totalPages: pagination.totalPages, total: pagination.total })}`;
+
+            listEl.querySelectorAll('[data-log-row]').forEach(row => {
+                row.addEventListener('click', (e) => {
+                    if (e.target.closest('[data-log-del]')) return; // متعارضش مع زرار الحذف
+                    const detail = listEl.querySelector(`[data-log-detail="${row.dataset.logRow}"]`);
+                    if (detail) detail.hidden = !detail.hidden;
+                });
+            });
 
             listEl.querySelectorAll('[data-log-del]').forEach(btn => {
                 btn.addEventListener('click', async () => {
