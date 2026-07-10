@@ -817,7 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const clientId = getClientId();
 
-        let history = []; // [{ role: 'user'|'assistant', content }]
+        let history = []; // [{ role: 'user'|'assistant', content }] — في الذاكرة بس، طول ما البوكس مفتوح
         let busy    = false;
 
         // ── render helpers ───────────────────────────────────────
@@ -922,7 +922,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         openBtn.addEventListener('click', openChat);
-        const close = () => { overlay.hidden = true; };
+        const close = () => {
+            overlay.hidden = true;
+            history        = [];
+            msgEl.innerHTML = '';
+        };
         closeBtn.addEventListener('click', close);
         overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
         document.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.hidden) close(); });
