@@ -207,14 +207,30 @@ const WipAPI = {
 // ============================================================
 const AiAPI = {
     // messages: [{ role: 'user'|'assistant', content: string }, ...]
-    chat:   (messages)  => apiFetch('/ai/chat', { method: 'POST', body: JSON.stringify({ messages }) }),
+    chat:   (messages, clientId) => apiFetch('/ai/chat', { method: 'POST', body: JSON.stringify({ messages, clientId }) }),
     status: ()           => apiFetch('/ai/status'),
     // Admin
     getSettings:    ()      => apiFetch('/ai/settings'),
     updateSettings: (data)  => apiFetch('/ai/settings', { method: 'PUT', body: JSON.stringify(data) }),
+    // شات لكل شخص لوحده
+    getThreads:     ()      => apiFetch('/ai/logs/threads'),
+    getThread:      (key)   => apiFetch(`/ai/logs/thread/${encodeURIComponent(key)}`),
+    deleteThread:   (key)   => apiFetch(`/ai/logs/thread/${encodeURIComponent(key)}`, { method: 'DELETE' }),
+    // (Legacy) قائمة مسطحة
     getLogs:        (page = 1) => apiFetch(`/ai/logs?page=${page}`),
     deleteLog:      (id)    => apiFetch(`/ai/logs/${id}`, { method: 'DELETE' }),
     deleteAllLogs:  ()      => apiFetch('/ai/logs', { method: 'DELETE' })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, API_BASE_URL };
+// ============================================================
+// Links API — قسم اللينكات (Connect) في الموقع
+// ============================================================
+const LinksAPI = {
+    getPublic: ()      => apiFetch('/links'),
+    getAll:    ()      => apiFetch('/links/all'),
+    create:    (data)  => apiFetch('/links',       { method: 'POST',   body: JSON.stringify(data) }),
+    update:    (id, d) => apiFetch('/links/' + id, { method: 'PUT',    body: JSON.stringify(d)    }),
+    remove:    (id)    => apiFetch('/links/' + id, { method: 'DELETE' })
+};
+
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, LinksAPI, API_BASE_URL };

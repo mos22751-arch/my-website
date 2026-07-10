@@ -110,7 +110,7 @@
                         </a>
                         <button class="action-btn action-ai" type="button" id="openAiChat">
                             <i data-lucide="sparkles" aria-hidden="true"></i>
-                            <span>Ask AI</span>
+                            <span>Ask زعزع</span>
                         </button>
                     </div>
                     <div class="signal-row" aria-label="Profile highlights">
@@ -301,38 +301,16 @@
                     <h2 class="section-title" id="connect-title" data-i18n="connect.title">My links are here.</h2>
                 </div>
                 <div class="connect-layout">
-                    <div class="social-mesh">
-                        <a href="https://instagram.com/mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-row reveal-up" data-social="instagram">
-                            <span class="social-row-icon"><i data-lucide="instagram" aria-hidden="true"></i></span>
-                            <span class="social-row-name">Instagram</span>
-                            <i data-lucide="arrow-up-right" class="social-row-arrow" aria-hidden="true"></i>
-                        </a>
-                        <a href="https://tiktok.com/@mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-row reveal-up delay-1" data-social="tiktok">
-                            <span class="social-row-icon"><i data-lucide="video" aria-hidden="true"></i></span>
-                            <span class="social-row-name">TikTok</span>
-                            <i data-lucide="arrow-up-right" class="social-row-arrow" aria-hidden="true"></i>
-                        </a>
-                        <a href="https://www.snapchat.com/add/dr.toji" target="_blank" rel="noreferrer" class="social-row reveal-up delay-2" data-social="snapchat">
-                            <span class="social-row-icon"><i data-lucide="ghost" aria-hidden="true"></i></span>
-                            <span class="social-row-name">Snapchat</span>
-                            <i data-lucide="arrow-up-right" class="social-row-arrow" aria-hidden="true"></i>
-                        </a>
-                        <a href="https://www.threads.net/@mouhamedmostafffa" target="_blank" rel="noreferrer" class="social-row reveal-up delay-3" data-social="threads">
-                            <span class="social-row-icon"><i data-lucide="at-sign" aria-hidden="true"></i></span>
-                            <span class="social-row-name">Threads</span>
-                            <i data-lucide="arrow-up-right" class="social-row-arrow" aria-hidden="true"></i>
-                        </a>
-                        <a href="https://wa.me/201102550730?text=Hi%20TOJI%2C%20I%20saw%20your%20profile%20and%20wanted%20to%20ask%20about%20a%20custom%20page." target="_blank" rel="noreferrer" class="social-row reveal-up" data-whatsapp="">
-                            <span class="social-row-icon"><i data-lucide="message-circle" aria-hidden="true"></i></span>
-                            <span class="social-row-name">WhatsApp</span>
-                            <i data-lucide="arrow-up-right" class="social-row-arrow" aria-hidden="true"></i>
-                        </a>
-                        <button class="social-row reveal-up delay-1" type="button" data-copy="201102550730">
-                            <span class="social-row-icon"><i data-lucide="copy" aria-hidden="true"></i></span>
-                            <span class="social-row-name" data-i18n="connect.copyNumber">Copy Number</span>
-                            <i data-lucide="check" class="social-row-arrow" aria-hidden="true"></i>
-                        </button>
+                    <div class="links-grid" id="linksGrid" aria-label="Links">
+                        <!-- Links are rendered dynamically by script.js from /api/links (admin-managed, with images) -->
+                        <p class="links-grid-loading" id="linksGridLoading">...</p>
                     </div>
+
+                    <button class="connect-copy-btn glass-card hover-glow reveal-up" type="button" data-copy="201102550730">
+                        <span class="connect-copy-icon"><i data-lucide="copy" aria-hidden="true"></i></span>
+                        <span data-i18n="connect.copyNumber">Copy Number</span>
+                        <i data-lucide="check" class="connect-copy-check" aria-hidden="true"></i>
+                    </button>
 
                     <aside class="contact-card glass-card reveal-up delay-2" aria-label="Profile QR and contact actions" data-i18n-attr="aria-label:aria.contactCard">
                         <div class="qr-mode-tabs" aria-label="QR type">
@@ -497,7 +475,7 @@
             <button class="dock-btn" type="button" data-target="themePanel" aria-label="Themes" id="dockThemes">
                 <i data-lucide="palette" aria-hidden="true"></i>
             </button>
-            <button class="dock-btn dock-bot-btn" type="button" id="dockBotBtn" aria-label="Ask AI Bot">
+            <button class="dock-btn dock-bot-btn" type="button" id="dockBotBtn" aria-label="Ask زعزع">
                 <i data-lucide="bot" aria-hidden="true"></i>
             </button>
             <div class="dock-divider" aria-hidden="true"></div>
@@ -527,18 +505,18 @@
 
 
 
-    <!-- ==================== AI CHAT WIDGET (Gemini, Egyptian Arabic) ==================== -->
+    <!-- ==================== AI CHAT WIDGET — زعزع (Gemini, Egyptian Arabic) ==================== -->
     <div class="ai-chat-overlay" id="aiChatOverlay" hidden>
-        <div class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Chat with TOJI's AI assistant">
+        <div class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Chat with Zaza, Toji's AI assistant">
             <div class="ai-chat-header">
                 <div class="ai-chat-header-info">
                     <span class="ai-chat-avatar-wrap">
-                        <img class="ai-chat-avatar" src="assets/profile.webp" alt="TOJI" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ai-chat-avatar ai-chat-avatar-fallback',textContent:'T'}))">
+                        <img class="ai-chat-avatar" src="assets/profile.webp" alt="زعزع" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ai-chat-avatar ai-chat-avatar-fallback',textContent:'ز'}))">
                         <span class="ai-chat-avatar-dot" aria-hidden="true"></span>
                     </span>
                     <div>
-                        <p class="ai-chat-title" id="botHeaderTitle">TOJI Assistant</p>
-                        <p class="ai-chat-sub" id="botHeaderSub"><span class="ai-chat-online-dot" aria-hidden="true"></span>بيتكلم مصري 🇪🇬</p>
+                        <p class="ai-chat-title" id="botHeaderTitle">زعزع 🤖</p>
+                        <p class="ai-chat-sub" id="botHeaderSub"><span class="ai-chat-online-dot" aria-hidden="true"></span>مساعد Toji الذكي 🇪🇬</p>
                     </div>
                 </div>
                 <button class="ai-chat-close" id="closeAiChat" aria-label="Close">

@@ -308,13 +308,13 @@
                     <details class="panel" id="aiPanel">
                         <summary class="panel-summary">
                             <span class="panel-summary-icon">🤖</span>
-                            <span>مساعد الـ AI</span>
-                            <span class="panel-summary-sub">التحكم في المساعد، أسئلة الزوار</span>
+                            <span>زعزع — مساعد الـ AI</span>
+                            <span class="panel-summary-sub">التحكم في المساعد، شات كل زائر لوحده</span>
                         </summary>
                         <div class="panel-body">
                             <div class="bot-tabs">
                                 <button class="bot-tab active" data-tab="settings">⚙️ الإعدادات</button>
-                                <button class="bot-tab" data-tab="logs">💬 أسئلة الزوار</button>
+                                <button class="bot-tab" data-tab="logs">💬 محادثات الزوار</button>
                             </div>
 
                             <div class="bot-tab-content" id="aiTabSettings">
@@ -345,9 +345,14 @@
                             <div class="bot-tab-content" id="aiTabLogs" hidden>
                                 <div class="projects-toolbar">
                                     <button id="aiRefreshLogsBtn" class="btn-secondary">🔄 تحديث</button>
-                                    <button id="aiDeleteAllLogsBtn" class="btn-danger">🗑 مسح كل الأسئلة</button>
+                                    <button id="aiDeleteAllLogsBtn" class="btn-danger">🗑 مسح كل المحادثات</button>
                                 </div>
-                                <div id="aiLogsList"><p class="projects-hint">اضغط تحديث.</p></div>
+                                <div class="ai-threads-layout">
+                                    <div class="ai-threads-list" id="aiThreadsList"><p class="projects-hint">⏳ جارٍ التحميل...</p></div>
+                                    <div class="ai-thread-chat" id="aiThreadChat">
+                                        <p class="projects-hint">اختار زائر من القائمة عشان تشوف محادثته كاملة.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </details>
@@ -441,6 +446,51 @@
                                 <p id="songFormMsg" class="form-msg"></p>
                             </div>
                             <div id="songsList"><p class="projects-hint">اضغط "تحميل" لعرض الأغاني.</p></div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="linksPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🔗</span>
+                            <span>روابط التواصل (اللينكات)</span>
+                            <span class="panel-summary-sub">إضافة لينكات جديدة وصورة لكل لينك</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="projects-toolbar">
+                                <button id="loadLinksBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
+                                <button id="addLinkBtn" type="button" class="btn-primary"><span>+</span> لينك جديد</button>
+                            </div>
+                            <div class="project-form" id="linkForm" hidden>
+                                <h3 id="linkFormTitle">لينك جديد</h3>
+                                <input type="hidden" id="linkId">
+                                <input type="hidden" id="lImageUrl">
+                                <div class="project-image-upload">
+                                    <div class="project-image-preview" id="linkImagePreview">
+                                        <span class="project-image-placeholder">🖼️ لا توجد صورة</span>
+                                    </div>
+                                    <div class="project-image-actions">
+                                        <label class="btn-secondary btn-sm project-image-upload-btn">
+                                            📤 رفع صورة
+                                            <input type="file" id="lImageFile" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+                                        </label>
+                                        <button type="button" class="btn-danger btn-sm" id="removeLinkImageBtn" hidden>🗑 إزالة</button>
+                                    </div>
+                                    <p class="project-image-status" id="linkImageStatus"></p>
+                                </div>
+                                <div class="project-form-grid">
+                                    <label>اسم اللينك *<input type="text" id="lTitle" placeholder="Instagram" maxlength="60"></label>
+                                    <label>الرابط *<input type="url" id="lUrl" placeholder="https://..."></label>
+                                    <label>أيقونة احتياطية (لو من غير صورة)<input type="text" id="lIcon" placeholder="instagram" value="link"></label>
+                                    <label>الترتيب<input type="number" id="lOrder" value="0" min="0"></label>
+                                    <label class="checkbox-label"><input type="checkbox" id="lVisible" checked> ظاهر على الموقع</label>
+                                </div>
+                                <div class="project-form-actions">
+                                    <button id="saveLinkBtn" type="button" class="btn-primary">💾 حفظ</button>
+                                    <button id="cancelLinkBtn" type="button" class="btn-ghost">إلغاء</button>
+                                </div>
+                                <p id="linkFormMsg" class="form-msg"></p>
+                            </div>
+                            <div id="linksList"><p class="projects-hint">اضغط "تحميل" لعرض اللينكات.</p></div>
                         </div>
                     </details>
 

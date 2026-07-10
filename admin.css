@@ -2211,3 +2211,129 @@ code {
     font-size: 0.88rem;
     line-height: 1.6;
 }
+
+/* ============================================================
+   🤖 AI Threads — شات كل زائر لوحده (زعزع)
+   ============================================================ */
+.ai-threads-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) 1fr;
+    gap: 14px;
+    align-items: start;
+}
+@media (max-width: 760px) {
+    .ai-threads-layout { grid-template-columns: 1fr; }
+}
+
+.ai-threads-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 560px;
+    overflow-y: auto;
+    padding-inline-end: 4px;
+}
+
+.ai-thread-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: right;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--panel-soft);
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, border-color 0.15s;
+}
+.ai-thread-item:hover { background: rgba(110, 198, 255, 0.08); }
+.ai-thread-item.active { border-color: var(--border-strong); background: rgba(110, 198, 255, 0.12); }
+
+.ai-thread-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.ai-thread-item-name { font-weight: 700; font-size: 0.85rem; }
+.ai-thread-item-count {
+    font-size: 0.7rem;
+    color: var(--bg);
+    background: var(--accent);
+    border-radius: 999px;
+    padding: 1px 7px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+.ai-thread-item-preview {
+    font-size: 0.78rem;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ai-thread-item-time { font-size: 0.7rem; color: var(--muted); opacity: 0.8; }
+
+.ai-thread-chat {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel-soft);
+    padding: 14px;
+    min-height: 200px;
+}
+
+.ai-thread-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.ai-thread-chat-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 520px;
+    overflow-y: auto;
+    padding-inline-end: 4px;
+}
+
+.ai-thread-msg { display: flex; flex-direction: column; gap: 3px; max-width: 86%; }
+.ai-thread-msg-user { align-self: flex-end; align-items: flex-end; }
+.ai-thread-msg-ai   { align-self: flex-start; align-items: flex-start; }
+
+.ai-thread-msg-bubble {
+    display: inline-block;
+    padding: 9px 13px;
+    border-radius: 13px;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+.ai-thread-msg-user .ai-thread-msg-bubble {
+    background: linear-gradient(135deg, var(--accent), #4fc3ff);
+    color: #05060a;
+    font-weight: 600;
+    border-bottom-right-radius: 4px;
+}
+.ai-thread-msg-ai .ai-thread-msg-bubble {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-bottom-left-radius: 4px;
+}
+.ai-thread-msg-meta { font-size: 0.68rem; color: var(--muted); }
+
+/* ============================================================
+   🔗 Links panel — reuses .project-card/.project-image-upload styles
+   ============================================================ */
+#linksPanel .project-badge { text-transform: none; }

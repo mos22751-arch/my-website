@@ -2907,7 +2907,7 @@ Do not resell the customized public version as a separate template unless your s
             const target = tab.dataset.tab;
             document.getElementById('aiTabSettings').hidden = target !== 'settings';
             document.getElementById('aiTabLogs').hidden     = target !== 'logs';
-            if (target === 'logs') loadAiLogs(1);
+            if (target === 'logs') loadAiThreads();
             if (target === 'settings') loadAiSettings();
         });
     });
@@ -2960,97 +2960,334 @@ Do not resell the customized public version as a separate template unless your s
 
     el('aiRefreshSettingsBtn').addEventListener('click', loadAiSettings);
 
-    // ── Logs (أسئلة الزوار) ───────────────────────────────────
-    const AI_SOURCE_LABEL = { fixed: '⚡ جاهز', ai: '🤖 Gemini', error: '⚠️ خطأ', disabled: '⛔ متوقف' };
+    // ── محادثات الزوار (شات لكل شخص لوحده) ───────────────────
+    const AI_SOURCE_LABEL = { fixed: '⚡ جاهز', ai: '🤖 زعزع', error: '⚠️ خطأ', disabled: '⛔ متوقف' };
 
-    function renderAiLogsPagination(pagination) {
-        const { page, totalPages, total } = pagination;
-        if (totalPages <= 1) return `<p class="visitors-total-count">إجمالي ${total} سؤال</p>`;
-        let start = Math.max(1, page - 2);
-        let end   = Math.min(totalPages, start + 4);
-        start = Math.max(1, end - 4);
-        let pages = '';
-        if (start > 1) { pages += `<button class="vpage-btn" data-vpage="1">1</button>`; if (start > 2) pages += `<span class="vpage-dots">…</span>`; }
-        for (let p = start; p <= end; p++) pages += `<button class="vpage-btn ${p === page ? 'active' : ''}" data-vpage="${p}">${p}</button>`;
-        if (end < totalPages) { if (end < totalPages - 1) pages += `<span class="vpage-dots">…</span>`; pages += `<button class="vpage-btn" data-vpage="${totalPages}">${totalPages}</button>`; }
-        return `
-            <div class="visitors-pagination">
-                <button class="vpage-btn vpage-nav" data-vpage="${Math.max(1, page-1)}" ${page===1?'disabled':''}>‹ السابق</button>
-                ${pages}
-                <button class="vpage-btn vpage-nav" data-vpage="${Math.min(totalPages, page+1)}" ${page===totalPages?'disabled':''}>التالي ›</button>
-                <span class="visitors-total-count">إجمالي ${total} سؤال</span>
-            </div>`;
+    let activeThreadKey = null;
+
+    function threadDisplayName(thread) {
+        if (thread.clientId) return '👤 زائر #' + String(thread.clientId).slice(-6);
+        return '🌐 ' + (thread.ip || 'مجهول');
     }
 
-    async function loadAiLogs(page = 1) {
-        const listEl = el('aiLogsList');
+    async function loadAiThreads() {
+        const listEl = el('aiThreadsList');
         listEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
         try {
-            const res        = await window.TojiAPI.AiAPI.getLogs(page);
-            const logs       = res?.data || [];
-            const pagination = res?.pagination || {};
+            const res     = await window.TojiAPI.AiAPI.getThreads();
+            const threads = res?.data || [];
 
-            if (!logs.length) { listEl.innerHTML = '<p class="projects-hint">لسه مفيش أسئلة من الزوار.</p>'; return; }
+            if (!threads.length) {
+                listEl.innerHTML = '<p class="projects-hint">لسه مفيش محادثات من الزوار.</p>';
+                el('aiThreadChat').innerHTML = '<p class="projects-hint">اختار زائر من القائمة عشان تشوف محادثته كاملة.</p>';
+                return;
+            }
 
-            const rows = logs.map(l => `
-                <tr class="lead-row" data-log-row="${l._id}" style="cursor:pointer">
-                    <td class="lead-quick-summary" title="${escapeHtml(l.question)}">${escapeHtml(l.question)}</td>
-                    <td class="lead-quick-summary" title="${escapeHtml(l.answer)}">${escapeHtml(l.answer)}</td>
-                    <td>${AI_SOURCE_LABEL[l.source] || l.source}</td>
-                    <td><code>${l.ip || '—'}</code></td>
-                    <td>${new Date(l.createdAt).toLocaleString('ar-EG')}</td>
-                    <td><button class="btn-danger btn-sm" data-log-del="${l._id}">🗑</button></td>
-                </tr>
-                <tr class="lead-conv-row" data-log-detail="${l._id}" hidden>
-                    <td colspan="6">
-                        <p style="margin:0 0 6px"><strong>السؤال الكامل:</strong> ${escapeHtml(l.question)}</p>
-                        <p style="margin:0; white-space:pre-wrap; word-break:break-word;"><strong>الرد الكامل:</strong> ${escapeHtml(l.answer)}</p>
-                    </td>
-                </tr>`).join('');
+            listEl.innerHTML = threads.map(th => `
+                <button type="button" class="ai-thread-item ${th._id === activeThreadKey ? 'active' : ''}" data-thread-key="${escapeHtml(th._id)}">
+                    <span class="ai-thread-item-top">
+                        <span class="ai-thread-item-name">${threadDisplayName(th)}</span>
+                        <span class="ai-thread-item-count">${th.count}</span>
+                    </span>
+                    <span class="ai-thread-item-preview">${escapeHtml(th.lastQuestion || '')}</span>
+                    <span class="ai-thread-item-time">${new Date(th.lastAt).toLocaleString('ar-EG')}</span>
+                </button>`).join('');
 
-            listEl.innerHTML = `
-                <table class="visitors-table">
-                    <thead><tr><th>السؤال</th><th>الرد</th><th>المصدر</th><th>IP</th><th>التاريخ</th><th></th></tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
-                ${renderAiLogsPagination({ page: pagination.page, totalPages: pagination.totalPages, total: pagination.total })}`;
-
-            listEl.querySelectorAll('[data-log-row]').forEach(row => {
-                row.addEventListener('click', (e) => {
-                    if (e.target.closest('[data-log-del]')) return; // متعارضش مع زرار الحذف
-                    const detail = listEl.querySelector(`[data-log-detail="${row.dataset.logRow}"]`);
-                    if (detail) detail.hidden = !detail.hidden;
-                });
+            listEl.querySelectorAll('[data-thread-key]').forEach(btn => {
+                btn.addEventListener('click', () => openAiThread(btn.dataset.threadKey));
             });
 
-            listEl.querySelectorAll('[data-log-del]').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    if (!confirm('حذف هذا السؤال؟')) return;
-                    await window.TojiAPI.AiAPI.deleteLog(btn.dataset.logDel);
-                    loadAiLogs(page);
-                });
-            });
-
-            listEl.querySelectorAll('[data-vpage]').forEach(btn => {
-                btn.addEventListener('click', () => loadAiLogs(parseInt(btn.dataset.vpage)));
-            });
-
+            // لو في محادثة مفتوحة، حدّثها كمان
+            if (activeThreadKey && threads.some(t => t._id === activeThreadKey)) {
+                openAiThread(activeThreadKey);
+            }
         } catch (err) { listEl.innerHTML = `<p class="projects-hint error">❌ ${err.message}</p>`; }
     }
 
-    el('aiRefreshLogsBtn').addEventListener('click', () => loadAiLogs(1));
+    async function openAiThread(key) {
+        activeThreadKey = key;
+        el('aiThreadsList').querySelectorAll('[data-thread-key]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.threadKey === key);
+        });
+
+        const chatEl = el('aiThreadChat');
+        chatEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+        try {
+            const res  = await window.TojiAPI.AiAPI.getThread(key);
+            const logs = res?.data || [];
+
+            const bubbles = logs.map(l => `
+                <div class="ai-thread-msg ai-thread-msg-user">
+                    <span class="ai-thread-msg-bubble">${escapeHtml(l.question)}</span>
+                </div>
+                <div class="ai-thread-msg ai-thread-msg-ai">
+                    <span class="ai-thread-msg-bubble">${escapeHtml(l.answer)}</span>
+                    <span class="ai-thread-msg-meta">${AI_SOURCE_LABEL[l.source] || l.source} · ${new Date(l.createdAt).toLocaleString('ar-EG')}</span>
+                </div>`).join('');
+
+            chatEl.innerHTML = `
+                <div class="ai-thread-chat-header">
+                    <span>${logs.length} رسالة</span>
+                    <button class="btn-danger btn-sm" id="aiDeleteThreadBtn">🗑 مسح المحادثة دي</button>
+                </div>
+                <div class="ai-thread-chat-body">${bubbles || '<p class="projects-hint">مفيش رسائل.</p>'}</div>`;
+
+            el('aiDeleteThreadBtn')?.addEventListener('click', async () => {
+                if (!confirm('حذف محادثة الزائر ده بالكامل؟')) return;
+                try {
+                    await window.TojiAPI.AiAPI.deleteThread(key);
+                    showBanner('✅ تم حذف المحادثة.', 'success');
+                    activeThreadKey = null;
+                    chatEl.innerHTML = '<p class="projects-hint">اختار زائر من القائمة عشان تشوف محادثته كاملة.</p>';
+                    loadAiThreads();
+                } catch (err) { showBanner('❌ ' + err.message, 'error'); }
+            });
+
+            // يفضل الشات مسكرول لآخر رسالة
+            chatEl.querySelector('.ai-thread-chat-body')?.scrollTo?.(0, 999999);
+        } catch (err) { chatEl.innerHTML = `<p class="projects-hint error">❌ ${err.message}</p>`; }
+    }
+
+    el('aiRefreshLogsBtn').addEventListener('click', () => loadAiThreads());
 
     el('aiDeleteAllLogsBtn').addEventListener('click', async () => {
-        if (!confirm('مسح كل أسئلة الزوار نهائياً؟')) return;
+        if (!confirm('مسح كل محادثات الزوار نهائياً؟')) return;
         try {
             await window.TojiAPI.AiAPI.deleteAllLogs();
-            showBanner('✅ تم مسح كل الأسئلة.', 'success');
-            loadAiLogs(1);
+            showBanner('✅ تم مسح كل المحادثات.', 'success');
+            activeThreadKey = null;
+            loadAiThreads();
         } catch (err) { showBanner('❌ ' + err.message, 'error'); }
     });
 
     // تحميل تلقائي
     if (window.TojiAPI?.AiAPI) loadAiSettings();
+
+
+    // ============================================================
+    // 🔗 LINKS MANAGER — إدارة روابط قسم "Connect" (اسم + رابط + صورة)
+    // ============================================================
+
+    let editingLinkId = null;
+
+    async function loadLinks() {
+        const list = el('linksList');
+        list.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+
+        try {
+            const res   = await window.TojiAPI.LinksAPI.getAll();
+            const links = res?.data || [];
+
+            if (!links.length) {
+                list.innerHTML = '<p class="projects-hint">لا توجد لينكات بعد. أضف أول لينك!</p>';
+                return;
+            }
+
+            list.innerHTML = links.map((lnk) => `
+                <div class="project-card" data-id="${lnk._id}">
+                    ${lnk.imageUrl ? `<div class="project-card-thumb"><img src="${lnk.imageUrl}" alt="${lnk.title || ''}"></div>` : ''}
+                    <div class="project-card-header">
+                        <span class="project-badge">${lnk.icon || 'link'}</span>
+                        <div class="project-card-title">
+                            <strong>${lnk.title || ''}</strong>
+                        </div>
+                        <span class="project-visibility ${lnk.visible !== false ? 'visible' : 'hidden'}">
+                            ${lnk.visible !== false ? '👁 ظاهر' : '🚫 مخفي'}
+                        </span>
+                    </div>
+                    <div class="project-card-tags">
+                        <a href="${lnk.url}" target="_blank" class="tag tag-link">🔗 ${lnk.url}</a>
+                    </div>
+                    <div class="project-card-actions">
+                        <button class="btn-secondary btn-sm" data-action="edit" data-id="${lnk._id}">✏️ تعديل</button>
+                        <button class="btn-danger btn-sm" data-action="delete" data-id="${lnk._id}" data-name="${(lnk.title || '').replace(/"/g, '')}">🗑 حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            list.innerHTML = `<p class="projects-hint error">❌ فشل التحميل: ${err.message}</p>`;
+        }
+    }
+
+    function renderLinkImagePreview(url) {
+        const preview   = el('linkImagePreview');
+        const removeBtn = el('removeLinkImageBtn');
+        if (url) {
+            preview.innerHTML = `<img src="${url}" alt="معاينة اللينك">`;
+            removeBtn.hidden = false;
+        } else {
+            preview.innerHTML = '<span class="project-image-placeholder">🖼️ لا توجد صورة</span>';
+            removeBtn.hidden = true;
+        }
+    }
+
+    el('lImageFile').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const statusEl = el('linkImageStatus');
+        statusEl.textContent = '⏳ جارٍ رفع الصورة...';
+        statusEl.className = 'project-image-status';
+
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const token = window.TojiAPI.TokenManager.get();
+            const res = await fetch(`${window.TojiAPI.API_BASE_URL}/upload/image`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.success) throw new Error(data.message || 'فشل رفع الصورة');
+
+            el('lImageUrl').value = data.url;
+            renderLinkImagePreview(data.url);
+            statusEl.textContent = '✅ تم رفع الصورة بنجاح.';
+            statusEl.className = 'project-image-status success';
+        } catch (err) {
+            statusEl.textContent = '❌ ' + err.message;
+            statusEl.className = 'project-image-status error';
+        } finally {
+            e.target.value = '';
+        }
+    });
+
+    el('removeLinkImageBtn').addEventListener('click', () => {
+        el('lImageUrl').value = '';
+        renderLinkImagePreview('');
+        el('linkImageStatus').textContent = '';
+    });
+
+    function openAddLinkForm() {
+        editingLinkId = null;
+        el('linkFormTitle').textContent = 'لينك جديد';
+        el('linkId').value = '';
+        el('lImageUrl').value = '';
+        renderLinkImagePreview('');
+        el('linkImageStatus').textContent = '';
+        el('lTitle').value = '';
+        el('lUrl').value = '';
+        el('lIcon').value = 'link';
+        el('lOrder').value = '0';
+        el('lVisible').checked = true;
+        el('linkFormMsg').textContent = '';
+        el('linkForm').hidden = false;
+        el('linkForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function editLink(id) {
+        try {
+            const res  = await window.TojiAPI.LinksAPI.getAll();
+            const link = (res?.data || []).find((l) => l._id === id);
+            if (!link) return;
+
+            editingLinkId = id;
+            el('linkFormTitle').textContent = 'تعديل اللينك';
+            el('linkId').value = id;
+            el('lImageUrl').value = link.imageUrl || '';
+            renderLinkImagePreview(link.imageUrl || '');
+            el('linkImageStatus').textContent = '';
+            el('lTitle').value = link.title || '';
+            el('lUrl').value = link.url || '';
+            el('lIcon').value = link.icon || 'link';
+            el('lOrder').value = link.order ?? 0;
+            el('lVisible').checked = link.visible !== false;
+            el('linkFormMsg').textContent = '';
+            el('linkForm').hidden = false;
+            el('linkForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (err) {
+            showBanner('❌ فشل تحميل بيانات اللينك: ' + err.message, 'error');
+        }
+    }
+
+    el('saveLinkBtn').addEventListener('click', async () => {
+        const btn   = el('saveLinkBtn');
+        const msgEl = el('linkFormMsg');
+
+        const title = el('lTitle').value.trim();
+        const url   = el('lUrl').value.trim();
+
+        if (!title || !url) {
+            msgEl.textContent = '⚠️ يرجى ملء الاسم والرابط.';
+            msgEl.className = 'form-msg error';
+            return;
+        }
+
+        const linkData = {
+            title,
+            url,
+            imageUrl: el('lImageUrl').value.trim(),
+            icon:     el('lIcon').value.trim() || 'link',
+            order:    parseInt(el('lOrder').value) || 0,
+            visible:  el('lVisible').checked
+        };
+
+        btn.disabled = true;
+        btn.textContent = '⏳ جارٍ الحفظ...';
+        msgEl.textContent = '';
+
+        try {
+            if (editingLinkId) {
+                await window.TojiAPI.LinksAPI.update(editingLinkId, linkData);
+                showBanner('✅ تم تعديل اللينك بنجاح.', 'success');
+            } else {
+                await window.TojiAPI.LinksAPI.create(linkData);
+                showBanner('✅ تم إضافة اللينك بنجاح.', 'success');
+            }
+
+            el('linkForm').hidden = true;
+            editingLinkId = null;
+            await loadLinks();
+        } catch (err) {
+            msgEl.textContent = '❌ ' + (err.message || 'حدث خطأ. حاول مجدداً.');
+            msgEl.className = 'form-msg error';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '💾 حفظ';
+        }
+    });
+
+    el('linksList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+
+        const action = btn.dataset.action;
+        const id     = btn.dataset.id;
+
+        if (action === 'delete') {
+            const name = btn.dataset.name || 'هذا اللينك';
+            if (!window.confirm(`حذف "${name}"؟ لا يمكن التراجع.`)) return;
+            btn.disabled = true;
+            btn.textContent = '⏳';
+            try {
+                await window.TojiAPI.LinksAPI.remove(id);
+                showBanner('✅ تم حذف اللينك.', 'success');
+                await loadLinks();
+            } catch (err) {
+                btn.disabled = false;
+                btn.textContent = '🗑 حذف';
+                showBanner('❌ فشل الحذف: ' + err.message, 'error');
+            }
+        }
+
+        if (action === 'edit') {
+            await editLink(id);
+        }
+    });
+
+    el('addLinkBtn').addEventListener('click', openAddLinkForm);
+
+    el('cancelLinkBtn').addEventListener('click', () => {
+        el('linkForm').hidden = true;
+        editingLinkId = null;
+    });
+
+    el('loadLinksBtn').addEventListener('click', loadLinks);
+
+    if (window.TojiAPI?.LinksAPI) loadLinks();
 
     // ============================================================
     // JSON Panel Buttons (بدون تغيير)

@@ -802,6 +802,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const sendBtn  = document.getElementById('botInputSend');
         if (!overlay || !openBtn) return;
 
+        // ── معرّف ثابت لكل زائر، بيتحفظ في المتصفح بتاعه، عشان لوحة الأدمن
+        //    تقدر تجمع كل رسايله في محادثة واحدة لوحدها بدل ما تتلخبط مع زوار تانيين ──
+        function getClientId() {
+            try {
+                let id = localStorage.getItem('toji_ai_cid');
+                if (!id) {
+                    id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() :
+                        'cid-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+                    localStorage.setItem('toji_ai_cid', id);
+                }
+                return id;
+            } catch { return ''; }
+        }
+        const clientId = getClientId();
+
         let history = []; // [{ role: 'user'|'assistant', content }]
         let busy    = false;
 
@@ -864,7 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 // كل المطابقة (الردود الجاهزة + Gemini) وكل الـ logging بيحصلوا في الباك إند
-                const res   = await window.TojiAPI.AiAPI.chat(history);
+                const res   = await window.TojiAPI.AiAPI.chat(history, clientId);
                 const reply = (res && res.content ? String(res.content) : '').trim() || FALLBACK_ERROR;
                 hideTyping();
                 addMsg(reply, 'ai');
@@ -901,7 +916,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inputRow.hidden  = false;
             inputEl.value    = '';
             if (window.lucide) window.lucide.createIcons();
-            addMsg('أهلاً بيك! 👋 أنا مساعد Toji الذكي، اسألني أي حاجة عن شغله وخبرته.', 'ai');
+            addMsg('يا هلا 👋 أنا زعزع، مساعد Toji الذكي! اسألني أي حاجة عن شغله، أو دردش معايا في أي موضوع تاني، أنا هنا 😄', 'ai');
             showSuggestions();
             inputEl.focus();
         }
@@ -1091,6 +1106,62 @@ document.addEventListener('DOMContentLoaded', () => {
         `);
 
         mesh.innerHTML = socialItems.join('');
+    }
+
+    // ============================================================
+    // ✦ LINKS GRID — قسم "Connect" الجديد
+    //    كل لينك بييجي من الأدمن (اسم + رابط + صورة) عن طريق /api/links
+    //    وبيتعرض كارت بصورته، ولو ضغطت في أي حتة فيه بيوديك على طول
+    // ============================================================
+    const DEFAULT_LINKS = [
+        { title: 'Instagram', url: 'https://instagram.com/mouhamedmostafffa', icon: 'instagram' },
+        { title: 'TikTok',    url: 'https://tiktok.com/@mouhamedmostafffa',   icon: 'video' },
+        { title: 'Snapchat',  url: 'https://www.snapchat.com/add/dr.toji',    icon: 'ghost' },
+        { title: 'Threads',   url: 'https://www.threads.net/@mouhamedmostafffa', icon: 'at-sign' },
+        { title: 'WhatsApp',  url: '', icon: 'message-circle', isWhatsapp: true }
+    ];
+
+    function renderLinkCards(links) {
+        const grid = document.getElementById('linksGrid');
+        if (!grid) return;
+
+        if (!links || !links.length) {
+            grid.innerHTML = '<p class="links-grid-empty">مفيش لينكات لسه.</p>';
+            return;
+        }
+
+        grid.innerHTML = links.map((item, index) => {
+            const href  = item.isWhatsapp ? getWhatsappUrl() : appendUtm(item.url, 'link');
+            const title = item.title || '';
+            const media = item.imageUrl
+                ? `<span class="link-card-media"><img src="${item.imageUrl}" alt="${title}" loading="lazy"></span>`
+                : `<span class="link-card-media link-card-media-icon">${iconMarkup(item.icon || 'link')}</span>`;
+
+            return `
+                <a class="link-card glass-card hover-glow reveal-up ${index ? `delay-${Math.min(index, 3)}` : ''}"
+                   href="${href}" target="_blank" rel="noreferrer" data-social="${item.icon || 'link'}">
+                    ${media}
+                    <span class="link-card-name">${title}</span>
+                    <span class="link-card-arrow">${iconMarkup('arrow-up-right')}</span>
+                </a>`;
+        }).join('');
+
+        if (window.lucide) window.lucide.createIcons();
+        refreshDomCollections();
+        setTimeout(() => { if (typeof syncObservedElements === 'function') syncObservedElements(); }, 50);
+    }
+
+    async function loadLinksGrid() {
+        const grid = document.getElementById('linksGrid');
+        if (!grid) return;
+        try {
+            const res   = await window.TojiAPI?.LinksAPI?.getPublic();
+            const links = res?.data || [];
+            renderLinkCards(links.length ? links : DEFAULT_LINKS);
+        } catch (err) {
+            // لو السيرفر مش متاح، نعرض لينكات افتراضية بدل ما القسم يفضل فاضي
+            renderLinkCards(DEFAULT_LINKS);
+        }
     }
 
     function renderQuickMessages() {
@@ -1532,6 +1603,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadProjectsFromAPI();
         loadSongs();
         loadWip();
+        loadLinksGrid();
         setThemePreset(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'neon');
         setAccent(localStorage.getItem('toji_accent') || profileConfig.accent || 'cyan');
         updateWhatsappLinks();
