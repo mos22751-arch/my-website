@@ -1625,9 +1625,7 @@ body.lang-ar .project-card h3 {
     position: fixed;
     inset: 0;
     z-index: 3000;
-    background: rgba(6,8,14,0.5);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    background: rgba(6,8,14,0.68);
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -1636,38 +1634,32 @@ body.lang-ar .project-card h3 {
 }
 @keyframes botOverlayIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* Panel — liquid glass: layered translucency, soft refraction glow, glossy top sheen */
+/* Panel — simple dark glass: one blur layer, one soft shadow, no blend-mode compositing */
 .ai-chat-panel {
     position: relative;
     width: min(400px, 100%);
     max-height: 78vh;
     background:
-        linear-gradient(180deg, rgba(28,32,46,0.62) 0%, rgba(10,11,17,0.72) 100%);
+        linear-gradient(180deg, rgba(28,32,46,0.9) 0%, rgba(10,11,17,0.94) 100%);
     border: 1px solid rgba(255,255,255,0.16);
-    border-radius: 28px;
+    border-radius: 24px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     box-shadow:
-        0 40px 100px rgba(0,0,0,0.55),
-        0 1px 0 rgba(255,255,255,0.2) inset,
-        0 0 0 1px rgba(255,255,255,0.04) inset,
-        0 0 70px rgba(57,208,255,0.10),
-        0 0 120px rgba(168,85,247,0.08);
-    animation: botPanelUp 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+        0 24px 60px rgba(0,0,0,0.5),
+        0 1px 0 rgba(255,255,255,0.14) inset;
+    animation: botPanelUp 0.28s ease-out;
 }
-/* glossy top highlight sweeping across the glass, like light hitting curved liquid */
+/* subtle top highlight — plain gradient, no mix-blend-mode (cheaper to composite) */
 .ai-chat-panel::before {
     content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background:
-        radial-gradient(140% 60% at 15% -10%, rgba(255,255,255,0.16), transparent 55%),
-        radial-gradient(90% 50% at 100% 0%, rgba(57,208,255,0.14), transparent 60%);
-    mix-blend-mode: screen;
+    background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 40%);
     z-index: 0;
 }
 .ai-chat-panel > * { position: relative; z-index: 1; }
@@ -1806,12 +1798,10 @@ body.lang-ar .project-card h3 {
     box-shadow: 0 4px 14px rgba(57,208,255,0.3);
 }
 .ai-msg.ai p {
-    background: rgba(255,255,255,0.09);
+    background: rgba(255,255,255,0.12);
     color: rgba(255,255,255,0.92);
     border: 1px solid rgba(255,255,255,0.14);
     border-bottom-left-radius: 5px;
-    backdrop-filter: blur(10px) saturate(160%);
-    -webkit-backdrop-filter: blur(10px) saturate(160%);
     box-shadow: 0 2px 10px rgba(0,0,0,0.18) inset, 0 1px 0 rgba(255,255,255,0.08) inset;
 }
 
@@ -1843,9 +1833,7 @@ body.lang-ar .project-card h3 {
     padding: 11px 15px;
     border-radius: 14px;
     border: 1px solid rgba(255,255,255,0.14);
-    background: rgba(255,255,255,0.055);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(255,255,255,0.08);
     color: rgba(255,255,255,0.88);
     font-size: 0.84rem; font-weight: 600; font-family: inherit;
     text-align: right; cursor: pointer;
@@ -1878,8 +1866,6 @@ body.lang-ar .project-card h3 {
     padding: 10px 14px;
     color: #fff; font-size: 0.85rem; font-family: inherit;
     outline: none;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     transition: border-color 0.15s, background 0.15s;
 }
 .ai-chat-input:focus { border-color: var(--primary, #39d0ff); background: rgba(255,255,255,0.1); }

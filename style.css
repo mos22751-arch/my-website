@@ -296,13 +296,13 @@ body:not(.is-loading) .page-loader {
 
 .mesh-bg {
     position: fixed;
-    inset: -20%;
+    inset: -10%;
     z-index: -2;
     background:
         linear-gradient(130deg, rgba(57, 208, 255, 0.16), transparent 38%),
         linear-gradient(300deg, rgba(255, 122, 61, 0.14), transparent 34%),
         linear-gradient(40deg, rgba(94, 226, 160, 0.1), transparent 32%);
-    filter: blur(36px);
+    filter: blur(14px);
     animation: drift 22s ease-in-out infinite alternate;
     will-change: transform;
 }
