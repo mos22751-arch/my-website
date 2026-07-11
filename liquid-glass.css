@@ -7,18 +7,20 @@
    ========================================================= */
 
 :root {
-    /* Deeper, richer frost + a bright specular edge, à la Apple Liquid Glass */
-    --glass-bg: rgba(255, 255, 255, 0.07);
-    --glass-strong: rgba(255, 255, 255, 0.13);
-    --glass-border: rgba(255, 255, 255, 0.22);
-    --glass-highlight: rgba(255, 255, 255, 0.55);
-    --glass-shine: rgba(255, 255, 255, 0.9);
-    --shadow: 0 24px 60px rgba(0, 0, 0, 0.38), 0 2px 8px rgba(0, 0, 0, 0.22);
+    /* Deeper, richer frost + a bright specular edge, à la Apple Liquid Glass.
+       Dark backgrounds need MUCH more contrast than light ones for the glass
+       to actually read as glass instead of a flat murky rectangle. */
+    --glass-bg: rgba(255, 255, 255, 0.14);
+    --glass-strong: rgba(255, 255, 255, 0.24);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-highlight: rgba(255, 255, 255, 0.85);
+    --glass-shine: rgba(255, 255, 255, 1);
+    --shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 2px 10px rgba(0, 0, 0, 0.35);
     --lg-radius-lg: 26px;   /* cards / big surfaces */
     --lg-radius-md: 18px;   /* inputs / medium controls */
     --lg-radius-sm: 12px;   /* small buttons / chips */
-    --lg-blur: blur(28px) saturate(190%) brightness(1.08);
-    --lg-blur-strong: blur(34px) saturate(200%) brightness(1.12);
+    --lg-blur: blur(20px) saturate(180%) brightness(1.25);
+    --lg-blur-strong: blur(26px) saturate(190%) brightness(1.3);
 }
 
 .light-theme {
@@ -28,6 +30,8 @@
     --glass-highlight: rgba(255, 255, 255, 0.95);
     --glass-shine: rgba(255, 255, 255, 1);
     --shadow: 0 20px 50px rgba(20, 24, 32, 0.14), 0 2px 6px rgba(20, 24, 32, 0.08);
+    --lg-blur: blur(20px) saturate(180%) brightness(1.03);
+    --lg-blur-strong: blur(26px) saturate(190%) brightness(1.05);
 }
 
 /* ---------------------------------------------------------
@@ -258,17 +262,13 @@ select:focus {
 }
 
 /* ---------------------------------------------------------
-   Gentle idle shimmer across nav & dock rims — subtle,
-   not distracting. Respects reduced-motion below.
+   Rim highlight — a static bright edge (no infinite loop),
+   so there's zero idle GPU cost. Shine only reacts on hover
+   via the .glass-card::after sheen above.
    --------------------------------------------------------- */
-@keyframes lg-rim-shimmer {
-    0%, 100% { box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow); }
-    50% { box-shadow: inset 0 1px 0 var(--glass-shine), var(--shadow); }
-}
-
 .modern-nav,
 .floating-dock {
-    animation: lg-rim-shimmer 6s ease-in-out infinite;
+    box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow);
 }
 
 @media (prefers-reduced-motion: reduce) {
