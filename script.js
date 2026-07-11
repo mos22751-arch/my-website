@@ -1828,23 +1828,6 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollRoot?.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
 
-    function ensureGooDefs() {
-        if (document.getElementById('liquid-goo-filter')) return;
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('width', '0');
-        svg.setAttribute('height', '0');
-        svg.style.position = 'absolute';
-        svg.style.pointerEvents = 'none';
-        svg.innerHTML = `
-            <filter id="liquid-goo-filter">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
-                <feColorMatrix in="blur" mode="matrix"
-                    values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10"
-                    result="goo" />
-            </filter>`;
-        document.body.appendChild(svg);
-    }
-
     function ensureIndicator(container, className) {
         if (!container) return null;
         let el = container.querySelector(`:scope > .${className}`);
@@ -1857,27 +1840,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return el;
     }
 
-    function ensureGooLayer(container, className) {
-        if (!container) return null;
-        let el = container.querySelector(`:scope > .${className}`);
-        if (!el) {
-            ensureGooDefs();
-            el = document.createElement('div');
-            el.className = `goo-layer ${className}`;
-            el.setAttribute('aria-hidden', 'true');
-            el.innerHTML = '<span class="goo-blob goo-a"></span><span class="goo-blob goo-b"></span>';
-            container.prepend(el);
-        }
-        return el;
-    }
-
-    const easeOutBack = (t) => {
-        const c1 = 1.28, c3 = c1 + 1;
-        return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-    };
-
     const indicatorBoxes = new Map();
-    const gooLayers = new Map();
 
     function computeBox(container, target, size) {
         const cRect = container.getBoundingClientRect();
@@ -1897,56 +1860,40 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.classList.add('is-visible');
     }
 
-    function runGooTransition(container, indicator, gooClassName, fromBox, toBox) {
-        const layer = ensureGooLayer(container, gooClassName);
-        const blobA = layer.querySelector('.goo-a');
-        const blobB = layer.querySelector('.goo-b');
-        layer.classList.add('is-active');
-        indicator.classList.remove('is-visible');
+    const EASE_STRETCH = 'ease-out';
+    const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
-        const duration = gooClassName === 'nav-goo' ? 680 : 560;
-        const start = performance.now();
-        const runId = Symbol('goo');
-        gooLayers.set(layer, runId);
+    function animateStretch(indicator, prev, box) {
+        // Phase 1: elongate into a pill bridging the old and new spot (rubber-band pull)
+        const left = Math.min(prev.cx - prev.w / 2, box.cx - box.w / 2);
+        const right = Math.max(prev.cx + prev.w / 2, box.cx + box.w / 2);
+        const bridgeW = right - left;
+        const bridgeH = Math.min(prev.h, box.h) * 0.72;
+        const bridgeCx = (left + right) / 2;
+        const bridgeCy = (prev.cy + box.cy) / 2;
 
-        function frame(now) {
-            if (gooLayers.get(layer) !== runId) return;
-            const t = Math.min(1, (now - start) / duration);
-            const e = easeOutBack(t);
+        indicator.style.transition = `transform 0.16s ${EASE_STRETCH}, width 0.16s ${EASE_STRETCH}, height 0.16s ${EASE_STRETCH}, border-radius 0.16s ${EASE_STRETCH}`;
+        placeIndicator(indicator, { cx: bridgeCx, cy: bridgeCy, w: bridgeW, h: bridgeH, radius: `${bridgeH / 2}px` });
 
-            const aSize = Math.max(0, fromBox.w * (1 - t));
-            blobA.style.width = `${aSize}px`;
-            blobA.style.height = `${aSize}px`;
-            blobA.style.transform = `translate(${fromBox.cx - aSize / 2}px, ${fromBox.cy - aSize / 2}px)`;
-
-            const bSize = Math.max(0, toBox.w * Math.min(1, t * 1.18));
-            const cx = fromBox.cx + (toBox.cx - fromBox.cx) * e;
-            const cy = fromBox.cy + (toBox.cy - fromBox.cy) * e;
-            blobB.style.width = `${bSize}px`;
-            blobB.style.height = `${bSize}px`;
-            blobB.style.transform = `translate(${cx - bSize / 2}px, ${cy - bSize / 2}px)`;
-
-            if (t < 1) {
-                requestAnimationFrame(frame);
-            } else {
-                layer.classList.remove('is-active');
-                placeIndicator(indicator, toBox);
-            }
-        }
-        requestAnimationFrame(frame);
+        // Phase 2: contract into the final circle/pill at the new spot
+        setTimeout(() => {
+            indicator.style.transition = `transform 0.34s ${EASE_SETTLE}, width 0.34s ${EASE_SETTLE}, height 0.34s ${EASE_SETTLE}, border-radius 0.34s ${EASE_SETTLE}`;
+            placeIndicator(indicator, box);
+        }, 160);
     }
 
     function moveIndicator(container, indicator, target, size, animate = true) {
         if (!container || !indicator || !target) return;
         const box = computeBox(container, target, size);
         const prev = indicatorBoxes.get(indicator);
-        const gooClassName = indicator.classList.contains('nav-indicator') ? 'nav-goo' : 'dock-goo';
         const moved = prev && (Math.round(prev.cx) !== Math.round(box.cx) || Math.round(prev.cy) !== Math.round(box.cy));
 
         if (animate && moved) {
-            runGooTransition(container, indicator, gooClassName, prev, box);
+            animateStretch(indicator, prev, box);
         } else {
+            indicator.style.transition = 'none';
             placeIndicator(indicator, box);
+            requestAnimationFrame(() => { indicator.style.transition = ''; });
         }
         indicatorBoxes.set(indicator, box);
     }

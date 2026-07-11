@@ -252,28 +252,6 @@ svg,
     border-radius: 50%;
 }
 
-/* ─── Goo (Liquid Morph) Layer ────────────────────────────*/
-.goo-layer {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0;
-    filter: url(#liquid-goo-filter);
-}
-
-.goo-layer.is-active {
-    opacity: 1;
-}
-
-.goo-blob {
-    position: absolute;
-    top: 0;
-    left: 0;
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--text-main) 16%, transparent);
-}
-
 /* ─── Nav Button Hover ────────────────────────────────────*/
 .nav-link {
     position: relative;
