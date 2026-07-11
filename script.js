@@ -555,6 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sections = document.querySelectorAll('.screen:not([hidden]), .sub-screen:not([hidden])');
         revealElements = document.querySelectorAll('.reveal-up');
         tiltElements = document.querySelectorAll('.tilt-effect');
+        requestAnimationFrame(() => requestAnimationFrame(syncIndicators));
     }
 
     function appendUtm(url, medium = 'link') {
@@ -1827,6 +1828,48 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollRoot?.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
 
+    function ensureIndicator(container, className) {
+        if (!container) return null;
+        let el = container.querySelector(`:scope > .${className}`);
+        if (!el) {
+            el = document.createElement('span');
+            el.className = `liquid-indicator ${className}`;
+            el.setAttribute('aria-hidden', 'true');
+            container.prepend(el);
+        }
+        return el;
+    }
+
+    function moveIndicator(container, indicator, target) {
+        if (!container || !indicator || !target) return;
+        const cRect = container.getBoundingClientRect();
+        const tRect = target.getBoundingClientRect();
+        const x = tRect.left - cRect.left;
+        const y = tRect.top - cRect.top;
+        indicator.style.width = `${tRect.width}px`;
+        indicator.style.height = `${tRect.height}px`;
+        indicator.style.borderRadius = getComputedStyle(target).borderRadius;
+        indicator.style.transform = `translate(${x}px, ${y}px)`;
+        indicator.classList.add('is-visible');
+    }
+
+    function syncIndicators() {
+        const navContainer = document.querySelector('.nav-links');
+        const dockContainer = document.querySelector('.floating-dock');
+        const activeNav = navContainer?.querySelector('.nav-link.active');
+        const activeDock = dockContainer?.querySelector('.dock-btn.active');
+
+        if (navContainer && activeNav) {
+            moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav);
+        }
+        if (dockContainer && activeDock) {
+            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock);
+        }
+    }
+    window.syncLiquidIndicators = syncIndicators;
+
+    window.addEventListener('resize', () => requestAnimationFrame(syncIndicators), { passive: true });
+
     function activateSection(id) {
         dockBtns.forEach((btn) => {
             btn.classList.toggle('active', btn.dataset.target === id);
@@ -1834,6 +1877,7 @@ document.addEventListener('DOMContentLoaded', () => {
         navLinks.forEach((link) => {
             link.classList.toggle('active', link.dataset.target === id);
         });
+        syncIndicators();
     }
 
     // ✅ rootMargin بيعمل "شريط رصد" قريب من أعلى الشاشة بدل ما نطلب نسبة

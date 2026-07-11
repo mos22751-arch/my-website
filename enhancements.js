@@ -319,6 +319,7 @@
             // Update dock/nav active state
             allDocks.forEach((b, i) => b.classList.toggle('active', i === nextIndex));
             $$('.nav-link').forEach((l) => l.classList.toggle('active', l.dataset.target === targetId));
+            window.syncLiquidIndicators?.();
         }, { passive: true });
     }
 
@@ -670,6 +671,7 @@
             link.addEventListener('click', () => {
                 navLinks.forEach((l) => l.classList.remove('active'));
                 link.classList.add('active');
+                window.syncLiquidIndicators?.();
             });
         });
     }

@@ -328,14 +328,13 @@ body:not(.is-loading) .page-loader {
 .glass-panel,
 .glass-card {
     position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: var(--glass-bg);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.035);
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        inset 0 -12px 20px rgba(255, 255, 255, 0.03),
-        var(--shadow);
-    backdrop-filter: blur(22px) saturate(165%);
-    -webkit-backdrop-filter: blur(22px) saturate(165%);
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -12px 20px rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
 }
 
 .glass-card {
@@ -374,8 +373,8 @@ body:not(.is-loading) .page-loader {
     border-radius: 999px;
     transform: translateX(-50%);
     background: rgba(255, 255, 255, 0.035);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    backdrop-filter: blur(3px) saturate(140%);
+    -webkit-backdrop-filter: blur(3px) saturate(140%);
 }
 
 .brand {
@@ -395,6 +394,7 @@ body:not(.is-loading) .page-loader {
 }
 
 .nav-links {
+    position: relative;
     justify-self: center;
     display: inline-flex;
     gap: 0.25rem;
@@ -407,6 +407,8 @@ body:not(.is-loading) .page-loader {
 }
 
 .nav-link {
+    position: relative;
+    z-index: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -426,24 +428,7 @@ body:not(.is-loading) .page-loader {
 }
 
 .nav-link.active {
-    position: relative;
     color: var(--text-main);
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.26),
-        inset 0 -10px 16px rgba(255, 255, 255, 0.05),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-    overflow: hidden;
-}
-
-.nav-link.active::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(130% 100% at 30% 15%, rgba(255, 255, 255, 0.24), transparent 60%);
-    pointer-events: none;
 }
 
 .theme-switch {
@@ -1748,6 +1733,9 @@ body.accent-gold {
     overflow-x: auto;
     scrollbar-width: none;
     border-radius: 999px;
+    background: rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(3px) saturate(140%);
+    -webkit-backdrop-filter: blur(3px) saturate(140%);
     /* ✅ بيمنع dir="rtl" (وضع العربي) من عكس ترتيب الأيقونات بصريًا.
        الترتيب لازم يفضل ثابت ومطابق لترتيب الأقسام في الصفحة بغض النظر عن اللغة */
     direction: ltr;
@@ -1777,22 +1765,7 @@ body.accent-gold {
 
 .dock-btn.active {
     color: var(--text-main);
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.26),
-        inset 0 -10px 16px rgba(255, 255, 255, 0.05),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.08);
     transform: translateY(-2px);
-}
-
-.dock-btn.active::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(130% 100% at 30% 15%, rgba(255, 255, 255, 0.24), transparent 60%);
-    pointer-events: none;
 }
 
 .dock-btn svg {
