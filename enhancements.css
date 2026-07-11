@@ -1435,6 +1435,13 @@ body.lang-ar .project-card h3 {
 .accent-tile.violet  .accent-tile-dot { background: #a78bfa; box-shadow: 0 0 10px #a78bfa66; }
 .accent-tile.gold    .accent-tile-dot { background: #f6c95f; box-shadow: 0 0 10px #f6c95f66; }
 
+/* ✅ Studio ثيم سوليد — اختيار الـ accent مالهوش تأثير معاه فبنعطّله بصريًا */
+body.accent-locked .accent-grid {
+    opacity: 0.4;
+    pointer-events: none;
+    filter: grayscale(1);
+}
+
 /* Preset grid */
 .preset-grid {
     display: grid;
