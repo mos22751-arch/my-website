@@ -11,9 +11,9 @@
     --text-muted: #9a989c;
     --glass-bg: rgba(238, 236, 231, 0.05);
     --glass-strong: rgba(238, 236, 231, 0.095);
-    --glass-border: rgba(99, 38, 38, 0.16);
+    --glass-border: rgba(99, 38, 38, 0.11);
     --shadow: 0 18px 46px rgba(0, 0, 0, 0.4);
-    --glow-color: rgba(99, 38, 38, 0.25);
+    --glow-color: rgba(99, 38, 38, 0.2);
 }
 
 .light-theme {

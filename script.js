@@ -1840,16 +1840,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return el;
     }
 
-    function moveIndicator(container, indicator, target) {
+    function moveIndicator(container, indicator, target, size) {
         if (!container || !indicator || !target) return;
         const cRect = container.getBoundingClientRect();
         const tRect = target.getBoundingClientRect();
-        const x = tRect.left - cRect.left;
-        const y = tRect.top - cRect.top;
-        indicator.style.width = `${tRect.width}px`;
-        indicator.style.height = `${tRect.height}px`;
-        indicator.style.borderRadius = getComputedStyle(target).borderRadius;
-        indicator.style.transform = `translate(${x}px, ${y}px)`;
+        const cx = tRect.left - cRect.left + tRect.width / 2;
+        const cy = tRect.top - cRect.top + tRect.height / 2;
+        const w = size ?? tRect.width;
+        const h = size ?? tRect.height;
+        indicator.style.width = `${w}px`;
+        indicator.style.height = `${h}px`;
+        indicator.style.borderRadius = size ? '50%' : getComputedStyle(target).borderRadius;
+        indicator.style.transform = `translate(${cx - w / 2}px, ${cy - h / 2}px)`;
         indicator.classList.add('is-visible');
     }
 
@@ -1863,7 +1865,7 @@ document.addEventListener('DOMContentLoaded', () => {
             moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav);
         }
         if (dockContainer && activeDock) {
-            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock);
+            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, 40);
         }
     }
     window.syncLiquidIndicators = syncIndicators;
