@@ -4,7 +4,7 @@ window.TOJI_CONFIG = {
     "loaderMark": "TOJI",
     "image": "assets/profile.webp",
     "phone": "201102550730",
-    "themePreset": "studio",
+    "themePreset": "neon",
     "accent": "cyan",
     "status": {
         "en": "Available for custom pages and clean web builds",

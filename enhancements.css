@@ -216,7 +216,7 @@ svg,
 .action-primary:hover {
     transform: translateY(-4px);
     box-shadow: 0 20px 50px var(--glow-color), 0 0 0 1px var(--primary);
-    background: linear-gradient(135deg, rgba(57, 208, 255, 0.32), rgba(94, 226, 160, 0.22)) !important;
+    background: linear-gradient(135deg, rgba(184, 137, 74, 0.34), rgba(140, 122, 99, 0.24)) !important;
 }
 
 .action-secondary:hover,
@@ -1318,7 +1318,7 @@ body.lang-ar .project-card h3 {
 
 .social-row:hover {
     background: var(--glass-strong);
-    border-color: var(--primary, #39d0ff);
+    border-color: var(--primary, #b8894a);
     transform: translateX(3px);
 }
 
@@ -1331,7 +1331,7 @@ body.lang-ar .project-card h3 {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: var(--primary, #39d0ff);
+    color: var(--primary, #b8894a);
 }
 
 .social-row-icon svg,
@@ -1348,7 +1348,7 @@ body.lang-ar .project-card h3 {
 }
 
 .social-row:hover .social-row-arrow {
-    color: var(--primary, #39d0ff);
+    color: var(--primary, #b8894a);
     transform: translate(2px, -2px);
 }
 
@@ -1417,7 +1417,7 @@ body.lang-ar .project-card h3 {
 
 .accent-tile:hover { background: var(--glass-strong); transform: translateY(-2px); }
 .accent-tile.active {
-    border-color: var(--primary, #39d0ff);
+    border-color: var(--primary, #b8894a);
     background: rgba(57,208,255,0.1);
     color: var(--text-main);
 }
@@ -1426,7 +1426,7 @@ body.lang-ar .project-card h3 {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: var(--primary, #39d0ff);
+    background: var(--primary, #b8894a);
     box-shadow: 0 0 10px currentColor;
 }
 
@@ -1434,13 +1434,6 @@ body.lang-ar .project-card h3 {
 .accent-tile.green   .accent-tile-dot { background: #5ee2a0; box-shadow: 0 0 10px #5ee2a066; }
 .accent-tile.violet  .accent-tile-dot { background: #a78bfa; box-shadow: 0 0 10px #a78bfa66; }
 .accent-tile.gold    .accent-tile-dot { background: #f6c95f; box-shadow: 0 0 10px #f6c95f66; }
-
-/* ✅ Studio ثيم سوليد — اختيار الـ accent مالهوش تأثير معاه فبنعطّله بصريًا */
-body.accent-locked .accent-grid {
-    opacity: 0.4;
-    pointer-events: none;
-    filter: grayscale(1);
-}
 
 /* Preset grid */
 .preset-grid {
@@ -1473,7 +1466,7 @@ body.accent-locked .accent-grid {
 }
 
 .preset-card.active {
-    border-color: var(--primary, #39d0ff);
+    border-color: var(--primary, #b8894a);
     background: rgba(57,208,255,0.1);
     color: var(--text-main);
 }
@@ -1599,7 +1592,7 @@ body.accent-locked .accent-grid {
     align-items: center;
     gap: 4px;
     font-size: 0.7rem;
-    color: var(--primary, #39d0ff);
+    color: var(--primary, #b8894a);
     text-decoration: none;
     margin-top: 6px;
     opacity: 0.8;
@@ -1624,7 +1617,7 @@ body.accent-locked .accent-grid {
 }
 .action-btn.action-ai:hover {
     background: linear-gradient(135deg, rgba(57,208,255,0.25), rgba(168,85,247,0.2));
-    border-color: var(--primary, #39d0ff);
+    border-color: var(--primary, #b8894a);
 }
 
 /* Overlay */
@@ -1710,7 +1703,7 @@ body.accent-locked .accent-grid {
 }
 .ai-chat-avatar-fallback {
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, var(--primary, #39d0ff), #a855f7);
+    background: linear-gradient(135deg, var(--primary, #b8894a), #565c66);
     color: #05060a; font-weight: 900; font-size: 1.05rem;
 }
 .ai-chat-avatar-dot {
@@ -1783,7 +1776,7 @@ body.accent-locked .accent-grid {
     overflow: hidden;
     flex-shrink: 0;
     border: 1.5px solid rgba(57,208,255,0.35);
-    background: linear-gradient(135deg, var(--primary,#39d0ff), #a855f7);
+    background: linear-gradient(135deg, var(--primary,#b8894a), #565c66);
 }
 .ai-msg-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
@@ -1798,7 +1791,7 @@ body.accent-locked .accent-grid {
     text-align: right;
 }
 .ai-msg.user p {
-    background: linear-gradient(135deg, var(--primary,#39d0ff), #4fc3ff);
+    background: linear-gradient(135deg, var(--primary,#b8894a), #8c7a63);
     color: #05060a;
     font-weight: 600;
     border-bottom-right-radius: 5px;
@@ -1853,7 +1846,7 @@ body.accent-locked .accent-grid {
 @keyframes choiceIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
 .bot-choice-btn:hover {
     background: rgba(57,208,255,0.16);
-    border-color: var(--primary, #39d0ff);
+    border-color: var(--primary, #b8894a);
     transform: translateX(-3px);
     color: #fff;
 }
@@ -1875,14 +1868,14 @@ body.accent-locked .accent-grid {
     outline: none;
     transition: border-color 0.15s, background 0.15s;
 }
-.ai-chat-input:focus { border-color: var(--primary, #39d0ff); background: rgba(255,255,255,0.1); }
+.ai-chat-input:focus { border-color: var(--primary, #b8894a); background: rgba(255,255,255,0.1); }
 .ai-chat-input::placeholder { color: rgba(255,255,255,0.35); }
 .ai-chat-input:disabled { opacity: 0.55; cursor: not-allowed; }
 .ai-chat-send {
     width: 40px; height: 40px;
     border-radius: 14px;
     border: none;
-    background: linear-gradient(135deg, var(--primary,#39d0ff), #4fc3ff);
+    background: linear-gradient(135deg, var(--primary,#b8894a), #8c7a63);
     color: #05060a;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
@@ -1943,7 +1936,7 @@ body.accent-locked .accent-grid {
     flex-shrink: 0;
 }
 .link-card-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.link-card-media-icon svg { width: 24px; height: 24px; color: var(--primary, #39d0ff); }
+.link-card-media-icon svg { width: 24px; height: 24px; color: var(--primary, #b8894a); }
 
 .link-card-name {
     font-size: 0.86rem;
@@ -1985,6 +1978,6 @@ body.accent-locked .accent-grid {
     color: var(--text-main, #fff);
     background: rgba(255,255,255,0.05);
 }
-.connect-copy-btn:hover { border-color: var(--primary, #39d0ff); }
+.connect-copy-btn:hover { border-color: var(--primary, #b8894a); }
 .connect-copy-icon svg,
 .connect-copy-check svg { width: 15px; height: 15px; }

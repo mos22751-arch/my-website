@@ -424,7 +424,7 @@
         { label: 'رقم واتساب/الهاتف بدون +', path: 'profile.phone' },
         { label: 'الحالة الإنجليزية', path: 'profile.status.en' },
         { label: 'الحالة العربية', path: 'profile.status.ar' },
-        { label: 'الثيم الافتراضي', path: 'profile.themePreset', options: [['studio', 'Studio'], ['neon', 'Neon'], ['midnight', 'Midnight'], ['emerald', 'Emerald'], ['sunset', 'Sunset'], ['aurora', 'Aurora'], ['royal', 'Royal'], ['graphite', 'Graphite']] },
+        { label: 'الثيم الافتراضي', path: 'profile.themePreset', options: [['neon', 'Neon'], ['midnight', 'Midnight'], ['emerald', 'Emerald'], ['sunset', 'Sunset'], ['aurora', 'Aurora'], ['royal', 'Royal'], ['graphite', 'Graphite']] },
         { label: 'لون Accent الافتراضي', path: 'profile.accent', options: [['cyan', 'Cyan'], ['orange', 'Orange'], ['green', 'Green'], ['violet', 'Violet'], ['gold', 'Gold']] }
     ];
 
@@ -472,7 +472,7 @@
         { label: 'لون Accent', path: 'design.accentColor' },
         { label: 'لون Mint', path: 'design.mintColor' },
         { label: 'Demo الحالي', path: 'design.presets.currentDemo', options: [['personal', 'Personal'], ['business', 'Business'], ['creator', 'Creator'], ['clinic', 'Clinic'], ['restaurant', 'Restaurant']] },
-        { label: 'Style Preset', path: 'design.presets.currentStyle', options: [['studio', 'Studio'], ['neon', 'Neon'], ['midnight', 'Midnight'], ['emerald', 'Emerald'], ['sunset', 'Sunset'], ['aurora', 'Aurora'], ['royal', 'Royal'], ['graphite', 'Graphite']] }
+        { label: 'Style Preset', path: 'design.presets.currentStyle', options: [['neon', 'Neon'], ['midnight', 'Midnight'], ['emerald', 'Emerald'], ['sunset', 'Sunset'], ['aurora', 'Aurora'], ['royal', 'Royal'], ['graphite', 'Graphite']] }
     ];
 
     const analyticsFields = [
@@ -601,7 +601,6 @@
         { label: 'Preset Aurora', path: 'preset.aurora' },
         { label: 'Preset Royal', path: 'preset.royal' },
         { label: 'Preset Graphite', path: 'preset.graphite' },
-        { label: 'Preset Studio', path: 'preset.studio' },
         { label: 'Preset Shuffle', path: 'preset.shuffle' },
         { label: 'ARIA Scroll About', path: 'aria.scrollAbout' },
         { label: 'ARIA Contact Card', path: 'aria.contactCard' },
@@ -1196,7 +1195,7 @@
                     <span class="preview-swatch primary preview-editable" data-edit-path="design.primaryColor"></span><span class="preview-muted-note preview-editable" data-edit-path="design.primaryColor">${escapeHtml(current.design?.primaryColor || '#39d0ff')}</span>
                     <span class="preview-swatch accent preview-editable" data-edit-path="design.accentColor"></span><span class="preview-muted-note preview-editable" data-edit-path="design.accentColor">${escapeHtml(current.design?.accentColor || '#ff7a3d')}</span>
                     <span class="preview-swatch mint preview-editable" data-edit-path="design.mintColor"></span><span class="preview-muted-note preview-editable" data-edit-path="design.mintColor">${escapeHtml(current.design?.mintColor || '#5ee2a0')}</span>
-                    <span class="preview-pill preview-editable" data-edit-path="profile.themePreset">${escapeHtml(tFrom(current, lang, 'preset.label'))}: ${escapeHtml(profile.themePreset || current.design?.presets?.currentStyle || 'studio')}</span>
+                    <span class="preview-pill preview-editable" data-edit-path="profile.themePreset">${escapeHtml(tFrom(current, lang, 'preset.label'))}: ${escapeHtml(profile.themePreset || current.design?.presets?.currentStyle || 'neon')}</span>
                 </div>
             </section>
 
@@ -1280,7 +1279,7 @@
             loaderMark: profile.loaderMark || safeNickname(content),
             image: profile.image || PROFILE_PLACEHOLDER_IMAGE,
             phone: safePhone(profile.phone),
-            themePreset: profile.themePreset || 'studio',
+            themePreset: profile.themePreset || 'neon',
             accent: profile.accent || 'cyan',
             status: profile.status || {},
             socials: profile.socials || {},
@@ -1933,7 +1932,7 @@ Do not resell the customized public version as a separate template unless your s
                 loaderMark: 'TOJI',
                 image: 'assets/profile.webp',
                 phone: '201102550730',
-                themePreset: 'studio',
+                themePreset: 'neon',
                 accent: 'cyan',
                 status: {
                     en: 'Available for custom pages and clean web builds',

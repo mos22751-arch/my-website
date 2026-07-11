@@ -2,33 +2,33 @@
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700;900&family=Aref+Ruqaa:wght@400;700&display=swap');
 
 :root {
-    --primary: #39d0ff;
-    --accent: #ff7a3d;
-    --mint: #5ee2a0;
-    --bg-base: #050506;
-    --bg-soft: #0d0e10;
-    --text-main: #f7f5ef;
-    --text-muted: #a7acb7;
-    --glass-bg: rgba(255, 255, 255, 0.055);
-    --glass-strong: rgba(255, 255, 255, 0.095);
-    --glass-border: rgba(255, 255, 255, 0.13);
-    --shadow: 0 18px 46px rgba(0, 0, 0, 0.32);
-    --glow-color: rgba(57, 208, 255, 0.28);
+    --primary: #b8894a;
+    --accent: #565c66;
+    --mint: #8c7a63;
+    --bg-base: #0e0f11;
+    --bg-soft: #18191c;
+    --text-main: #eeece7;
+    --text-muted: #9a989c;
+    --glass-bg: rgba(238, 236, 231, 0.05);
+    --glass-strong: rgba(238, 236, 231, 0.095);
+    --glass-border: rgba(184, 137, 74, 0.16);
+    --shadow: 0 18px 46px rgba(0, 0, 0, 0.4);
+    --glow-color: rgba(184, 137, 74, 0.25);
 }
 
 .light-theme {
-    --primary: #0077b6;
-    --accent: #d85f2a;
-    --mint: #07845d;
-    --bg-base: #f7f5ef;
+    --primary: #8a6430;
+    --accent: #3d454e;
+    --mint: #6b5a46;
+    --bg-base: #ece9e4;
     --bg-soft: #ffffff;
-    --text-main: #15171c;
-    --text-muted: #636b78;
+    --text-main: #1c1d1f;
+    --text-muted: #5d5f63;
     --glass-bg: rgba(255, 255, 255, 0.68);
     --glass-strong: rgba(255, 255, 255, 0.86);
-    --glass-border: rgba(20, 24, 32, 0.13);
+    --glass-border: rgba(28, 28, 30, 0.13);
     --shadow: 0 24px 70px rgba(20, 24, 32, 0.13);
-    --glow-color: rgba(0, 119, 182, 0.2);
+    --glow-color: rgba(138, 100, 48, 0.2);
 }
 
 * {
@@ -45,9 +45,9 @@ body {
     min-height: 100vh;
     overflow: hidden;
     background:
-        radial-gradient(circle at 20% 20%, rgba(57, 208, 255, 0.16), transparent 28rem),
-        radial-gradient(circle at 84% 26%, rgba(255, 122, 61, 0.14), transparent 24rem),
-        radial-gradient(circle at 54% 82%, rgba(94, 226, 160, 0.12), transparent 26rem),
+        radial-gradient(circle at 20% 20%, rgba(184, 137, 74, 0.16), transparent 28rem),
+        radial-gradient(circle at 84% 26%, rgba(86, 92, 102, 0.18), transparent 24rem),
+        radial-gradient(circle at 54% 82%, rgba(140, 122, 99, 0.12), transparent 26rem),
         var(--bg-base);
     color: var(--text-main);
     font-family: 'Caveat', cursive, system-ui, -apple-system, sans-serif;
@@ -88,8 +88,8 @@ a:focus-visible {
     gap: 1.1rem;
     align-content: center;
     background:
-        radial-gradient(circle at 28% 24%, rgba(57, 208, 255, 0.18), transparent 24rem),
-        radial-gradient(circle at 74% 72%, rgba(255, 122, 61, 0.16), transparent 24rem),
+        radial-gradient(circle at 28% 24%, rgba(184, 137, 74, 0.2), transparent 24rem),
+        radial-gradient(circle at 74% 72%, rgba(86, 92, 102, 0.2), transparent 24rem),
         var(--bg-base);
     color: var(--text-main);
     transition: opacity 0.42s ease, visibility 0.42s ease;
@@ -286,9 +286,9 @@ body:not(.is-loading) .page-loader {
 .cursor-active .cursor-outline {
     width: 54px;
     height: 54px;
-    border-color: rgba(255, 122, 61, 0.72);
+    border-color: rgba(86, 92, 102, 0.72);
     border-color: color-mix(in srgb, var(--accent) 72%, transparent);
-    background: rgba(255, 122, 61, 0.1);
+    background: rgba(86, 92, 102, 0.1);
     background:
         radial-gradient(circle, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
         linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, transparent), color-mix(in srgb, var(--accent) 18%, transparent));
@@ -299,9 +299,9 @@ body:not(.is-loading) .page-loader {
     inset: -10%;
     z-index: -2;
     background:
-        linear-gradient(130deg, rgba(57, 208, 255, 0.16), transparent 38%),
-        linear-gradient(300deg, rgba(255, 122, 61, 0.14), transparent 34%),
-        linear-gradient(40deg, rgba(94, 226, 160, 0.1), transparent 32%);
+        linear-gradient(130deg, rgba(184, 137, 74, 0.16), transparent 38%),
+        linear-gradient(300deg, rgba(86, 92, 102, 0.18), transparent 34%),
+        linear-gradient(40deg, rgba(140, 122, 99, 0.12), transparent 32%);
     filter: blur(14px);
     animation: drift 22s ease-in-out infinite alternate;
     will-change: transform;
@@ -327,11 +327,26 @@ body:not(.is-loading) .page-loader {
 
 .glass-panel,
 .glass-card {
+    position: relative;
     border: 1px solid var(--glass-border);
     background: var(--glass-bg);
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    box-shadow:
+        var(--shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.09),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(22px) saturate(165%);
+    -webkit-backdrop-filter: blur(22px) saturate(165%);
+}
+
+.glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 45%);
+    pointer-events: none;
+    mix-blend-mode: overlay;
 }
 
 .glass-card {
@@ -623,7 +638,7 @@ body:not(.is-loading) .page-loader {
     height: 9px;
     border-radius: 50%;
     background: var(--mint);
-    box-shadow: 0 0 0 7px rgba(94, 226, 160, 0.12);
+    box-shadow: 0 0 0 7px rgba(140, 122, 99, 0.14);
 }
 
 .hero-actions {
@@ -648,9 +663,9 @@ body:not(.is-loading) .page-loader {
 }
 
 .action-primary {
-    border-color: rgba(57, 208, 255, 0.48);
-    background: linear-gradient(135deg, rgba(57, 208, 255, 0.22), rgba(94, 226, 160, 0.14));
-    box-shadow: 0 18px 46px rgba(57, 208, 255, 0.14);
+    border-color: rgba(184, 137, 74, 0.5);
+    background: linear-gradient(135deg, rgba(184, 137, 74, 0.24), rgba(140, 122, 99, 0.14));
+    box-shadow: 0 18px 46px rgba(184, 137, 74, 0.16);
 }
 
 .action-secondary,
@@ -715,8 +730,8 @@ body:not(.is-loading) .page-loader {
     padding: 1.2rem;
     background:
         linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035)),
-        radial-gradient(circle at 34% 30%, rgba(57, 208, 255, 0.24), transparent 15rem),
-        radial-gradient(circle at 70% 80%, rgba(255, 122, 61, 0.2), transparent 14rem);
+        radial-gradient(circle at 34% 30%, rgba(184, 137, 74, 0.26), transparent 15rem),
+        radial-gradient(circle at 70% 80%, rgba(86, 92, 102, 0.22), transparent 14rem);
     box-shadow: var(--shadow);
     transform-style: preserve-3d;
 }
@@ -746,7 +761,7 @@ body:not(.is-loading) .page-loader {
     height: 10px;
     border-radius: 50%;
     background: var(--mint);
-    box-shadow: 0 0 0 8px rgba(94, 226, 160, 0.12);
+    box-shadow: 0 0 0 8px rgba(140, 122, 99, 0.14);
     animation: pulse 1.8s infinite;
 }
 
@@ -913,7 +928,7 @@ body:not(.is-loading) .page-loader {
     border: 1px solid var(--glass-border);
     border-radius: 8px;
     background:
-        linear-gradient(135deg, rgba(57, 208, 255, 0.18), rgba(255, 122, 61, 0.12)),
+        linear-gradient(135deg, rgba(184, 137, 74, 0.2), rgba(86, 92, 102, 0.14)),
         rgba(255, 255, 255, 0.045);
 }
 
@@ -925,14 +940,14 @@ body:not(.is-loading) .page-loader {
 
 .preview-business {
     background:
-        linear-gradient(135deg, rgba(255, 122, 61, 0.2), rgba(94, 226, 160, 0.12)),
+        linear-gradient(135deg, rgba(86, 92, 102, 0.22), rgba(140, 122, 99, 0.14)),
         rgba(255, 255, 255, 0.045);
 }
 
 .preview-links {
     background:
-        radial-gradient(circle at 36% 38%, rgba(57, 208, 255, 0.3), transparent 4rem),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(94, 226, 160, 0.12));
+        radial-gradient(circle at 36% 38%, rgba(184, 137, 74, 0.32), transparent 4rem),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(140, 122, 99, 0.14));
 }
 
 .project-number {
@@ -1406,7 +1421,7 @@ button.social-pill {
 .preset-shuffle {
     border-color: rgba(255, 255, 255, 0.18);
     background:
-        linear-gradient(135deg, rgba(57, 208, 255, 0.13), rgba(255, 122, 61, 0.1)),
+        linear-gradient(135deg, rgba(184, 137, 74, 0.16), rgba(86, 92, 102, 0.14)),
         rgba(255, 255, 255, 0.045);
 }
 
@@ -1414,7 +1429,7 @@ button.social-pill {
 .preset-btn.active {
     transform: translateY(-2px);
     border-color: var(--primary);
-    background: rgba(57, 208, 255, 0.15);
+    background: rgba(184, 137, 74, 0.15);
     color: var(--text-main);
 }
 
@@ -1592,42 +1607,6 @@ body.light-theme.preset-graphite {
     --glow-color: rgba(55, 65, 81, 0.1);
 }
 
-/* ============================================================
-   ✅ STUDIO — الثيم الأساسي للموقع (فانيلا/جرافيت غامق) — سوليد
-   بدون أي مكس ألوان، وبدون بنفسجي، خلفية صريحة بلون واحد
-   ============================================================ */
-body.preset-studio:not(.light-theme) {
-    --primary: #b8bfc9;
-    --accent: #e7e5df;
-    --mint: #8c9199;
-    --bg-base: #17181b;
-    --bg-soft: #212226;
-    --glass-bg: rgba(231, 229, 223, 0.045);
-    --glass-strong: rgba(231, 229, 223, 0.09);
-    --glass-border: rgba(231, 229, 223, 0.14);
-    --glow-color: rgba(184, 191, 201, 0.12);
-}
-
-body.light-theme.preset-studio {
-    --primary: #4b4d52;
-    --accent: #7d6a52;
-    --mint: #5b5e63;
-    --bg-base: #f3ede1;
-    --bg-soft: #ffffff;
-    --glass-bg: rgba(75, 77, 82, 0.05);
-    --glass-strong: rgba(75, 77, 82, 0.09);
-    --glass-border: rgba(75, 77, 82, 0.14);
-    --glow-color: rgba(75, 77, 82, 0.08);
-}
-
-body.preset-studio {
-    background: var(--bg-base);
-}
-
-body.preset-studio .page-loader {
-    background: var(--bg-base);
-}
-
 body.demo-personal {
     --primary: #36d6ff;
     --accent: #ff7a3d;
@@ -1746,6 +1725,7 @@ body.accent-gold {
 }
 
 .floating-dock {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.4rem;
@@ -1784,7 +1764,7 @@ body.accent-gold {
 
 .dock-btn.active {
     color: var(--primary);
-    background: rgba(57, 208, 255, 0.14);
+    background: rgba(184, 137, 74, 0.16);
 }
 
 .dock-btn svg {
