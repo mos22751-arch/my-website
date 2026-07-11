@@ -1649,15 +1649,14 @@ body.lang-ar .project-card h3 {
     position: relative;
     width: min(400px, 100%);
     max-height: 78vh;
-    background:
-        linear-gradient(180deg, rgba(28,32,46,0.9) 0%, rgba(10,11,17,0.94) 100%);
-    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 24px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(3px) saturate(140%);
+    -webkit-backdrop-filter: blur(3px) saturate(140%);
     box-shadow:
         0 24px 60px rgba(0,0,0,0.5),
         0 1px 0 rgba(255,255,255,0.14) inset;
