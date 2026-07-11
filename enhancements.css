@@ -234,6 +234,23 @@ svg,
     transition: color 0.25s ease, background 0.25s ease !important;
 }
 
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--primary);
+    transform: translateX(-50%) scale(0);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-link.active::after {
+    transform: translateX(-50%) scale(1);
+}
+
 /* ─── Form Enhanced Focus & Validation ───────────────────*/
 .contact-form label {
     position: relative;
@@ -815,6 +832,23 @@ body.page-transitioning .screen:not(.hero-screen) {
     transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
                 background 0.22s ease,
                 color 0.22s ease !important;
+}
+
+.dock-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--primary);
+    transform: translateX(-50%) scale(0);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dock-btn.active::after {
+    transform: translateX(-50%) scale(1);
 }
 
 .dock-btn:hover:not(.active) {
@@ -1947,92 +1981,3 @@ body.lang-ar .project-card h3 {
 .connect-copy-btn:hover { border-color: var(--primary, #632626); }
 .connect-copy-icon svg,
 .connect-copy-check svg { width: 15px; height: 15px; }
-
-/* ============================================================
-   LIQUID GLASS UI — v2
-   A real glass capsule appears ONLY on the item you're
-   currently on (nav-link.active / dock-btn.active). Everything
-   else stays plain — no circles, no backgrounds, nothing added
-   to the idle icons. Pure CSS on the item itself: no separate
-   positioned element, so it can never drift out of place.
-   ============================================================ */
-
-/* --- shared unified glass sheen for every card/panel already
-   using .glass-panel / .glass-card, so the whole site reads as
-   one consistent glass material --- */
-.glass-panel,
-.glass-card {
-    position: relative;
-}
-
-.glass-panel::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    border-radius: inherit;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 45%);
-    mix-blend-mode: overlay;
-    pointer-events: none;
-}
-
-.modern-nav > *,
-.floating-dock > * {
-    position: relative;
-    z-index: 1;
-}
-
-/* --- the actual liquid glass capsule: only exists on .active --- */
-.nav-link,
-.dock-btn {
-    transition:
-        color 0.3s ease,
-        background 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-        box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-        backdrop-filter 0.45s ease;
-}
-
-.nav-link.active,
-.dock-btn.active {
-    color: var(--text-main);
-    background:
-        linear-gradient(155deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.02) 45%, rgba(255, 255, 255, 0.18) 100%),
-        color-mix(in srgb, var(--primary) 26%, var(--glass-strong));
-    border-color: rgba(255, 255, 255, 0.6);
-    box-shadow:
-        inset 0 1.5px 1px rgba(255, 255, 255, 0.95),
-        inset 0 -8px 14px rgba(255, 255, 255, 0.1),
-        0 10px 22px var(--glow-color),
-        0 3px 10px rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(11px) saturate(200%) brightness(1.15);
-    -webkit-backdrop-filter: blur(11px) saturate(200%) brightness(1.15);
-}
-
-.nav-link.active {
-    transform: translateY(-1px) scale(1.045);
-}
-
-.dock-btn.active {
-    transform: translateY(-4px) scale(1.06);
-}
-
-/* a soft glass "cap" of light along the top edge of the capsule —
-   this is the specular highlight that reads as real glass */
-.nav-link.active::before,
-.dock-btn.active::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(120% 160% at 25% -20%, rgba(255, 255, 255, 0.75), transparent 55%);
-    mix-blend-mode: overlay;
-    pointer-events: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .nav-link.active,
-    .dock-btn.active {
-        transform: none;
-    }
-}
