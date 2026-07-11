@@ -1,0 +1,297 @@
+/* =========================================================
+   LIQUID GLASS UI OVERHAUL
+   Visual-only layer. Loaded after style.css & enhancements.css.
+   Does not touch markup, JS, or site logic — appearance only.
+   Reuses the site's existing --primary/--accent/--glass-* tokens
+   so the theme switcher and all color presets keep working.
+   ========================================================= */
+
+:root {
+    /* Deeper, richer frost + a bright specular edge, à la Apple Liquid Glass */
+    --glass-bg: rgba(255, 255, 255, 0.07);
+    --glass-strong: rgba(255, 255, 255, 0.13);
+    --glass-border: rgba(255, 255, 255, 0.22);
+    --glass-highlight: rgba(255, 255, 255, 0.55);
+    --glass-shine: rgba(255, 255, 255, 0.9);
+    --shadow: 0 24px 60px rgba(0, 0, 0, 0.38), 0 2px 8px rgba(0, 0, 0, 0.22);
+    --lg-radius-lg: 26px;   /* cards / big surfaces */
+    --lg-radius-md: 18px;   /* inputs / medium controls */
+    --lg-radius-sm: 12px;   /* small buttons / chips */
+    --lg-blur: blur(28px) saturate(190%) brightness(1.08);
+    --lg-blur-strong: blur(34px) saturate(200%) brightness(1.12);
+}
+
+.light-theme {
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-strong: rgba(255, 255, 255, 0.78);
+    --glass-border: rgba(255, 255, 255, 0.9);
+    --glass-highlight: rgba(255, 255, 255, 0.95);
+    --glass-shine: rgba(255, 255, 255, 1);
+    --shadow: 0 20px 50px rgba(20, 24, 32, 0.14), 0 2px 6px rgba(20, 24, 32, 0.08);
+}
+
+/* ---------------------------------------------------------
+   Core glass material — thicker frost, specular top edge,
+   soft double shadow (ambient + contact) like real glass.
+   --------------------------------------------------------- */
+.glass-panel,
+.glass-card,
+.floating-dock,
+.nav-links,
+.theme-switch,
+.language-toggle,
+.dashboard-link,
+.social-pill,
+.action-btn,
+.dock-btn {
+    backdrop-filter: var(--lg-blur);
+    -webkit-backdrop-filter: var(--lg-blur);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 40%),
+        var(--glass-bg);
+    border-color: var(--glass-border);
+    box-shadow:
+        inset 0 1px 0 var(--glass-highlight),
+        inset 0 -1px 12px rgba(255, 255, 255, 0.05),
+        var(--shadow);
+}
+
+.glass-panel,
+.glass-card {
+    border-radius: var(--lg-radius-lg);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.35s ease, border-color 0.35s ease;
+}
+
+/* A moving specular sheen sweeping across glass surfaces on hover —
+   the signature Liquid Glass "light catching the surface" cue. */
+.glass-card::after,
+.glass-panel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(115deg,
+        transparent 20%,
+        var(--glass-shine) 48%,
+        transparent 62%);
+    opacity: 0;
+    mix-blend-mode: overlay;
+    background-size: 220% 220%;
+    background-position: 120% 0%;
+    transition: opacity 0.4s ease, background-position 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.glass-card:hover::after {
+    opacity: 0.65;
+    background-position: -20% 100%;
+}
+
+.glass-card:hover,
+.bento-item.glass-card:hover,
+.project-card.glass-card:hover {
+    transform: translateY(-6px) scale(1.012);
+}
+
+/* ---------------------------------------------------------
+   Radius pass — round every surface to the Liquid Glass scale.
+   --------------------------------------------------------- */
+.bento-item,
+.project-card,
+.gallery-item,
+#quickMessageForm,
+.wip-card,
+.song-card,
+.link-card {
+    border-radius: var(--lg-radius-lg) !important;
+}
+
+input,
+textarea,
+select,
+.social-pill,
+.form-field,
+.btn-primary,
+.btn-secondary {
+    border-radius: var(--lg-radius-md) !important;
+}
+
+/* ---------------------------------------------------------
+   Top nav — full glass capsule with a bright rim highlight.
+   --------------------------------------------------------- */
+.modern-nav {
+    backdrop-filter: var(--lg-blur-strong);
+    -webkit-backdrop-filter: var(--lg-blur-strong);
+    box-shadow:
+        inset 0 1px 0 var(--glass-highlight),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+        var(--shadow);
+}
+
+.nav-link {
+    border-radius: 999px;
+}
+
+.nav-link.active {
+    backdrop-filter: var(--lg-blur);
+    -webkit-backdrop-filter: var(--lg-blur);
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+/* ---------------------------------------------------------
+   Floating dock — the macOS/iOS-style glass dock. Icons lift
+   and gain their own little glass bubble on hover, echoing
+   GlassEffectContainer morphing behavior.
+   --------------------------------------------------------- */
+.floating-dock {
+    backdrop-filter: var(--lg-blur-strong);
+    -webkit-backdrop-filter: var(--lg-blur-strong);
+    border-radius: 999px;
+    gap: 0.35rem;
+}
+
+.dock-btn {
+    border-radius: 50%;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+        background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dock-btn:hover {
+    transform: translateY(-6px) scale(1.12);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 55%),
+        var(--glass-strong);
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+.dock-btn.active {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 55%),
+        color-mix(in srgb, var(--primary) 30%, var(--glass-strong));
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 6px 16px rgba(0, 0, 0, 0.26);
+}
+
+.dock-btn:active {
+    transform: translateY(-2px) scale(0.94);
+}
+
+/* ---------------------------------------------------------
+   Buttons — glossy top-to-bottom highlight + tactile press,
+   matching .buttonStyle(.glass) / .glassProminent from the
+   native API.
+   --------------------------------------------------------- */
+.action-btn,
+.btn-primary,
+.btn-secondary {
+    position: relative;
+    overflow: hidden;
+    border-radius: 999px;
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.action-btn::before,
+.btn-primary::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%);
+    pointer-events: none;
+}
+
+.action-btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.06);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 12px 26px rgba(0, 0, 0, 0.28);
+}
+
+.action-btn:active,
+.btn-primary:active,
+.btn-secondary:active {
+    transform: translateY(0) scale(0.97);
+    filter: brightness(0.96);
+}
+
+.action-primary {
+    background: linear-gradient(160deg, var(--primary), var(--accent));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 10px 24px var(--glow-color);
+}
+
+/* ---------------------------------------------------------
+   Inputs — inset glass fields, Apple form-field feel.
+   --------------------------------------------------------- */
+input,
+textarea,
+select {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    transition: box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.1), 0 0 0 4px var(--glow-color);
+}
+
+/* ---------------------------------------------------------
+   Profile / status accents — soft glass badge glow.
+   --------------------------------------------------------- */
+.profile-panel,
+.status-strip,
+.signal-item {
+    border-radius: var(--lg-radius-md);
+}
+
+.status-dot,
+.pulse-dot {
+    box-shadow: 0 0 0 4px var(--glow-color), 0 0 14px var(--glow-color);
+}
+
+/* ---------------------------------------------------------
+   Gentle idle shimmer across nav & dock rims — subtle,
+   not distracting. Respects reduced-motion below.
+   --------------------------------------------------------- */
+@keyframes lg-rim-shimmer {
+    0%, 100% { box-shadow: inset 0 1px 0 var(--glass-highlight), var(--shadow); }
+    50% { box-shadow: inset 0 1px 0 var(--glass-shine), var(--shadow); }
+}
+
+.modern-nav,
+.floating-dock {
+    animation: lg-rim-shimmer 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .modern-nav,
+    .floating-dock,
+    .glass-card,
+    .dock-btn,
+    .action-btn,
+    .btn-primary,
+    .btn-secondary {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ---------------------------------------------------------
+   Mobile — keep the glass feel but trim blur cost.
+   --------------------------------------------------------- */
+@media (max-width: 640px) {
+    :root {
+        --lg-blur: blur(20px) saturate(170%) brightness(1.06);
+        --lg-blur-strong: blur(24px) saturate(180%) brightness(1.08);
+        --lg-radius-lg: 22px;
+        --lg-radius-md: 16px;
+    }
+}
