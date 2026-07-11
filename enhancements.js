@@ -799,3 +799,113 @@
 
 })();
 
+
+/* ============================================================
+   LIQUID GLASS INDICATOR
+   Moves + morphs a translucent glass pill so it always sits
+   exactly behind the current .active nav-link / dock-btn.
+   Fully independent of script.js — just watches the DOM.
+   ============================================================ */
+(function liquidGlassIndicator() {
+
+    function setup(container, itemSelector) {
+        if (!container) return null;
+
+        let indicator = container.querySelector(':scope > [data-liquid-indicator]');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.className = 'liquid-glass-indicator';
+            indicator.setAttribute('data-liquid-indicator', '');
+            indicator.setAttribute('aria-hidden', 'true');
+            container.insertBefore(indicator, container.firstChild);
+        }
+
+        let raf = null;
+
+        function place() {
+            const active = container.querySelector(itemSelector + '.active:not([hidden])');
+            if (!active || active.offsetParent === null) {
+                indicator.classList.remove('is-visible');
+                return;
+            }
+            const w = active.offsetWidth;
+            const h = active.offsetHeight;
+            const x = active.offsetLeft - container.scrollLeft;
+            const y = active.offsetTop - container.scrollTop;
+            if (w === 0 && h === 0) return;
+
+            indicator.style.width = w + 'px';
+            indicator.style.height = h + 'px';
+            indicator.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
+            indicator.classList.add('is-visible');
+        }
+
+        function scheduleMorph() {
+            indicator.classList.add('is-morphing');
+            clearTimeout(indicator._morphTimer);
+            indicator._morphTimer = setTimeout(() => {
+                indicator.classList.remove('is-morphing');
+            }, 260);
+        }
+
+        function move() {
+            scheduleMorph();
+            if (raf) cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(place);
+        }
+
+        const mo = new MutationObserver(() => requestAnimationFrame(place));
+        mo.observe(container, {
+            subtree: true,
+            childList: true,
+            characterData: true,
+            attributes: true,
+            attributeFilter: ['class', 'hidden', 'style']
+        });
+
+        if ('ResizeObserver' in window) {
+            new ResizeObserver(() => requestAnimationFrame(place)).observe(container);
+        }
+
+        container.addEventListener('scroll', () => requestAnimationFrame(place), { passive: true });
+        window.addEventListener('resize', place, { passive: true });
+        window.addEventListener('orientationchange', () => setTimeout(place, 200));
+        window.addEventListener('load', place);
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(place);
+        }
+
+        // a few retries to catch late layout shifts (icon fonts, dock
+        // intro animation, i18n text swaps, section-observer activation)
+        [0, 60, 160, 350, 700, 1300, 2000].forEach((t) => setTimeout(place, t));
+
+        return move;
+    }
+
+    function init() {
+        const navMove = setup(document.querySelector('.nav-links'), '.nav-link');
+        const dockMove = setup(document.querySelector('.floating-dock'), '.dock-btn');
+
+        // click feedback: trigger the little morph wobble immediately on tap,
+        // ahead of the scroll/observer catching up
+        document.addEventListener('click', (event) => {
+            const el = event.target.closest?.('.nav-link, .dock-btn');
+            if (!el) return;
+            requestAnimationFrame(() => {
+                navMove && navMove();
+                dockMove && dockMove();
+            });
+        });
+
+        window.__TOJI_LIQUID_GLASS_REFRESH__ = function () {
+            navMove && navMove();
+            dockMove && dockMove();
+        };
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
