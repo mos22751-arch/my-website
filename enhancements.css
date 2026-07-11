@@ -234,6 +234,23 @@ svg,
     transition: color 0.25s ease, background 0.25s ease !important;
 }
 
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--primary);
+    transform: translateX(-50%) scale(0);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-link.active::after {
+    transform: translateX(-50%) scale(1);
+}
+
 /* ─── Form Enhanced Focus & Validation ───────────────────*/
 .contact-form label {
     position: relative;
@@ -815,6 +832,23 @@ body.page-transitioning .screen:not(.hero-screen) {
     transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
                 background 0.22s ease,
                 color 0.22s ease !important;
+}
+
+.dock-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--primary);
+    transform: translateX(-50%) scale(0);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dock-btn.active::after {
+    transform: translateX(-50%) scale(1);
 }
 
 .dock-btn:hover:not(.active) {
@@ -1947,160 +1981,3 @@ body.lang-ar .project-card h3 {
 .connect-copy-btn:hover { border-color: var(--primary, #632626); }
 .connect-copy-icon svg,
 .connect-copy-check svg { width: 15px; height: 15px; }
-
-/* ============================================================
-   LIQUID GLASS UI
-   Apple-style morphing "glass pill" that lives behind whichever
-   nav-link / dock-btn is currently active, plus a unified glass
-   sheen shared by every card, panel and icon on the site so the
-   whole page reads as one consistent material.
-   ============================================================ */
-
-/* --- sliding glass pill container setup --- */
-.nav-links,
-.floating-dock {
-    position: relative;
-    isolation: isolate;
-}
-
-.liquid-glass-indicator {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 0;
-    z-index: 0;
-    border-radius: 999px;
-    pointer-events: none;
-    opacity: 0;
-    transform: translate3d(0, 0, 0);
-    background:
-        linear-gradient(155deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.03) 42%, rgba(255, 255, 255, 0.16) 100%),
-        color-mix(in srgb, var(--primary) 24%, var(--glass-strong));
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    box-shadow:
-        inset 0 1.5px 1px rgba(255, 255, 255, 0.9),
-        inset 0 -10px 16px rgba(255, 255, 255, 0.08),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 10px 26px rgba(0, 0, 0, 0.34),
-        0 2px 8px rgba(0, 0, 0, 0.22);
-    backdrop-filter: blur(9px) saturate(190%) brightness(1.12);
-    -webkit-backdrop-filter: blur(9px) saturate(190%) brightness(1.12);
-    transition:
-        transform 0.62s cubic-bezier(0.16, 1, 0.3, 1),
-        width 0.62s cubic-bezier(0.16, 1, 0.3, 1),
-        height 0.4s ease,
-        opacity 0.35s ease,
-        border-radius 0.5s ease;
-    will-change: transform, width;
-}
-
-.liquid-glass-indicator::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(120% 160% at 22% -15%, rgba(255, 255, 255, 0.7), transparent 55%);
-    mix-blend-mode: overlay;
-    opacity: 0.9;
-}
-
-.liquid-glass-indicator::after {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    opacity: 0.6;
-}
-
-.liquid-glass-indicator.is-morphing {
-    border-radius: 40% / 50%;
-}
-
-.liquid-glass-indicator.is-visible {
-    opacity: 1;
-}
-
-/* the pill sits behind the label/icon */
-.nav-link,
-.dock-btn {
-    z-index: 1;
-}
-
-/* the indicator now performs the "active" glass job — the item itself
-   just needs to hand over color, everything glassy comes from the pill */
-.nav-link.active {
-    color: var(--text-main);
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
-
-.dock-btn.active {
-    color: var(--text-main);
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    transform: translateY(-2px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .liquid-glass-indicator {
-        transition: opacity 0.2s ease;
-    }
-}
-
-/* --- unified glass sheen: same material on every card, panel & icon --- */
-.glass-panel,
-.glass-card,
-.dock-btn,
-.theme-switch,
-.social-pill,
-.bento-item,
-.link-card {
-    position: relative;
-}
-
-.glass-panel::after,
-.theme-switch::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    border-radius: inherit;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 45%);
-    mix-blend-mode: overlay;
-    pointer-events: none;
-}
-
-.dock-btn:not(.active):not(:hover) {
-    background: color-mix(in srgb, var(--glass-bg) 70%, transparent);
-    border-color: var(--glass-border);
-    backdrop-filter: blur(8px) saturate(160%);
-    -webkit-backdrop-filter: blur(8px) saturate(160%);
-}
-
-.theme-switch {
-    overflow: hidden;
-    backdrop-filter: blur(14px) saturate(170%);
-    -webkit-backdrop-filter: blur(14px) saturate(170%);
-}
-
-/* keep glass-panel content (nav links, dock icons) above its own sheen */
-.modern-nav > *,
-.floating-dock > * {
-    position: relative;
-    z-index: 1;
-}
-
-/* keep the glass pill correctly behind its siblings no matter selector order above */
-.floating-dock > .liquid-glass-indicator,
-.nav-links > .liquid-glass-indicator {
-    position: absolute !important;
-    z-index: 0 !important;
-}
