@@ -50,13 +50,10 @@
 .dock-btn {
     backdrop-filter: var(--lg-blur);
     -webkit-backdrop-filter: var(--lg-blur);
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 40%),
-        var(--glass-bg);
+    background: var(--glass-bg);
     border-color: var(--glass-border);
     box-shadow:
         inset 0 1px 0 var(--glass-highlight),
-        inset 0 -1px 12px rgba(255, 255, 255, 0.05),
         var(--shadow);
 }
 
@@ -164,16 +161,12 @@ select,
 
 .dock-btn:hover {
     transform: translateY(-6px) scale(1.12);
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 55%),
-        var(--glass-strong);
+    background: var(--glass-strong);
     box-shadow: inset 0 1px 0 var(--glass-highlight), 0 10px 22px rgba(0, 0, 0, 0.28);
 }
 
 .dock-btn.active {
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 55%),
-        color-mix(in srgb, var(--primary) 30%, var(--glass-strong));
+    background: color-mix(in srgb, var(--primary) 30%, var(--glass-strong));
     box-shadow: inset 0 1px 0 var(--glass-highlight), 0 6px 16px rgba(0, 0, 0, 0.26);
 }
 
@@ -194,15 +187,6 @@ select,
     border-radius: 999px;
     transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
         box-shadow 0.25s ease, filter 0.25s ease;
-}
-
-.action-btn::before,
-.btn-primary::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%);
-    pointer-events: none;
 }
 
 .action-btn:hover,
