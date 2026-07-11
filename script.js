@@ -1864,6 +1864,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
     function animateStretch(indicator, prev, box) {
+        const isDock = indicator.classList.contains('dock-indicator');
+        const stretchDur = isDock ? 0.26 : 0.16;
+        const settleDur = isDock ? 0.52 : 0.34;
+
         // Phase 1: elongate into a pill bridging the old and new spot (rubber-band pull)
         const left = Math.min(prev.cx - prev.w / 2, box.cx - box.w / 2);
         const right = Math.max(prev.cx + prev.w / 2, box.cx + box.w / 2);
@@ -1872,14 +1876,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const bridgeCx = (left + right) / 2;
         const bridgeCy = (prev.cy + box.cy) / 2;
 
-        indicator.style.transition = `transform 0.16s ${EASE_STRETCH}, width 0.16s ${EASE_STRETCH}, height 0.16s ${EASE_STRETCH}, border-radius 0.16s ${EASE_STRETCH}`;
+        indicator.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}, width ${stretchDur}s ${EASE_STRETCH}, height ${stretchDur}s ${EASE_STRETCH}, border-radius ${stretchDur}s ${EASE_STRETCH}`;
         placeIndicator(indicator, { cx: bridgeCx, cy: bridgeCy, w: bridgeW, h: bridgeH, radius: `${bridgeH / 2}px` });
 
         // Phase 2: contract into the final circle/pill at the new spot
         setTimeout(() => {
-            indicator.style.transition = `transform 0.34s ${EASE_SETTLE}, width 0.34s ${EASE_SETTLE}, height 0.34s ${EASE_SETTLE}, border-radius 0.34s ${EASE_SETTLE}`;
+            indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
             placeIndicator(indicator, box);
-        }, 160);
+        }, stretchDur * 1000);
     }
 
     function moveIndicator(container, indicator, target, size, animate = true) {
