@@ -2208,21 +2208,8 @@ Do not resell the customized public version as a separate template unless your s
         collectForm();
         localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
 
-        // إزالة base64 قبل الإرسال
-        function stripBase64(obj) {
-            if (!obj || typeof obj !== 'object') return obj;
-            const clone = Array.isArray(obj) ? [] : {};
-            for (const k in obj) {
-                const v = obj[k];
-                if (typeof v === 'string' && v.startsWith('data:')) clone[k] = '';
-                else if (typeof v === 'object') clone[k] = stripBase64(v);
-                else clone[k] = v;
-            }
-            return clone;
-        }
-
         try {
-            await window.TojiAPI.ConfigAPI.save(stripBase64(current));
+            await window.TojiAPI.ConfigAPI.save(current);
             localStorage.setItem('toji_live_config', JSON.stringify(current));
 
             el('statusDot').className = 'status-dot online';

@@ -1500,7 +1500,7 @@ document.addEventListener('DOMContentLoaded', () => {
             body.classList.toggle(`accent-${name}`, name === safeAccent && name !== 'cyan');
         });
         localStorage.setItem('toji_accent', safeAccent);
-        applyColorTokens(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'neon', safeAccent);
+        applyColorTokens(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'graphite', safeAccent);
 
         // sync both old swatches and new accent-tiles
         document.querySelectorAll('[data-accent]').forEach((btn) => {
@@ -1512,7 +1512,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setThemePreset(preset) {
         const presets = ['neon', 'midnight', 'emerald', 'sunset', 'aurora', 'royal', 'graphite'];
-        const safePreset = presets.includes(preset) ? preset : 'neon';
+        const safePreset = presets.includes(preset) ? preset : 'graphite';
 
         presets.forEach((name) => {
             body.classList.toggle(`preset-${name}`, name === safePreset && name !== 'neon');
@@ -1537,7 +1537,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { preset: 'sunset', accent: 'orange' },
             { preset: 'neon', accent: 'cyan' }
         ];
-        const currentPreset = localStorage.getItem('toji_theme_preset') || 'neon';
+        const currentPreset = localStorage.getItem('toji_theme_preset') || 'graphite';
         const currentAccent = localStorage.getItem('toji_accent') || 'cyan';
         const currentIndex = combos.findIndex((combo) => combo.preset === currentPreset && combo.accent === currentAccent);
         const next = combos[(currentIndex + 1 + combos.length) % combos.length];
@@ -1609,7 +1609,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSongs();
         loadWip();
         loadLinksGrid();
-        setThemePreset(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'neon');
+        setThemePreset(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'graphite');
         setAccent(localStorage.getItem('toji_accent') || profileConfig.accent || 'cyan');
         updateWhatsappLinks();
         applyLiveStatus();
@@ -1657,7 +1657,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ✅ إعادة تطبيق ألوان البريست/الأكسنت الحالية — عشان تتحول لنسخة تناسب
         // الوضع الجديد (فاتح/غامق) بدل ما تفضل عالقة على ألوان الوضع القديم
-        const currentPreset = localStorage.getItem('toji_theme_preset') || 'neon';
+        const currentPreset = localStorage.getItem('toji_theme_preset') || 'graphite';
         const currentAccent = localStorage.getItem('toji_accent') || 'cyan';
         applyColorTokens(currentPreset, currentAccent);
     }
@@ -1707,7 +1707,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applyConfigLinks();
     applyProfileIdentity();
-    setThemePreset(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'neon');
+    setThemePreset(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'graphite');
     setAccent(localStorage.getItem('toji_accent') || profileConfig.accent || 'cyan');
 
     const enableCustomCursor = true;

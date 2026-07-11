@@ -47,7 +47,7 @@ window.TOJI_CONTENT = {
         "loaderMark": "TOJI",
         "image": "assets/profile.webp",
         "phone": "201102550730",
-        "themePreset": "neon",
+        "themePreset": "graphite",
         "accent": "cyan",
         "status": {
             "en": "Available for custom pages and clean web builds",
