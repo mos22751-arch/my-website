@@ -1828,6 +1828,23 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollRoot?.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
 
+    function ensureGooDefs() {
+        if (document.getElementById('liquid-goo-filter')) return;
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '0');
+        svg.setAttribute('height', '0');
+        svg.style.position = 'absolute';
+        svg.style.pointerEvents = 'none';
+        svg.innerHTML = `
+            <filter id="liquid-goo-filter">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+                <feColorMatrix in="blur" mode="matrix"
+                    values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10"
+                    result="goo" />
+            </filter>`;
+        document.body.appendChild(svg);
+    }
+
     function ensureIndicator(container, className) {
         if (!container) return null;
         let el = container.querySelector(`:scope > .${className}`);
@@ -1840,37 +1857,116 @@ document.addEventListener('DOMContentLoaded', () => {
         return el;
     }
 
-    function moveIndicator(container, indicator, target, size) {
-        if (!container || !indicator || !target) return;
+    function ensureGooLayer(container, className) {
+        if (!container) return null;
+        let el = container.querySelector(`:scope > .${className}`);
+        if (!el) {
+            ensureGooDefs();
+            el = document.createElement('div');
+            el.className = `goo-layer ${className}`;
+            el.setAttribute('aria-hidden', 'true');
+            el.innerHTML = '<span class="goo-blob goo-a"></span><span class="goo-blob goo-b"></span>';
+            container.prepend(el);
+        }
+        return el;
+    }
+
+    const easeOutBack = (t) => {
+        const c1 = 1.28, c3 = c1 + 1;
+        return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    };
+
+    const indicatorBoxes = new Map();
+    const gooLayers = new Map();
+
+    function computeBox(container, target, size) {
         const cRect = container.getBoundingClientRect();
         const tRect = target.getBoundingClientRect();
         const cx = tRect.left - cRect.left + tRect.width / 2;
         const cy = tRect.top - cRect.top + tRect.height / 2;
         const w = size ?? tRect.width;
         const h = size ?? tRect.height;
-        indicator.style.width = `${w}px`;
-        indicator.style.height = `${h}px`;
-        indicator.style.borderRadius = size ? '50%' : getComputedStyle(target).borderRadius;
-        indicator.style.transform = `translate(${cx - w / 2}px, ${cy - h / 2}px)`;
+        return { cx, cy, w, h, radius: size ? '50%' : getComputedStyle(target).borderRadius };
+    }
+
+    function placeIndicator(indicator, box) {
+        indicator.style.width = `${box.w}px`;
+        indicator.style.height = `${box.h}px`;
+        indicator.style.borderRadius = box.radius;
+        indicator.style.transform = `translate(${box.cx - box.w / 2}px, ${box.cy - box.h / 2}px)`;
         indicator.classList.add('is-visible');
     }
 
-    function syncIndicators() {
+    function runGooTransition(container, indicator, gooClassName, fromBox, toBox) {
+        const layer = ensureGooLayer(container, gooClassName);
+        const blobA = layer.querySelector('.goo-a');
+        const blobB = layer.querySelector('.goo-b');
+        layer.classList.add('is-active');
+        indicator.classList.remove('is-visible');
+
+        const duration = gooClassName === 'nav-goo' ? 680 : 560;
+        const start = performance.now();
+        const runId = Symbol('goo');
+        gooLayers.set(layer, runId);
+
+        function frame(now) {
+            if (gooLayers.get(layer) !== runId) return;
+            const t = Math.min(1, (now - start) / duration);
+            const e = easeOutBack(t);
+
+            const aSize = Math.max(0, fromBox.w * (1 - t));
+            blobA.style.width = `${aSize}px`;
+            blobA.style.height = `${aSize}px`;
+            blobA.style.transform = `translate(${fromBox.cx - aSize / 2}px, ${fromBox.cy - aSize / 2}px)`;
+
+            const bSize = Math.max(0, toBox.w * Math.min(1, t * 1.18));
+            const cx = fromBox.cx + (toBox.cx - fromBox.cx) * e;
+            const cy = fromBox.cy + (toBox.cy - fromBox.cy) * e;
+            blobB.style.width = `${bSize}px`;
+            blobB.style.height = `${bSize}px`;
+            blobB.style.transform = `translate(${cx - bSize / 2}px, ${cy - bSize / 2}px)`;
+
+            if (t < 1) {
+                requestAnimationFrame(frame);
+            } else {
+                layer.classList.remove('is-active');
+                placeIndicator(indicator, toBox);
+            }
+        }
+        requestAnimationFrame(frame);
+    }
+
+    function moveIndicator(container, indicator, target, size, animate = true) {
+        if (!container || !indicator || !target) return;
+        const box = computeBox(container, target, size);
+        const prev = indicatorBoxes.get(indicator);
+        const gooClassName = indicator.classList.contains('nav-indicator') ? 'nav-goo' : 'dock-goo';
+        const moved = prev && (Math.round(prev.cx) !== Math.round(box.cx) || Math.round(prev.cy) !== Math.round(box.cy));
+
+        if (animate && moved) {
+            runGooTransition(container, indicator, gooClassName, prev, box);
+        } else {
+            placeIndicator(indicator, box);
+        }
+        indicatorBoxes.set(indicator, box);
+    }
+
+    function syncIndicators(animate = true) {
         const navContainer = document.querySelector('.nav-links');
         const dockContainer = document.querySelector('.floating-dock');
         const activeNav = navContainer?.querySelector('.nav-link.active');
         const activeDock = dockContainer?.querySelector('.dock-btn.active');
 
         if (navContainer && activeNav) {
-            moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav);
+            moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav, undefined, animate);
         }
         if (dockContainer && activeDock) {
-            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, 40);
+            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, 40, animate);
         }
     }
     window.syncLiquidIndicators = syncIndicators;
 
-    window.addEventListener('resize', () => requestAnimationFrame(syncIndicators), { passive: true });
+    window.addEventListener('resize', () => requestAnimationFrame(() => syncIndicators(false)), { passive: true });
 
     function activateSection(id) {
         dockBtns.forEach((btn) => {
