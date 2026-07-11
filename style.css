@@ -1178,9 +1178,11 @@ button.social-pill {
     margin: 0 auto 0.85rem;
     width: min(300px, 100%);
     padding: 0.25rem;
-    border: 1px solid var(--glass-border);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.045);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(3px) saturate(140%);
+    -webkit-backdrop-filter: blur(3px) saturate(140%);
 }
 
 .qr-mode {
@@ -1197,7 +1199,7 @@ button.social-pill {
 .qr-mode:hover,
 .qr-mode.active {
     color: var(--text-main);
-    background: rgba(57, 208, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .qr-frame {
@@ -1229,9 +1231,7 @@ button.social-pill {
     place-items: center;
     inset: 0.75rem;
     border-radius: 6px;
-    background:
-        linear-gradient(135deg, rgba(5, 5, 6, 0.92), rgba(57, 208, 255, 0.75)),
-        #050506;
+    background: #050506;
     color: #f7f5ef;
     font-size: 2rem;
     font-weight: 900;
