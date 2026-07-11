@@ -28,7 +28,7 @@ window.TOJI_CONTENT = {
         "mintColor": "#6df6b2",
         "presets": {
             "currentDemo": "personal",
-            "currentStyle": "neon"
+            "currentStyle": "studio"
         }
     },
     "analytics": {
@@ -47,7 +47,7 @@ window.TOJI_CONTENT = {
         "loaderMark": "TOJI",
         "image": "assets/profile.webp",
         "phone": "201102550730",
-        "themePreset": "neon",
+        "themePreset": "studio",
         "accent": "cyan",
         "status": {
             "en": "Available for custom pages and clean web builds",
@@ -589,6 +589,7 @@ window.TOJI_CONTENT = {
                 "aurora": "Aurora",
                 "royal": "Royal",
                 "graphite": "Graphite",
+                "studio": "Studio",
                 "shuffle": "Shuffle"
             },
             "aria": {
@@ -752,6 +753,7 @@ window.TOJI_CONTENT = {
                 "aurora": "أورورا",
                 "royal": "ملكي",
                 "graphite": "جرافيت",
+                "studio": "استوديو",
                 "shuffle": "بدل الستايل"
             },
             "aria": {

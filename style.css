@@ -1592,6 +1592,42 @@ body.light-theme.preset-graphite {
     --glow-color: rgba(55, 65, 81, 0.1);
 }
 
+/* ============================================================
+   ✅ STUDIO — الثيم الأساسي للموقع (فانيلا/جرافيت غامق) — سوليد
+   بدون أي مكس ألوان، وبدون بنفسجي، خلفية صريحة بلون واحد
+   ============================================================ */
+body.preset-studio:not(.light-theme) {
+    --primary: #b8bfc9;
+    --accent: #e7e5df;
+    --mint: #8c9199;
+    --bg-base: #17181b;
+    --bg-soft: #212226;
+    --glass-bg: rgba(231, 229, 223, 0.045);
+    --glass-strong: rgba(231, 229, 223, 0.09);
+    --glass-border: rgba(231, 229, 223, 0.14);
+    --glow-color: rgba(184, 191, 201, 0.12);
+}
+
+body.light-theme.preset-studio {
+    --primary: #4b4d52;
+    --accent: #7d6a52;
+    --mint: #5b5e63;
+    --bg-base: #f3ede1;
+    --bg-soft: #ffffff;
+    --glass-bg: rgba(75, 77, 82, 0.05);
+    --glass-strong: rgba(75, 77, 82, 0.09);
+    --glass-border: rgba(75, 77, 82, 0.14);
+    --glow-color: rgba(75, 77, 82, 0.08);
+}
+
+body.preset-studio {
+    background: var(--bg-base);
+}
+
+body.preset-studio .page-loader {
+    background: var(--bg-base);
+}
+
 body.demo-personal {
     --primary: #36d6ff;
     --accent: #ff7a3d;
