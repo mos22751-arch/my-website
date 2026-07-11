@@ -1782,7 +1782,9 @@ body.accent-gold {
     padding: 0.85rem 1rem;
     border: 1px solid var(--glass-border);
     border-radius: 8px;
-    background: var(--bg-soft);
+    background: var(--glass-strong);
+    backdrop-filter: blur(20px) saturate(165%);
+    -webkit-backdrop-filter: blur(20px) saturate(165%);
     color: var(--text-main);
     box-shadow: var(--shadow);
     opacity: 0;
