@@ -94,7 +94,7 @@ svg,
     pointer-events: none;
     transform: scale(0);
     animation: tojiRipple 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.38), rgba(57, 208, 255, 0.22));
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.38), rgba(255, 255, 255, 0.06));
     z-index: 10;
 }
 
@@ -1612,8 +1612,8 @@ body.lang-ar .project-card h3 {
 
 /* Trigger button */
 .action-btn.action-ai {
-    background: linear-gradient(135deg, rgba(57,208,255,0.15), rgba(168,85,247,0.12));
-    border: 1px solid rgba(57,208,255,0.3);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.14);
     color: var(--text-main);
     gap: 7px;
 }
@@ -1679,7 +1679,7 @@ body.lang-ar .project-card h3 {
     justify-content: space-between;
     gap: 10px;
     padding: 16px 16px 15px;
-    background: linear-gradient(135deg, rgba(57,208,255,0.14), rgba(168,85,247,0.12));
+    background: rgba(255, 255, 255, 0.04);
     border-bottom: 1px solid rgba(255,255,255,0.10);
     flex-shrink: 0;
     position: relative;
@@ -1687,7 +1687,7 @@ body.lang-ar .project-card h3 {
 .ai-chat-header::after {
     content: '';
     position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(57,208,255,0.45), rgba(168,85,247,0.35), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
 }
 .ai-chat-header-info { display: flex; align-items: center; gap: 11px; min-width: 0; }
 
@@ -1697,8 +1697,8 @@ body.lang-ar .project-card h3 {
     border-radius: 50%;
     object-fit: cover;
     display: block;
-    border: 2px solid rgba(57,208,255,0.4);
-    box-shadow: 0 0 0 4px rgba(57,208,255,0.10), 0 4px 14px rgba(0,0,0,0.35);
+    border: 2px solid rgba(255,255,255,0.16);
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.05), 0 4px 14px rgba(0,0,0,0.35);
 }
 .ai-chat-avatar-fallback {
     display: flex; align-items: center; justify-content: center;
@@ -1751,8 +1751,8 @@ body.lang-ar .project-card h3 {
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.12) transparent;
     background:
-        radial-gradient(circle at 15% 0%, rgba(57,208,255,0.07), transparent 45%),
-        radial-gradient(circle at 85% 100%, rgba(168,85,247,0.07), transparent 45%);
+        radial-gradient(circle at 15% 0%, rgba(255,255,255,0.035), transparent 45%),
+        radial-gradient(circle at 85% 100%, rgba(255,255,255,0.03), transparent 45%);
 }
 .ai-chat-messages::-webkit-scrollbar { width: 5px; }
 .ai-chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
@@ -1774,7 +1774,7 @@ body.lang-ar .project-card h3 {
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
-    border: 1.5px solid rgba(57,208,255,0.35);
+    border: 1.5px solid rgba(255,255,255,0.16);
     background: linear-gradient(135deg, var(--primary,#632626), #807575);
 }
 .ai-msg-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -1794,7 +1794,7 @@ body.lang-ar .project-card h3 {
     color: #05060a;
     font-weight: 600;
     border-bottom-right-radius: 5px;
-    box-shadow: 0 4px 14px rgba(57,208,255,0.3);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--primary, #632626) 35%, transparent);
 }
 .ai-msg.ai p {
     background: rgba(255,255,255,0.12);
@@ -1844,7 +1844,7 @@ body.lang-ar .project-card h3 {
 .bot-choice-btn:nth-child(4) { animation-delay: 0.12s; }
 @keyframes choiceIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
 .bot-choice-btn:hover {
-    background: rgba(57,208,255,0.16);
+    background: rgba(255,255,255,0.08);
     border-color: var(--primary, #632626);
     transform: translateX(-3px);
     color: #fff;
@@ -1878,7 +1878,7 @@ body.lang-ar .project-card h3 {
     color: #05060a;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 14px rgba(57,208,255,0.35);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--primary, #632626) 40%, transparent);
     transition: filter 0.15s, transform 0.15s;
     flex-shrink: 0;
 }
@@ -1922,7 +1922,7 @@ body.lang-ar .project-card h3 {
 }
 .link-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 14px 34px rgba(0,0,0,0.28), 0 0 0 1px rgba(57,208,255,0.25);
+    box-shadow: 0 14px 34px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.18);
 }
 
 .link-card-media {
@@ -1930,7 +1930,7 @@ body.lang-ar .project-card h3 {
     border-radius: 50%;
     overflow: hidden;
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, rgba(57,208,255,0.18), rgba(168,85,247,0.16));
+    background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.14);
     flex-shrink: 0;
 }
@@ -1980,3 +1980,41 @@ body.lang-ar .project-card h3 {
 .connect-copy-btn:hover { border-color: var(--primary, #632626); }
 .connect-copy-icon svg,
 .connect-copy-check svg { width: 15px; height: 15px; }
+
+/* ============================================================
+   📱 FINAL Mobile Dock Fix — يبقى ظاهر علطول وكل الأيقونات تتلم
+   جوه المساحة المتاحة من غير ما تتقص أو تحتاج سكرول أفقي
+   (بيتحط آخر الملف عشان ياخد الأولوية على أي تعريفات قديمة)
+   ============================================================ */
+@media (max-width: 720px) {
+    .floating-dock-wrapper {
+        bottom: max(14px, env(safe-area-inset-bottom, 14px));
+        transform: translateX(-50%) !important;
+    }
+
+    .floating-dock-wrapper.dock-hidden {
+        transform: translateX(-50%) !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
+    .floating-dock {
+        justify-content: space-between;
+        width: 100%;
+        overflow-x: visible;
+        padding: 0.35rem;
+        gap: 2px;
+    }
+
+    .dock-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        width: auto;
+        height: 46px;
+    }
+
+    .dock-btn svg {
+        width: 19px;
+        height: 19px;
+    }
+}

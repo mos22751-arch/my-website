@@ -468,29 +468,8 @@
            user scrolls, reappears when they stop
        ====================================================== */
     function initDockAutoHide() {
-        if (!isMobile()) return;
-
-        const dock = $('.floating-dock-wrapper');
-        if (!dock) return;
-
-        const scrollRoot = $('#pageScroll');
-        if (!scrollRoot) return;
-
-        let lastSt = 0;
-        let hideTimer = null;
-
-        scrollRoot.addEventListener('scroll', () => {
-            const st = scrollRoot.scrollTop;
-            const delta = st - lastSt;
-
-            if (Math.abs(delta) > 4) {
-                dock.classList.add('dock-hidden');
-                clearTimeout(hideTimer);
-                hideTimer = setTimeout(() => dock.classList.remove('dock-hidden'), 800);
-            }
-
-            lastSt = st;
-        }, { passive: true });
+        // ✅ الدوك لازم يفضل ظاهر طول الوقت — الإخفاء عند السكرول اتشال بناءً على طلب المستخدم
+        return;
     }
 
     /* ======================================================
