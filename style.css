@@ -1702,7 +1702,6 @@ body.accent-gold {
     min-height: 62px;
     padding: 0.45rem;
     overflow-x: auto;
-    overflow-y: visible;
     scrollbar-width: none;
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.035);
