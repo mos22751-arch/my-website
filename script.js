@@ -1922,27 +1922,30 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.classList.add('is-visible');
     }
 
-    const EASE_GROW = 'cubic-bezier(0.3, 0, 0.2, 1)';
+    const EASE_STRETCH = 'ease-out';
     const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
     function animateStretch(indicator, prev, box) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const growDur = isDock ? 0.64 : 0.48;
-        const settleDur = isDock ? 1.2 : 0.92;
+        const stretchDur = isDock ? 0.26 : 0.16;
+        const settleDur = isDock ? 0.52 : 0.34;
 
-        // Phase 1: grow while it moves — travels to the new spot already enlarged
-        const growW = box.w * (isDock ? 1.55 : 1.6);
-        const growH = box.h * (isDock ? 1.55 : 1.4);
-        const growRadius = box.radius === '50%' ? '50%' : `${growH / 2}px`;
+        // Phase 1: elongate into a pill bridging the old and new spot (rubber-band pull)
+        const left = Math.min(prev.cx - prev.w / 2, box.cx - box.w / 2);
+        const right = Math.max(prev.cx + prev.w / 2, box.cx + box.w / 2);
+        const bridgeW = right - left;
+        const bridgeH = Math.min(prev.h, box.h) * 0.72;
+        const bridgeCx = (left + right) / 2;
+        const bridgeCy = (prev.cy + box.cy) / 2;
 
-        indicator.style.transition = `transform ${growDur}s ${EASE_GROW}, width ${growDur}s ${EASE_GROW}, height ${growDur}s ${EASE_GROW}, border-radius ${growDur}s ${EASE_GROW}`;
-        placeIndicator(indicator, { cx: box.cx, cy: box.cy, w: growW, h: growH, radius: growRadius });
+        indicator.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}, width ${stretchDur}s ${EASE_STRETCH}, height ${stretchDur}s ${EASE_STRETCH}, border-radius ${stretchDur}s ${EASE_STRETCH}`;
+        placeIndicator(indicator, { cx: bridgeCx, cy: bridgeCy, w: bridgeW, h: bridgeH, radius: `${bridgeH / 2}px` });
 
-        // Phase 2: on arrival, shrink back down to the true final size and settle with a soft spring
+        // Phase 2: contract into the final circle/pill at the new spot
         setTimeout(() => {
             indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
             placeIndicator(indicator, box);
-        }, growDur * 1000);
+        }, stretchDur * 1000);
     }
 
     function moveIndicator(container, indicator, target, size, animate = true) {
@@ -1971,7 +1974,7 @@ document.addEventListener('DOMContentLoaded', () => {
             moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav, undefined, animate);
         }
         if (dockContainer && activeDock) {
-            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, undefined, animate);
+            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, 40, animate);
         }
     }
     window.syncLiquidIndicators = syncIndicators;
