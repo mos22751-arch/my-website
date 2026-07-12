@@ -177,28 +177,6 @@ svg,
     color: var(--text-main);
 }
 
-/* ─── Social Pill Enhanced Hover ─────────────────────────*/
-.social-pill.glass-card {
-    overflow: hidden;
-    transition: transform 0.28s cubic-bezier(0.23, 1, 0.32, 1),
-                box-shadow 0.28s ease,
-                border-color 0.28s ease,
-                background 0.28s ease !important;
-}
-
-.social-pill.glass-card:hover {
-    transform: translateX(6px) translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.18);
-}
-
-.social-pill svg {
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-}
-
-.social-pill:hover svg:first-child {
-    transform: scale(1.2) rotate(-8deg);
-}
-
 /* ─── Action Button Enhanced Hover ───────────────────────*/
 .action-btn,
 .share-profile {
@@ -889,9 +867,6 @@ body.page-transitioning .screen:not(.hero-screen) {
 }
 
 /* ─── RTL Adjustments ────────────────────────────────────*/
-[dir="rtl"] .social-pill.glass-card:hover {
-    transform: translateX(-6px) translateY(-2px);
-}
 
 
 
@@ -1280,68 +1255,6 @@ body.lang-ar .project-card h3 {
     .songs-grid { grid-template-columns: 1fr; }
     .song-card-modern { padding: 0.9rem; }
     .song-modern-cover { width: 50px; height: 50px; font-size: 1.4rem; }
-}
-
-/* ============================================================
-   🔗 Social Links — new compact row design
-   ============================================================ */
-.social-mesh {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.social-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
-    border-radius: 12px;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-bg);
-    color: var(--text-main);
-    text-decoration: none;
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.18s, border-color 0.18s, transform 0.18s;
-    width: 100%;
-}
-
-.social-row:hover {
-    background: var(--glass-strong);
-    border-color: var(--primary, #632626);
-    transform: translateX(3px);
-}
-
-.social-row-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.06);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: var(--primary, #632626);
-}
-
-.social-row-icon svg,
-.social-row-icon i { width: 16px; height: 16px; }
-
-.social-row-name { flex: 1; }
-
-.social-row-arrow {
-    width: 14px;
-    height: 14px;
-    color: var(--text-muted);
-    flex-shrink: 0;
-    transition: color 0.18s, transform 0.18s;
-}
-
-.social-row:hover .social-row-arrow {
-    color: var(--primary, #632626);
-    transform: translate(2px, -2px);
 }
 
 /* ============================================================

@@ -80,43 +80,6 @@ window.TOJI_CONTENT = {
             "filename": "TOJI-share-card.png"
         }
     },
-    "socialLinks": [
-        {
-            "platform": "instagram",
-            "label": "Instagram",
-            "url": "https://instagram.com/mouhamedmostafffa",
-            "icon": "instagram",
-            "enabled": true
-        },
-        {
-            "platform": "tiktok",
-            "label": "TikTok",
-            "url": "https://tiktok.com/@mouhamedmostafffa",
-            "icon": "video",
-            "enabled": true
-        },
-        {
-            "platform": "snapchat",
-            "label": "Snapchat",
-            "url": "https://www.snapchat.com/add/dr.toji",
-            "icon": "ghost",
-            "enabled": true
-        },
-        {
-            "platform": "threads",
-            "label": "Threads",
-            "url": "https://www.threads.net/@mouhamedmostafffa",
-            "icon": "at-sign",
-            "enabled": true
-        },
-        {
-            "platform": "whatsapp",
-            "label": "WhatsApp",
-            "url": "https://wa.me/201102550730",
-            "icon": "message-circle",
-            "enabled": true
-        }
-    ],
     "ctaButtons": [
         {
             "type": "start",

@@ -1080,39 +1080,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.lucide) window.lucide.createIcons();
     }
 
-    function renderSocialLinks() {
-        const mesh = document.querySelector('.social-mesh');
-        if (!mesh) return;
-
-        const links = Array.isArray(contentOverrides.socialLinks)
-            ? contentOverrides.socialLinks.filter((item) => item.enabled !== false && item.url)
-            : [];
-        const socialItems = links.map((item, index) => `
-            <a href="${appendUtm(item.url, item.platform || 'social')}" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up ${index ? `delay-${Math.min(index, 3)}` : ''}" data-social-dynamic="${item.platform || 'link'}">
-                ${iconMarkup(item.icon || item.platform)}
-                <span>${localized(item.label)}</span>
-                ${iconMarkup('external-link', 'pill-arrow')}
-            </a>
-        `);
-
-        socialItems.push(`
-            <a href="${appendUtm(getWhatsappUrl(), 'whatsapp')}" target="_blank" rel="noreferrer" class="social-pill glass-card hover-glow reveal-up" data-whatsapp>
-                ${iconMarkup('message-circle')}
-                <span>WhatsApp</span>
-                ${iconMarkup('external-link', 'pill-arrow')}
-            </a>
-        `);
-        socialItems.push(`
-            <button class="social-pill glass-card hover-glow reveal-up delay-1" type="button" data-copy="${profilePhone}">
-                ${iconMarkup('copy')}
-                <span data-i18n="connect.copyNumber">${t('connect.copyNumber')}</span>
-                ${iconMarkup('check', 'pill-arrow')}
-            </button>
-        `);
-
-        mesh.innerHTML = socialItems.join('');
-    }
-
     // ============================================================
     // ✦ LINKS GRID — قسم "Connect" الجديد
     //    كل لينك بييجي من الأدمن (اسم + رابط + صورة) عن طريق /api/links
@@ -1336,7 +1303,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMarketingSections();
         renderNavigation();
         renderWorkCards();
-        renderSocialLinks();
         renderQuickMessages();
         renderHeroCtas();
         setupAnalytics();
@@ -2769,7 +2735,7 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, { threshold: 0.1 });
 
-document.querySelectorAll('.hero-content, .section-title, .bento-item, .social-pill').forEach(el => {
+document.querySelectorAll('.hero-content, .section-title, .bento-item').forEach(el => {
     observer.observe(el);
 });
 

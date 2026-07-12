@@ -507,7 +507,6 @@
         { label: 'FAQ Eyebrow AR', path: 'marketing.faq.eyebrow.ar' },
         { label: 'FAQ Title EN', path: 'marketing.faq.title.en' },
         { label: 'FAQ Title AR', path: 'marketing.faq.title.ar' },
-        { label: 'روابط السوشيال: platform|label|url|icon|enabled', path: 'socialLinks', type: 'lines', lineType: 'socialLinks' },
         { label: 'أزرار CTA: type|label EN|label AR|url|message EN|message AR|enabled', path: 'ctaButtons', type: 'lines', lineType: 'ctaButtons' },
         { label: 'كروت الأعمال: banner|title EN|title AR|copy EN|copy AR|tags comma', path: 'workCards', type: 'lines', lineType: 'workCards' },
         { label: 'رسائل واتساب: value|label EN|label AR|message EN|message AR', path: 'quickMessages', type: 'lines', lineType: 'quickMessages' },
@@ -631,13 +630,6 @@
     }
 
     const lineSerializers = {
-        socialLinks: {
-            toText: (items = []) => items.map((item) => [item.platform, item.label, item.url, item.icon, item.enabled !== false].join('|')).join('\n'),
-            fromText: (text) => text.split('\n').map((line) => {
-                const [platform = '', label = '', url = '', icon = '', enabled = 'true'] = line.split('|').map((part) => part.trim());
-                return platform || label || url ? { platform, label, url, icon: icon || platform, enabled: boolText(enabled) } : null;
-            }).filter(Boolean)
-        },
         ctaButtons: {
             toText: (items = []) => items.map((item) => [item.type, item.label?.en, item.label?.ar, item.url, item.message?.en, item.message?.ar, item.enabled !== false].join('|')).join('\n'),
             fromText: (text) => text.split('\n').map((line) => {
@@ -790,7 +782,7 @@
 
         buildFields('socialFields', socialFields);
         buildLanguagePair('connectFields', byPath(['connect.', 'qr.']));
-        buildBuilderGroup('connectBuilderFields', (field) => ['socialLinks', 'ctaButtons'].includes(field.path));
+        buildBuilderGroup('connectBuilderFields', (field) => field.path === 'ctaButtons');
 
         buildLanguagePair('formFields', byPath(['form.']));
         buildBuilderGroup('formBuilderFields', (field) => field.path === 'quickMessages');
@@ -946,7 +938,7 @@
         if (containerId === 'analyticsFields' || containerId.startsWith('metaFields') || path.startsWith('site.') || path.includes('.meta.')) return 'seo';
         if (containerId === 'designFields') return 'design';
         if (containerId.startsWith('toastFields') || containerId.startsWith('ariaFields')) return 'settings';
-        if (path.startsWith('profile.socials') || path === 'socialLinks') return 'connect';
+        if (path.startsWith('profile.socials')) return 'connect';
         if (path === 'sections.themeControls') return 'theme';
         if (path.startsWith('sections.')) return path.replace('sections.', '') || 'settings';
         if (path.includes('.lang.') || path.includes('.nav.')) return 'home';
@@ -1030,7 +1022,6 @@
         const sections = current.sections || {};
         const profile = current.profile || {};
         const marketing = current.marketing || {};
-        const socialLinks = Array.isArray(current.socialLinks) ? current.socialLinks.map((item, index) => ({ ...item, __index: index })).filter((item) => item.enabled !== false && item.url) : [];
         const ctaButtons = Array.isArray(current.ctaButtons) ? current.ctaButtons.map((item, index) => ({ ...item, __index: index })).filter((item) => item.enabled !== false && item.url) : [];
         const workCards = Array.isArray(current.workCards) && current.workCards.length ? current.workCards : [
             {
@@ -1151,7 +1142,6 @@
                 <p class="preview-eyebrow">${tEdit('connect.eyebrow')}</p>
                 <h3 class="preview-title">${tEdit('connect.title')}</h3>
                 <div class="preview-socials">
-                    ${socialLinks.map((item) => `<span class="preview-pill preview-editable" data-edit-path="socialLinks" data-edit-line="${item.__index}">${escapeHtml(item.label || item.platform)}</span>`).join('')}
                     <span class="preview-pill preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.connect.copyNumber`)}">${escapeHtml(tFrom(current, lang, 'connect.copyNumber'))}</span>
                     ${ctaButtons.map((item) => `<span class="preview-button preview-editable" data-edit-path="ctaButtons" data-edit-line="${item.__index}">${escapeHtml(localized(item.label, lang))}</span>`).join('')}
                 </div>

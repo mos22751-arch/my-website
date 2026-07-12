@@ -1110,50 +1110,10 @@ body:not(.is-loading) .page-loader {
     align-items: stretch;
 }
 
-.social-mesh {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
-}
-
-.social-pill {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    width: 100%;
-    min-height: 78px;
-    color: var(--text-main);
-    font-size: 1.05rem;
-    font-weight: 700;
-    text-align: left;
-}
-
-button.social-pill {
-    border: 1px solid var(--glass-border);
-}
-
-.social-pill svg {
-    width: 22px;
-    height: 22px;
-    color: var(--primary);
-}
-
-.social-pill .pill-arrow {
-    width: 18px;
-    height: 18px;
-    color: var(--text-muted);
-    transition: transform 0.24s ease, color 0.24s ease;
-}
-
 .hover-glow:hover {
     transform: translateY(-4px);
     border-color: rgba(255, 255, 255, 0.18);
     background: var(--glass-strong);
-}
-
-.hover-glow:hover .pill-arrow {
-    transform: translate(3px, -3px);
-    color: var(--text-main);
 }
 
 .share-profile {
@@ -1833,17 +1793,12 @@ body.accent-gold {
 html[dir="rtl"] .hero-content,
 html[dir="rtl"] .section-heading,
 html[dir="rtl"] .bento-item,
-html[dir="rtl"] .project-card,
-html[dir="rtl"] .social-pill {
+html[dir="rtl"] .project-card {
     text-align: right;
 }
 
 html[dir="rtl"] .eyebrow {
     direction: rtl;
-}
-
-html[dir="rtl"] .social-pill {
-    grid-template-columns: auto 1fr auto;
 }
 
 html[dir="rtl"] .contact-form,
@@ -2073,7 +2028,6 @@ html[dir="rtl"] .contact-form .share-profile {
         width: 100%;
     }
 
-    .social-mesh,
     .bento-grid,
     .project-grid,
     .marketing-grid,
@@ -2219,11 +2173,6 @@ html[dir="rtl"] .contact-form .share-profile {
 
     .section-title {
         font-size: 2.05rem;
-    }
-
-    .social-pill {
-        min-height: 70px;
-        font-size: 0.98rem;
     }
 }
 
