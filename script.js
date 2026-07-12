@@ -1209,6 +1209,7 @@ document.addEventListener('DOMContentLoaded', () => {
             event.preventDefault();
             const nameInput = document.getElementById('guestbookName');
             const msgInput  = document.getElementById('guestbookMessage');
+            const statusEl  = document.getElementById('guestbookFormStatus');
             const name = nameInput.value.trim();
             const message = msgInput.value.trim();
             if (!name || !message) return;
@@ -1216,13 +1217,14 @@ document.addEventListener('DOMContentLoaded', () => {
             submit.disabled = true;
             const originalLabel = submit.querySelector('span').textContent;
             submit.querySelector('span').textContent = t('guestbook.sending');
+            if (statusEl) statusEl.textContent = '';
 
             try {
                 const res = await window.TojiAPI?.GuestbookAPI?.create({ name, message, mood: selectedMood });
                 if (res?.success) {
                     nameInput.value = '';
                     msgInput.value = '';
-                    loadGuestbook();
+                    if (statusEl) statusEl.textContent = t('guestbook.pending');
                 }
             } catch (err) {
                 // silently fail — الفورم بيفضل زي ما هو عشان يحاول تاني

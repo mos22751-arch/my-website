@@ -533,6 +533,7 @@ window.TOJI_CONTENT = {
                 "messagePlaceholder": "Write something...",
                 "submit": "Sign the guestbook",
                 "sending": "Sending...",
+                "pending": "Got it! Your message will show up after a quick review.",
                 "empty": "No messages yet — be the first!",
                 "loadError": "Couldn't load the guestbook right now."
             },
@@ -708,6 +709,7 @@ window.TOJI_CONTENT = {
                 "messagePlaceholder": "اكتب حاجة...",
                 "submit": "وقّع في الدفتر",
                 "sending": "بيتبعت...",
+                "pending": "وصلت! هتظهر بعد ما اراجعها.",
                 "empty": "لسه مفيش رسايل — يبقى إنت الأول!",
                 "loadError": "مقدرتش أجيب دفتر الزوار دلوقتي."
             },

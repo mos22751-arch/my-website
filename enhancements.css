@@ -2014,6 +2014,12 @@ body.lang-ar .project-card h3 {
 .guestbook-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 .guestbook-submit svg { width: 15px; height: 15px; }
 
+.guestbook-form-status {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    min-height: 1em;
+}
+
 .guestbook-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

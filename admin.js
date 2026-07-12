@@ -3282,7 +3282,7 @@ Do not resell the customized public version as a separate template unless your s
                             <strong>${escapeHtml(entry.name)}</strong>
                         </div>
                         <span class="project-visibility ${entry.visible !== false ? 'visible' : 'hidden'}">
-                            ${entry.visible !== false ? '👁 ظاهر' : '🚫 مخفي'}
+                            ${entry.visible !== false ? '👁 ظاهر' : '🕓 قيد المراجعة'}
                         </span>
                     </div>
                     <div class="project-card-tags">
@@ -3290,7 +3290,7 @@ Do not resell the customized public version as a separate template unless your s
                     </div>
                     <div class="project-card-actions">
                         <button class="btn-secondary btn-sm" data-action="toggle" data-id="${entry._id}" data-visible="${entry.visible !== false}">
-                            ${entry.visible !== false ? '🚫 إخفاء' : '👁 إظهار'}
+                            ${entry.visible !== false ? '🚫 إخفاء' : '✅ نشر'}
                         </button>
                         <button class="btn-danger btn-sm" data-action="delete" data-id="${entry._id}">🗑 حذف</button>
                     </div>
