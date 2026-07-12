@@ -87,9 +87,12 @@ app.use(express.urlencoded({ extended: true }));
 // ============================================================
 const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 400,
     standardHeaders: true,
     legacyHeaders: false,
+    // ✅ الأدمن (لما بيبقى معاه توكن صحيح) مالوش حد أقصى — عشان شغله
+    //    اليومي (تحميل لينكات/سونجز/دفتر الزوار...) ميتوقفش فجأة
+    skip: (req) => Boolean(req.headers.authorization?.startsWith('Bearer ')),
     message: { success: false, message: 'طلبات كتير جداً، حاول بعد شوية.' }
 });
 
