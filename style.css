@@ -38,18 +38,18 @@
 .light-theme .modern-nav,
 .light-theme .floating-dock,
 .light-theme .ai-chat-panel {
-    background: rgba(28, 28, 30, 0.045);
-    border-color: rgba(28, 28, 30, 0.14);
+    background: rgba(58, 52, 40, 0.045);
+    border-color: rgba(58, 52, 40, 0.14);
 }
 
 .light-theme .nav-links {
-    background: rgba(28, 28, 30, 0.05);
-    border-color: rgba(28, 28, 30, 0.1);
+    background: rgba(58, 52, 40, 0.05);
+    border-color: rgba(58, 52, 40, 0.1);
 }
 
 .light-theme .liquid-indicator {
-    background: rgba(28, 28, 30, 0.06);
-    border-color: rgba(28, 28, 30, 0.2);
+    background: rgba(58, 52, 40, 0.06);
+    border-color: rgba(58, 52, 40, 0.2);
 }
 
 * {
@@ -1609,12 +1609,12 @@ body.light-theme.preset-graphite {
     --primary: #374151;
     --accent: #0e7490;
     --mint: #c2410c;
-    --bg-base: #f5f5f6;
-    --bg-soft: #ffffff;
-    --glass-bg: rgba(55, 65, 81, 0.05);
-    --glass-strong: rgba(55, 65, 81, 0.09);
-    --glass-border: rgba(55, 65, 81, 0.14);
-    --glow-color: rgba(55, 65, 81, 0.1);
+    --bg-base: #f3ecdd;
+    --bg-soft: #faf6ec;
+    --glass-bg: rgba(64, 58, 46, 0.05);
+    --glass-strong: rgba(64, 58, 46, 0.09);
+    --glass-border: rgba(64, 58, 46, 0.14);
+    --glow-color: rgba(64, 58, 46, 0.1);
 }
 
 body.demo-personal {
