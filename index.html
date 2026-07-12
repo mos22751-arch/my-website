@@ -359,6 +359,39 @@
             </div>
         </section>
 
+        <!-- ==================== GUESTBOOK ==================== -->
+        <section class="screen" id="guestbook" aria-labelledby="guestbook-title">
+            <div class="section-shell">
+                <div class="section-heading reveal-up">
+                    <p class="eyebrow" data-i18n="guestbook.eyebrow">Guestbook</p>
+                    <h2 class="section-title" id="guestbook-title" data-i18n="guestbook.title">Leave your mark.</h2>
+                    <p class="section-copy" data-i18n="guestbook.copy">Say hi, drop a note, or just tell me you were here.</p>
+                </div>
+
+                <form class="guestbook-form glass-card reveal-up delay-1" id="guestbookForm">
+                    <div class="guestbook-mood-picker" id="guestbookMoodPicker" aria-label="Mood">
+                        <button type="button" class="guestbook-mood active" data-mood="👋">👋</button>
+                        <button type="button" class="guestbook-mood" data-mood="😄">😄</button>
+                        <button type="button" class="guestbook-mood" data-mood="😍">😍</button>
+                        <button type="button" class="guestbook-mood" data-mood="🔥">🔥</button>
+                        <button type="button" class="guestbook-mood" data-mood="🙏">🙏</button>
+                    </div>
+                    <div class="guestbook-form-row">
+                        <input id="guestbookName" type="text" maxlength="40" autocomplete="name" required data-i18n-attr="placeholder:guestbook.namePlaceholder" placeholder="Your name">
+                        <button type="submit" class="guestbook-submit" id="guestbookSubmit">
+                            <span data-i18n="guestbook.submit">Sign the guestbook</span>
+                            <i data-lucide="send" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <textarea id="guestbookMessage" maxlength="280" rows="2" required data-i18n-attr="placeholder:guestbook.messagePlaceholder" placeholder="Write something..."></textarea>
+                </form>
+
+                <div class="guestbook-list" id="guestbookList" aria-live="polite">
+                    <p class="guestbook-loading" id="guestbookLoading">...</p>
+                </div>
+            </div>
+        </section>
+
         <!-- ==================== WHATSAPP FORM ==================== -->
         <section class="screen sub-screen" id="quickMessageForm" aria-labelledby="form-title">
             <div class="section-shell sub-section-shell">

@@ -436,7 +436,8 @@ window.TOJI_CONTENT = {
                 "home": "Home",
                 "about": "About",
                 "work": "Work",
-                "links": "Links"
+                "links": "Links",
+                "guestbook": "Guestbook"
             },
             "hero": {
                 "eyebrow": "Mohamed Mostafa / TOJI",
@@ -524,6 +525,17 @@ window.TOJI_CONTENT = {
                 "installApp": "Install App",
                 "shareProfile": "Share Profile"
             },
+            "guestbook": {
+                "eyebrow": "Guestbook",
+                "title": "Leave your mark.",
+                "copy": "Say hi, drop a note, or just tell me you were here.",
+                "namePlaceholder": "Your name",
+                "messagePlaceholder": "Write something...",
+                "submit": "Sign the guestbook",
+                "sending": "Sending...",
+                "empty": "No messages yet — be the first!",
+                "loadError": "Couldn't load the guestbook right now."
+            },
             "qr": {
                 "profile": "Profile"
             },
@@ -599,7 +611,8 @@ window.TOJI_CONTENT = {
                 "home": "الرئيسية",
                 "about": "عني",
                 "work": "شغلي",
-                "links": "الروابط"
+                "links": "الروابط",
+                "guestbook": "دفتر الزوار"
             },
             "hero": {
                 "eyebrow": "محمد مصطفى / TOJI",
@@ -686,6 +699,17 @@ window.TOJI_CONTENT = {
                 "mediaKit": "ميديا كيت",
                 "installApp": "تثبيت الموقع",
                 "shareProfile": "مشاركة البروفايل"
+            },
+            "guestbook": {
+                "eyebrow": "دفتر الزوار",
+                "title": "سيب بصمتك هنا.",
+                "copy": "سلّم، اكتب حاجة، أو خبرني إنك مريت من هنا.",
+                "namePlaceholder": "اسمك",
+                "messagePlaceholder": "اكتب حاجة...",
+                "submit": "وقّع في الدفتر",
+                "sending": "بيتبعت...",
+                "empty": "لسه مفيش رسايل — يبقى إنت الأول!",
+                "loadError": "مقدرتش أجيب دفتر الزوار دلوقتي."
             },
             "qr": {
                 "profile": "البروفايل"

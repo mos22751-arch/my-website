@@ -3259,6 +3259,86 @@ Do not resell the customized public version as a separate template unless your s
     if (window.TojiAPI?.LinksAPI) loadLinks();
 
     // ============================================================
+    // 📖 Guestbook moderation
+    // ============================================================
+    async function loadGuestbookAdmin() {
+        const list = el('guestbookAdminList');
+        list.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+
+        try {
+            const res     = await window.TojiAPI.GuestbookAPI.getAll();
+            const entries = res?.data || [];
+
+            if (!entries.length) {
+                list.innerHTML = '<p class="projects-hint">لسه مفيش رسايل في دفتر الزوار.</p>';
+                return;
+            }
+
+            list.innerHTML = entries.map((entry) => `
+                <div class="project-card" data-id="${entry._id}">
+                    <div class="project-card-header">
+                        <span class="project-badge">${escapeHtml(entry.mood || '💬')}</span>
+                        <div class="project-card-title">
+                            <strong>${escapeHtml(entry.name)}</strong>
+                        </div>
+                        <span class="project-visibility ${entry.visible !== false ? 'visible' : 'hidden'}">
+                            ${entry.visible !== false ? '👁 ظاهر' : '🚫 مخفي'}
+                        </span>
+                    </div>
+                    <div class="project-card-tags">
+                        <span class="tag">${escapeHtml(entry.message)}</span>
+                    </div>
+                    <div class="project-card-actions">
+                        <button class="btn-secondary btn-sm" data-action="toggle" data-id="${entry._id}" data-visible="${entry.visible !== false}">
+                            ${entry.visible !== false ? '🚫 إخفاء' : '👁 إظهار'}
+                        </button>
+                        <button class="btn-danger btn-sm" data-action="delete" data-id="${entry._id}">🗑 حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (err) {
+            list.innerHTML = '<p class="projects-hint">❌ فشل التحميل: ' + escapeHtml(err.message) + '</p>';
+        }
+    }
+
+    el('guestbookAdminList').addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+
+        const action = btn.dataset.action;
+        const id     = btn.dataset.id;
+
+        if (action === 'delete') {
+            if (!window.confirm('حذف الرسالة دي نهائي، متأكد؟')) return;
+            btn.disabled = true;
+            try {
+                await window.TojiAPI.GuestbookAPI.remove(id);
+                showBanner('✅ تم حذف الرسالة.', 'success');
+                await loadGuestbookAdmin();
+            } catch (err) {
+                btn.disabled = false;
+                showBanner('❌ فشل الحذف: ' + err.message, 'error');
+            }
+        }
+
+        if (action === 'toggle') {
+            const currentlyVisible = btn.dataset.visible === 'true';
+            btn.disabled = true;
+            try {
+                await window.TojiAPI.GuestbookAPI.setVisibility(id, !currentlyVisible);
+                await loadGuestbookAdmin();
+            } catch (err) {
+                btn.disabled = false;
+                showBanner('❌ فشل التحديث: ' + err.message, 'error');
+            }
+        }
+    });
+
+    el('loadGuestbookBtn').addEventListener('click', loadGuestbookAdmin);
+
+    if (window.TojiAPI?.GuestbookAPI) loadGuestbookAdmin();
+
+    // ============================================================
     // JSON Panel Buttons (بدون تغيير)
     // ============================================================
     el('copyFullBtn').addEventListener('click', async () => {

@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gallery: false,
         faq: false,
         connect: true,
+        guestbook: true,
         form: true,
         themeControls: true,
         ...(contentOverrides.sections || {})
@@ -610,7 +611,8 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'testimonials', label: localized(contentOverrides.marketing?.testimonials?.eyebrow) || 'Reviews',  icon: 'quote',            enabled: sectionConfig.testimonials },
             { id: 'gallery',      label: localized(contentOverrides.marketing?.gallery?.eyebrow)      || 'Gallery',  icon: 'images',           enabled: sectionConfig.gallery },
             { id: 'faq',          label: localized(contentOverrides.marketing?.faq?.eyebrow)          || 'FAQ',      icon: 'circle-help',      enabled: sectionConfig.faq },
-            { id: 'connect',      label: t('nav.links'), icon: 'link-2',             enabled: sectionConfig.connect }
+            { id: 'connect',      label: t('nav.links'), icon: 'link-2',             enabled: sectionConfig.connect },
+            { id: 'guestbook',    label: t('nav.guestbook'), icon: 'notebook-pen',   enabled: sectionConfig.guestbook }
         ].filter((item) => item.enabled);
 
         // أقسام ديناميكية — تظهر فقط لما في داتا من البيكاند
@@ -1136,6 +1138,101 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ============================================================
+    // ✦ GUESTBOOK — دفتر الزوار
+    // ============================================================
+    function escapeHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function timeAgo(dateStr) {
+        const diff = Math.max(0, Date.now() - new Date(dateStr).getTime());
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return currentLang === 'ar' ? 'دلوقتي' : 'just now';
+        if (mins < 60) return currentLang === 'ar' ? `من ${mins} دقيقة` : `${mins}m ago`;
+        const hours = Math.floor(mins / 60);
+        if (hours < 24) return currentLang === 'ar' ? `من ${hours} ساعة` : `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        return currentLang === 'ar' ? `من ${days} يوم` : `${days}d ago`;
+    }
+
+    function renderGuestbookEntries(entries) {
+        const list = document.getElementById('guestbookList');
+        if (!list) return;
+
+        if (!entries.length) {
+            list.innerHTML = `<p class="guestbook-empty">${escapeHtml(t('guestbook.empty'))}</p>`;
+            return;
+        }
+
+        list.innerHTML = entries.map((entry, i) => `
+            <article class="guestbook-entry glass-card ${i ? `reveal-up delay-${Math.min(i, 3)}` : ''}">
+                <div class="guestbook-entry-head">
+                    <span class="guestbook-entry-mood">${escapeHtml(entry.mood || '💬')}</span>
+                    <span class="guestbook-entry-name">${escapeHtml(entry.name)}</span>
+                    <span class="guestbook-entry-time">${timeAgo(entry.createdAt)}</span>
+                </div>
+                <p class="guestbook-entry-message">${escapeHtml(entry.message)}</p>
+            </article>
+        `).join('');
+    }
+
+    async function loadGuestbook() {
+        const list = document.getElementById('guestbookList');
+        if (!list) return;
+        try {
+            const res = await window.TojiAPI?.GuestbookAPI?.getPublic();
+            renderGuestbookEntries(res?.data || []);
+        } catch (err) {
+            list.innerHTML = `<p class="guestbook-empty">${escapeHtml(t('guestbook.loadError'))}</p>`;
+        }
+    }
+
+    function initGuestbookForm() {
+        const form   = document.getElementById('guestbookForm');
+        const submit = document.getElementById('guestbookSubmit');
+        const picker = document.getElementById('guestbookMoodPicker');
+        if (!form) return;
+
+        let selectedMood = '👋';
+        picker?.querySelectorAll('.guestbook-mood').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                picker.querySelectorAll('.guestbook-mood').forEach((b) => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedMood = btn.dataset.mood;
+            });
+        });
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const nameInput = document.getElementById('guestbookName');
+            const msgInput  = document.getElementById('guestbookMessage');
+            const name = nameInput.value.trim();
+            const message = msgInput.value.trim();
+            if (!name || !message) return;
+
+            submit.disabled = true;
+            const originalLabel = submit.querySelector('span').textContent;
+            submit.querySelector('span').textContent = t('guestbook.sending');
+
+            try {
+                const res = await window.TojiAPI?.GuestbookAPI?.create({ name, message, mood: selectedMood });
+                if (res?.success) {
+                    nameInput.value = '';
+                    msgInput.value = '';
+                    loadGuestbook();
+                }
+            } catch (err) {
+                // silently fail — الفورم بيفضل زي ما هو عشان يحاول تاني
+            } finally {
+                submit.disabled = false;
+                submit.querySelector('span').textContent = originalLabel;
+            }
+        });
+    }
+
     function renderQuickMessages() {
         if (!messageType) return;
         const messages = Array.isArray(contentOverrides.quickMessages) && contentOverrides.quickMessages.length
@@ -1252,6 +1349,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setElementVisible('#expertise', sectionConfig.about);
         setElementVisible('#work', sectionConfig.work);
         setElementVisible('#connect', sectionConfig.connect);
+        setElementVisible('#guestbook', sectionConfig.guestbook);
         // WhatsApp form و Themes بقوا أقسام مستقلة — نظهر/نخبّي القسم كله
         setElementVisible('#quickMessageForm', sectionConfig.form && sectionConfig.connect);
         setElementVisible('#themePanel',       sectionConfig.themeControls && sectionConfig.connect);
@@ -1569,6 +1667,8 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSongs();
         loadWip();
         loadLinksGrid();
+        loadGuestbook();
+        initGuestbookForm();
         setThemePreset(localStorage.getItem('toji_theme_preset') || designConfig.presets?.currentStyle || profileConfig.themePreset || 'graphite');
         setAccent(localStorage.getItem('toji_accent') || profileConfig.accent || 'cyan');
         updateWhatsappLinks();

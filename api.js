@@ -233,4 +233,15 @@ const LinksAPI = {
     remove:    (id)    => apiFetch('/links/' + id, { method: 'DELETE' })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, LinksAPI, API_BASE_URL };
+// ============================================================
+// Guestbook API — دفتر الزوار
+// ============================================================
+const GuestbookAPI = {
+    getPublic:      (limit = 60)  => apiFetch(`/guestbook?limit=${limit}`),
+    getAll:         ()            => apiFetch('/guestbook/all'),
+    create:         (data)        => apiFetch('/guestbook', { method: 'POST', body: JSON.stringify(data) }),
+    setVisibility:  (id, visible) => apiFetch(`/guestbook/${id}/visibility`, { method: 'PATCH', body: JSON.stringify({ visible }) }),
+    remove:         (id)          => apiFetch(`/guestbook/${id}`, { method: 'DELETE' })
+};
+
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, LinksAPI, GuestbookAPI, API_BASE_URL };
