@@ -428,13 +428,6 @@
         { label: 'لون Accent الافتراضي', path: 'profile.accent', options: [['cyan', 'Cyan'], ['orange', 'Orange'], ['green', 'Green'], ['violet', 'Violet'], ['gold', 'Gold']] }
     ];
 
-    const socialFields = [
-        { label: 'Instagram', path: 'profile.socials.instagram' },
-        { label: 'TikTok', path: 'profile.socials.tiktok' },
-        { label: 'Snapchat', path: 'profile.socials.snapchat' },
-        { label: 'Threads', path: 'profile.socials.threads' }
-    ];
-
     const assetFields = [
         { label: 'Favicon SVG', path: 'profile.assets.favicon' },
         { label: 'Apple Icon', path: 'profile.assets.appleIcon' },
@@ -780,7 +773,6 @@
         buildLanguagePair('workFields', byPath(['work.', 'tags.']));
         buildBuilderGroup('workBuilderFields', (field) => field.path === 'workCards');
 
-        buildFields('socialFields', socialFields);
         buildLanguagePair('connectFields', byPath(['connect.', 'qr.']));
         buildBuilderGroup('connectBuilderFields', (field) => field.path === 'ctaButtons');
 
@@ -1149,7 +1141,7 @@
                     <div class="preview-tabs">
                         <span class="preview-tab preview-editable" data-edit-path="${escapeHtml(`translations.${lang}.qr.profile`)}">${escapeHtml(tFrom(current, lang, 'qr.profile'))}</span>
                         <span class="preview-tab preview-editable" data-edit-path="profile.phone">WhatsApp</span>
-                        <span class="preview-tab preview-editable" data-edit-path="profile.socials.instagram">Instagram</span>
+                        <span class="preview-tab">Instagram</span>
                     </div>
                     <div class="preview-qr preview-editable" data-edit-path="profile.nickname">${escapeHtml(safeNickname(current))}</div>
                     <h4>${tEdit('connect.scanTitle')}</h4>

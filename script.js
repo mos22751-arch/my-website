@@ -1111,7 +1111,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <a class="link-card glass-card hover-glow reveal-up ${index ? `delay-${Math.min(index, 3)}` : ''}"
-                   href="${href}" target="_blank" rel="noreferrer" data-social="${item.icon || 'link'}">
+                   href="${href}" target="_blank" rel="noreferrer">
                     ${media}
                     <span class="link-card-name">${title}</span>
                     <span class="link-card-arrow">${iconMarkup('arrow-up-right')}</span>
@@ -1346,15 +1346,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyConfigLinks() {
-        document.querySelectorAll('[data-social]').forEach((link) => {
-            const key = link.dataset.social;
-            if (socials[key]) {
-                link.href = socials[key];
-                link.hidden = false;
-            } else {
-                link.hidden = true;
-            }
-        });
+        // ✅ الكروت الحقيقية بتيجي من renderLinkCards()/#linksGrid ومالهاش دعوة
+        // بالحقول القديمة (profile.socials) خالص — الجزء ده كان بيلاعب في href
+        // بتاع كروت اللينكات الحقيقية أو يخفيها بناءً على قيم مش هي المصدر الفعلي.
 
         document.querySelectorAll('[data-copy]').forEach((button) => {
             button.dataset.copy = profilePhone;
