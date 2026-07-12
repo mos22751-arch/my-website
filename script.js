@@ -1927,12 +1927,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function animateStretch(indicator, prev, box) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const growDur = isDock ? 0.32 : 0.24;
-        const settleDur = isDock ? 0.6 : 0.46;
+        const growDur = isDock ? 0.64 : 0.48;
+        const settleDur = isDock ? 1.2 : 0.92;
 
         // Phase 1: grow while it moves — travels to the new spot already enlarged
-        const growW = box.w * 1.3;
-        const growH = box.h * 1.22;
+        const growW = box.w * (isDock ? 1.55 : 1.6);
+        const growH = box.h * (isDock ? 1.55 : 1.4);
         const growRadius = box.radius === '50%' ? '50%' : `${growH / 2}px`;
 
         indicator.style.transition = `transform ${growDur}s ${EASE_GROW}, width ${growDur}s ${EASE_GROW}, height ${growDur}s ${EASE_GROW}, border-radius ${growDur}s ${EASE_GROW}`;
@@ -1971,7 +1971,7 @@ document.addEventListener('DOMContentLoaded', () => {
             moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav, undefined, animate);
         }
         if (dockContainer && activeDock) {
-            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, 40, animate);
+            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, undefined, animate);
         }
     }
     window.syncLiquidIndicators = syncIndicators;
