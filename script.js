@@ -1922,50 +1922,30 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.classList.add('is-visible');
     }
 
-    const EASE_GROW = 'cubic-bezier(0.3, 0, 0.2, 1)';
+    const EASE_STRETCH = 'ease-out';
     const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
-    function animateStretch(indicator, prev, box, target) {
+    function animateStretch(indicator, prev, box) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const growDur = isDock ? 0.42 : 0.32;
-        const settleDur = isDock ? 0.64 : 0.5;
+        const stretchDur = isDock ? 0.26 : 0.16;
+        const settleDur = isDock ? 0.52 : 0.34;
 
-        // Phase 1: grow while it moves — travels to the new spot already enlarged
-        let growW, growH, growRadius;
-        if (isDock) {
-            // keep it a perfect circle at every size, never an oval — and it's now
-            // mounted on the wrapper (outside the dock's own overflow clipping),
-            // so a bulge past the dock's edge stays visible instead of vanishing
-            const growSize = box.w * 1.5;
-            growW = growSize;
-            growH = growSize;
-            growRadius = '50%';
-        } else {
-            growW = box.w * 1.55;
-            growH = box.h * 1.3;
-            growRadius = `${growH / 2}px`;
-        }
+        // Phase 1: elongate into a pill bridging the old and new spot (rubber-band pull)
+        const left = Math.min(prev.cx - prev.w / 2, box.cx - box.w / 2);
+        const right = Math.max(prev.cx + prev.w / 2, box.cx + box.w / 2);
+        const bridgeW = right - left;
+        const bridgeH = Math.min(prev.h, box.h) * 0.72;
+        const bridgeCx = (left + right) / 2;
+        const bridgeCy = (prev.cy + box.cy) / 2;
 
-        indicator.style.transition = `transform ${growDur}s ${EASE_GROW}, width ${growDur}s ${EASE_GROW}, height ${growDur}s ${EASE_GROW}, border-radius ${growDur}s ${EASE_GROW}`;
-        placeIndicator(indicator, { cx: box.cx, cy: box.cy, w: growW, h: growH, radius: growRadius });
+        indicator.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}, width ${stretchDur}s ${EASE_STRETCH}, height ${stretchDur}s ${EASE_STRETCH}, border-radius ${stretchDur}s ${EASE_STRETCH}`;
+        placeIndicator(indicator, { cx: bridgeCx, cy: bridgeCy, w: bridgeW, h: bridgeH, radius: `${bridgeH / 2}px` });
 
-        // The nav's own text "magnifies" while the glass is over it, then relaxes
-        // back to normal size the instant the glass finishes settling in place
-        if (!isDock && target) {
-            target.style.transition = `transform ${growDur}s ${EASE_GROW}`;
-            target.style.transform = 'scale(1.1)';
-        }
-
-        // Phase 2: on arrival, shrink back down to the true final size and settle with a soft spring
+        // Phase 2: contract into the final circle/pill at the new spot
         setTimeout(() => {
             indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
             placeIndicator(indicator, box);
-
-            if (!isDock && target) {
-                target.style.transition = `transform ${settleDur}s ${EASE_SETTLE}`;
-                target.style.transform = 'scale(1)';
-            }
-        }, growDur * 1000);
+        }, stretchDur * 1000);
     }
 
     function moveIndicator(container, indicator, target, size, animate = true) {
@@ -1975,7 +1955,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const moved = prev && (Math.round(prev.cx) !== Math.round(box.cx) || Math.round(prev.cy) !== Math.round(box.cy));
 
         if (animate && moved) {
-            animateStretch(indicator, prev, box, target);
+            animateStretch(indicator, prev, box);
         } else {
             indicator.style.transition = 'none';
             placeIndicator(indicator, box);
@@ -1986,19 +1966,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function syncIndicators(animate = true) {
         const navContainer = document.querySelector('.nav-links');
-        const dockPanel = document.querySelector('.floating-dock');
-        const dockWrapper = document.querySelector('.floating-dock-wrapper');
+        const dockContainer = document.querySelector('.floating-dock');
         const activeNav = navContainer?.querySelector('.nav-link.active');
-        const activeDock = dockPanel?.querySelector('.dock-btn.active');
+        const activeDock = dockContainer?.querySelector('.dock-btn.active');
 
         if (navContainer && activeNav) {
             moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav, undefined, animate);
         }
-        if (dockWrapper && activeDock) {
-            // mounted on the wrapper (not the dock panel) so growth isn't
-            // clipped by the dock's own overflow-x scrolling
-            const dockSize = activeDock.getBoundingClientRect().width;
-            moveIndicator(dockWrapper, ensureIndicator(dockWrapper, 'dock-indicator'), activeDock, dockSize, animate);
+        if (dockContainer && activeDock) {
+            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, 40, animate);
         }
     }
     window.syncLiquidIndicators = syncIndicators;
