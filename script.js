@@ -1922,42 +1922,27 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.classList.add('is-visible');
     }
 
-    const EASE_STRETCH = 'cubic-bezier(0.55, 0, 0.15, 1)';
-    const EASE_BULGE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+    const EASE_GROW = 'cubic-bezier(0.3, 0, 0.2, 1)';
     const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
     function animateStretch(indicator, prev, box) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const stretchDur = isDock ? 0.3 : 0.22;
-        const bulgeDur = isDock ? 0.16 : 0.13;
-        const settleDur = isDock ? 0.46 : 0.36;
+        const growDur = isDock ? 0.32 : 0.24;
+        const settleDur = isDock ? 0.6 : 0.46;
 
-        // Phase 1: elongate into a pill bridging the old and new spot (rubber-band pull)
-        const left = Math.min(prev.cx - prev.w / 2, box.cx - box.w / 2);
-        const right = Math.max(prev.cx + prev.w / 2, box.cx + box.w / 2);
-        const bridgeW = right - left;
-        const bridgeH = Math.min(prev.h, box.h) * 0.62;
-        const bridgeCx = (left + right) / 2;
-        const bridgeCy = (prev.cy + box.cy) / 2;
+        // Phase 1: grow while it moves — travels to the new spot already enlarged
+        const growW = box.w * 1.3;
+        const growH = box.h * 1.22;
+        const growRadius = box.radius === '50%' ? '50%' : `${growH / 2}px`;
 
-        indicator.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}, width ${stretchDur}s ${EASE_STRETCH}, height ${stretchDur}s ${EASE_STRETCH}, border-radius ${stretchDur}s ${EASE_STRETCH}`;
-        placeIndicator(indicator, { cx: bridgeCx, cy: bridgeCy, w: bridgeW, h: bridgeH, radius: `${bridgeH / 2}px` });
+        indicator.style.transition = `transform ${growDur}s ${EASE_GROW}, width ${growDur}s ${EASE_GROW}, height ${growDur}s ${EASE_GROW}, border-radius ${growDur}s ${EASE_GROW}`;
+        placeIndicator(indicator, { cx: box.cx, cy: box.cy, w: growW, h: growH, radius: growRadius });
 
-        // Phase 2: land on the new spot, briefly bulging past the final size (liquid overshoot)
-        const bulgeW = box.w * 1.22;
-        const bulgeH = box.h * 1.16;
-        const bulgeRadius = box.radius === '50%' ? '50%' : `${bulgeH / 2}px`;
-
+        // Phase 2: on arrival, shrink back down to the true final size and settle with a soft spring
         setTimeout(() => {
-            indicator.style.transition = `transform ${bulgeDur}s ${EASE_BULGE}, width ${bulgeDur}s ${EASE_BULGE}, height ${bulgeDur}s ${EASE_BULGE}, border-radius ${bulgeDur}s ${EASE_BULGE}`;
-            placeIndicator(indicator, { cx: box.cx, cy: box.cy, w: bulgeW, h: bulgeH, radius: bulgeRadius });
-
-            // Phase 3: settle back down to the true final size, with a soft spring
-            setTimeout(() => {
-                indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
-                placeIndicator(indicator, box);
-            }, bulgeDur * 1000);
-        }, stretchDur * 1000);
+            indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
+            placeIndicator(indicator, box);
+        }, growDur * 1000);
     }
 
     function moveIndicator(container, indicator, target, size, animate = true) {
