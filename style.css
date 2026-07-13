@@ -175,12 +175,36 @@ body:not(.is-loading) .page-loader {
     }
 }
 
+/* نبضة ضوء خفيفة في لحظة "الاصطدام" بتضيف إحساس بالتأثير */
+.loader-impact {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--primary), transparent 70%);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+    animation: loaderImpactPulse 1.5s ease-out both;
+    animation-delay: 0.62s;
+    pointer-events: none;
+}
+
+@keyframes loaderImpactPulse {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    8%   { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+    35%  { opacity: 0; transform: translate(-50%, -50%) scale(14); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(14); }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .loader-letter {
         animation: none;
         opacity: 1;
         transform: none;
     }
+    .loader-impact { display: none; }
 }
 
 .loader-line {
@@ -231,12 +255,12 @@ body:not(.is-loading) .page-loader {
     position: absolute;
     top: 50%;
     right: 0;
-    width: 10px;
-    height: 10px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: var(--mint);
     transform: translate(50%, -50%) scale(1);
-    box-shadow: 0 0 10px 2px var(--glow-color);
+    box-shadow: 0 0 6px 0.5px var(--glow-color);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
