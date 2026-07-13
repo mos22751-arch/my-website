@@ -210,6 +210,7 @@ const AiAPI = {
     // messages: [{ role: 'user'|'assistant', content: string }, ...]
     chat:   (messages, clientId) => apiFetch('/ai/chat', { method: 'POST', body: JSON.stringify({ messages, clientId }) }),
     status: ()           => apiFetch('/ai/status'),
+    rateLog: (id, rating) => apiFetch(`/ai/logs/${id}/rate`, { method: 'PATCH', body: JSON.stringify({ rating }) }),
     // Admin
     getSettings:    ()      => apiFetch('/ai/settings'),
     updateSettings: (data)  => apiFetch('/ai/settings', { method: 'PUT', body: JSON.stringify(data) }),

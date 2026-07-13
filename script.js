@@ -984,89 +984,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputRow = document.getElementById('botInputRow');
         const inputEl  = document.getElementById('botInput');
         const sendBtn  = document.getElementById('botInputSend');
-        const voiceSelect = document.getElementById('aiVoiceSelect');
-        const voiceToggle = document.getElementById('aiVoiceToggle');
         if (!overlay || !openBtn) return;
-
-        // ── Text-to-Speech: زعزع بيرد بصوته، والنبرة بتتغيّر حسب المود ──────
-        const synth = window.speechSynthesis || null;
-        let voiceMuted = localStorage.getItem('toji_ai_voice_muted') === '1';
-        let voices = [];
-
-        const MOOD_TONE = {
-            happy:     { pitch: 1.15, rate: 1.05 },
-            excited:   { pitch: 1.3,  rate: 1.18 },
-            playful:   { pitch: 1.2,  rate: 1.1  },
-            confident: { pitch: 1.0,  rate: 1.0  },
-            sad:       { pitch: 0.8,  rate: 0.88 },
-            calm:      { pitch: 0.9,  rate: 0.92 },
-            neutral:   { pitch: 1.0,  rate: 1.0  }
-        };
-
-        function updateVoiceToggleUI() {
-            if (!voiceToggle) return;
-            voiceToggle.classList.toggle('muted', voiceMuted);
-            voiceToggle.setAttribute('aria-pressed', String(!voiceMuted));
-            voiceToggle.innerHTML = '<i data-lucide="' + (voiceMuted ? 'volume-x' : 'volume-2') + '" aria-hidden="true"></i>';
-            if (window.lucide) window.lucide.createIcons();
-        }
-
-        function populateVoices() {
-            if (!synth || !voiceSelect) return;
-            voices = synth.getVoices() || [];
-            if (!voices.length) return;
-            const saved = localStorage.getItem('toji_ai_voice_uri') || '';
-            // العربي يظهر الأول، وبعدين الباقي
-            const sorted = [...voices].sort((a, b) => {
-                const aAr = /ar/i.test(a.lang) ? 0 : 1;
-                const bAr = /ar/i.test(b.lang) ? 0 : 1;
-                return aAr - bAr;
-            });
-            voiceSelect.innerHTML = sorted.map(v =>
-                '<option value="' + v.voiceURI + '">' + v.name + (v.lang ? ' (' + v.lang + ')' : '') + '</option>'
-            ).join('');
-            if (saved && sorted.some(v => v.voiceURI === saved)) voiceSelect.value = saved;
-        }
-        if (synth) {
-            populateVoices();
-            synth.addEventListener?.('voiceschanged', populateVoices);
-            synth.onvoiceschanged = populateVoices;
-        }
-
-        voiceSelect?.addEventListener('change', () => {
-            localStorage.setItem('toji_ai_voice_uri', voiceSelect.value);
-        });
-        voiceToggle?.addEventListener('click', () => {
-            voiceMuted = !voiceMuted;
-            localStorage.setItem('toji_ai_voice_muted', voiceMuted ? '1' : '0');
-            if (voiceMuted && synth) synth.cancel();
-            updateVoiceToggleUI();
-        });
-        updateVoiceToggleUI();
-
-        function stripForSpeech(text) {
-            // مفيش داعي المحرك يحاول ينطق الإيموجي
-            return String(text || '').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
-        }
-
-        function speakReply(text, mood) {
-            if (!synth || voiceMuted) return;
-            const clean = stripForSpeech(text);
-            if (!clean) return;
-            synth.cancel(); // نوقف أي كلام سابق قبل الجديد
-            const utter = new SpeechSynthesisUtterance(clean);
-            const tone  = MOOD_TONE[mood] || MOOD_TONE.neutral;
-            utter.pitch = tone.pitch;
-            utter.rate  = tone.rate;
-            const uri = voiceSelect?.value || localStorage.getItem('toji_ai_voice_uri');
-            const picked = uri && voices.find(v => v.voiceURI === uri);
-            if (picked) utter.voice = picked;
-            else {
-                const arVoice = voices.find(v => /ar/i.test(v.lang));
-                if (arVoice) utter.voice = arVoice;
-            }
-            synth.speak(utter);
-        }
 
         // ── معرّف ثابت لكل زائر، بيتحفظ في المتصفح بتاعه، عشان لوحة الأدمن
         //    تقدر تجمع كل رسايله في محادثة واحدة لوحدها بدل ما تتلخبط مع زوار تانيين ──
@@ -1090,16 +1008,65 @@ document.addEventListener('DOMContentLoaded', () => {
         function scroll() { msgEl.scrollTop = msgEl.scrollHeight; }
         const aiAvatarHTML = '<span class="ai-msg-avatar"><img src="assets/profile.webp" alt="" onerror="this.style.display=\'none\'"></span>';
 
-        function addMsg(text, role, mood) {
+        function addMsg(text, role, opts) {
             const d = document.createElement('div');
-            d.className = 'ai-msg ' + role;
-            if (role === 'ai' && mood) d.dataset.mood = mood;
+            d.className = 'ai-msg ' + role + (opts && opts.noActions ? ' ai-msg-static' : '');
+            const logId = opts && opts.logId ? String(opts.logId) : '';
+            if (logId) d.dataset.logId = logId;
             d.innerHTML = (role === 'ai' ? aiAvatarHTML : '') +
-                '<p>' + String(text).split('\n').join('<br>') + '</p>';
+                '<div class="ai-msg-body"><p>' + String(text).split('\n').join('<br>') + '</p>' +
+                (role === 'ai' && !(opts && opts.noActions) ? aiMsgActionsHTML(logId) : '') +
+                '</div>';
             msgEl.appendChild(d);
+            if (role === 'ai' && window.lucide) window.lucide.createIcons();
             scroll();
             return d;
         }
+
+        // ── أزرار تحت كل رد: نسخ / إعادة توليد / تقييم ──────────────
+        function aiMsgActionsHTML(logId) {
+            return '<div class="ai-msg-actions">' +
+                '<button class="ai-msg-action" data-act="copy" aria-label="نسخ الرد"><i data-lucide="copy" aria-hidden="true"></i></button>' +
+                '<button class="ai-msg-action" data-act="regen" aria-label="إعادة توليد الرد"><i data-lucide="refresh-cw" aria-hidden="true"></i></button>' +
+                (logId ?
+                    '<button class="ai-msg-action" data-act="up" aria-label="رد كويس"><i data-lucide="thumbs-up" aria-hidden="true"></i></button>' +
+                    '<button class="ai-msg-action" data-act="down" aria-label="رد مش كويس"><i data-lucide="thumbs-down" aria-hidden="true"></i></button>'
+                    : '') +
+                '</div>';
+        }
+
+        msgEl.addEventListener('click', (e) => {
+            const btn = e.target.closest('.ai-msg-action');
+            if (!btn) return;
+            const bubble = btn.closest('.ai-msg');
+            const act    = btn.dataset.act;
+
+            if (act === 'copy') {
+                const raw = bubble.querySelector('p')?.innerText || '';
+                navigator.clipboard?.writeText(raw).then(() => {
+                    btn.classList.add('done');
+                    setTimeout(() => btn.classList.remove('done'), 1200);
+                }).catch(() => {});
+                return;
+            }
+
+            if (act === 'regen') {
+                if (busy) return;
+                regenerateFrom(bubble);
+                return;
+            }
+
+            if (act === 'up' || act === 'down') {
+                if (!bubble.dataset.logId || busy) return;
+                const already = btn.classList.contains('active');
+                const rating  = already ? null : act;
+                bubble.querySelectorAll('.ai-msg-action[data-act="up"], .ai-msg-action[data-act="down"]')
+                    .forEach(b => b.classList.remove('active'));
+                if (!already) btn.classList.add('active');
+                window.TojiAPI?.AiAPI?.rateLog?.(bubble.dataset.logId, rating).catch(() => {});
+                return;
+            }
+        });
 
         let typingEl = null;
         function showTyping() {
@@ -1132,8 +1099,25 @@ document.addEventListener('DOMContentLoaded', () => {
             sendBtn.disabled = v;
             // ملحوظة: مش بنعمل disable لـ inputEl هنا — تعطيل input وهو focused
             // بيقفل الكيبورد فورًا في الموبايل، وده كان بيحصل مع كل رسالة (فتح/قفل
-            // كيبورد متكرر = الإحساس بالتهنيج). الحماية من الإرسال المزدوج بقت
-            // على busy flag جوه sendMessage نفسها بدل ما نلمس الـ input.
+            // كيبورد متكرر = الإحساس بالتهنيج). أمان الإرسال المزدوج بقى على busy flag.
+        }
+
+        async function askAndAppend() {
+            try {
+                // كل المطابقة (الردود الجاهزة + Gemini) وكل الـ logging بيحصلوا في الباك إند
+                const res   = await window.TojiAPI.AiAPI.chat(history, clientId);
+                const reply = (res && res.content ? String(res.content) : '').trim() || FALLBACK_ERROR;
+                hideTyping();
+                addMsg(reply, 'ai', { logId: res && res.logId });
+                history.push({ role: 'assistant', content: reply });
+            } catch (err) {
+                hideTyping();
+                addMsg(FALLBACK_ERROR, 'ai', { noActions: true });
+                console.warn('[TOJI] AI chat error:', err.message);
+            } finally {
+                setBusy(false);
+                // من غير refocus قسري هنا — الـ input فضل focused ومكانتش اتقفل أصلًا
+            }
         }
 
         async function sendMessage(raw) {
@@ -1146,26 +1130,29 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEl.value = '';
             setBusy(true);
             showTyping();
+            await askAndAppend();
+        }
 
-            try {
-                // كل المطابقة (الردود الجاهزة + Gemini) وكل الـ logging بيحصلوا في الباك إند
-                const res   = await window.TojiAPI.AiAPI.chat(history, clientId);
-                const reply = (res && res.content ? String(res.content) : '').trim() || FALLBACK_ERROR;
-                const mood  = (res && res.mood) || 'neutral';
-                hideTyping();
-                addMsg(reply, 'ai', mood);
-                speakReply(reply, mood);
-                history.push({ role: 'assistant', content: reply });
-            } catch (err) {
-                hideTyping();
-                addMsg(FALLBACK_ERROR, 'ai', 'sad');
-                speakReply(FALLBACK_ERROR, 'sad');
-                console.warn('[TOJI] AI chat error:', err.message);
-            } finally {
-                setBusy(false);
-                // من غير refocus قسري هنا — الـ input أصلاً فضل focused ومكانتش
-                // اتقفل، فمفيش داعي نرجّع نفتح الكيبورد تاني (ده كان بيعمل رجّة/تهنيج)
-            }
+        // ── إعادة توليد رد: بنمسح الرد ده وأي حاجة بعده، ونرجع نطلب رد جديد
+        //    لنفس السؤال اللي قبله ────────────────────────────────────────
+        async function regenerateFrom(bubble) {
+            const aiBubbles = Array.from(msgEl.querySelectorAll('.ai-msg.ai:not(.ai-msg-static)'));
+            const idx = aiBubbles.indexOf(bubble);
+            if (idx === -1) return;
+
+            const assistantIdxInHistory = [];
+            history.forEach((m, i) => { if (m.role === 'assistant') assistantIdxInHistory.push(i); });
+            const targetIdx = assistantIdxInHistory[idx];
+            if (targetIdx === undefined) return;
+
+            history = history.slice(0, targetIdx);
+
+            let node = bubble;
+            while (node) { const next = node.nextSibling; node.remove(); node = next; }
+
+            setBusy(true);
+            showTyping();
+            await askAndAppend();
         }
 
         // ── quick-suggestion chips ────────────────────────────────
@@ -1196,16 +1183,13 @@ document.addEventListener('DOMContentLoaded', () => {
             inputRow.hidden  = false;
             inputEl.value    = '';
             if (window.lucide) window.lucide.createIcons();
-            const greeting = 'يا هلا 👋 أنا زعزع، مساعد Toji الذكي! اسألني أي حاجة عن شغله، أو دردش معايا في أي موضوع تاني، أنا هنا 😄';
-            addMsg(greeting, 'ai', 'happy');
-            speakReply(greeting, 'happy');
+            addMsg('يا هلا 👋 أنا زعزع، مساعد Toji الذكي! اسألني أي حاجة عن شغله، أو دردش معايا في أي موضوع تاني، أنا هنا 😄', 'ai', { noActions: true });
             showSuggestions();
             inputEl.focus();
         }
 
         openBtn.addEventListener('click', openChat);
         const close = () => {
-            if (synth) synth.cancel();
             document.body.classList.remove('ai-chat-open');
             overlay.hidden = true;
             history        = [];
