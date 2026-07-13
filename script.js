@@ -2134,14 +2134,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function animateStretch(indicator, prev, box, target, container) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const growDur = isDock ? 0.2 : 0.16;
-        const travelDur = isDock ? 0.44 : 0.4;
-        const settleDur = isDock ? 0.42 : 0.34;
+        const growDur = isDock ? 0.13 : 0.19;
+        const travelDur = isDock ? 0.24 : 0.48;
+        const settleDur = isDock ? 0.24 : 0.42;
+        const travelEase = isDock ? EASE_TRAVEL : 'cubic-bezier(0.4, 0, 0.2, 1)';
 
         // Phase 1: grow big right where it already is — the magnifying-glass look
         let growW, growH, growRadius;
         if (isDock) {
-            const growSize = prev.h * 1.65;
+            const growSize = prev.h * 1.18;
             growW = growSize;
             growH = growSize;
             growRadius = '50%';
@@ -2157,7 +2158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             // Phase 2: glide across to the destination while it's still big — a smooth,
             // continuous travel, not a shrink-then-move
-            indicator.style.transition = `transform ${travelDur}s ${EASE_TRAVEL}`;
+            indicator.style.transition = `transform ${travelDur}s ${travelEase}`;
             placeIndicator(indicator, { cx: box.cx, cy: box.cy, w: growW, h: growH, radius: growRadius });
 
             // Every word the glass glides over gets a quick magnify pulse as it passes;
