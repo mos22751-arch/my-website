@@ -2152,9 +2152,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let progressBumpTimer = null;
+
     applyLanguage(currentLang);
 
-    let progressBumpTimer = null;
     function updateProgress() {
         if (!scrollRoot || !progress) return;
         const maxScroll = scrollRoot.scrollHeight - scrollRoot.clientHeight;
