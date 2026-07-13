@@ -707,6 +707,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const current = parseInt(countEl.textContent, 10) || 0;
         countEl.textContent = Math.max(0, current + (alreadyGiven ? -1 : 1));
 
+        // liquid bounce pop on the button + count, plus a floating +1/-1 hint
+        btn.classList.remove('is-popping');
+        void btn.offsetWidth; // restart animation if clicked again quickly
+        btn.classList.add('is-popping');
+        setTimeout(() => btn.classList.remove('is-popping'), 440);
+
+        const delta = document.createElement('span');
+        delta.className = 'reaction-delta';
+        delta.textContent = alreadyGiven ? '−1' : '+1';
+        btn.appendChild(delta);
+        setTimeout(() => delta.remove(), 720);
+
         try {
             const res = await window.TojiAPI?.ReactionsAPI?.react(key, type, action);
             if (res?.data) {
@@ -772,10 +784,66 @@ document.addEventListener('DOMContentLoaded', () => {
     // 🦇 Easter Egg — اكتب "toji" في أي مكان في الصفحة (end)
     // ============================================================
 
+    // ============================================================
+    // 🟣 Secret Mode — اكتب "domain" في أي مكان في الصفحة
+    // ============================================================
+    (function initDomainExpansion() {
+        const TARGET = 'domain';
+        let buffer = '';
+        let active = false;
+        let revertTimer = null;
+
+        function trigger() {
+            if (active) return;
+            active = true;
+
+            document.body.classList.add('domain-expansion');
+
+            const overlay = document.createElement('div');
+            overlay.className = 'domain-overlay';
+            overlay.innerHTML = `
+                <div class="domain-card">
+                    <span class="domain-kanji">領域展開</span>
+                    <p>${currentLang === 'ar' ? 'اتفتح المجال...' : 'Domain Expansion...'}</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.classList.add('is-visible'));
+
+            setTimeout(() => {
+                overlay.classList.remove('is-visible');
+                setTimeout(() => overlay.remove(), 400);
+            }, 1400);
+
+            clearTimeout(revertTimer);
+            revertTimer = setTimeout(() => {
+                document.body.classList.add('domain-reverting');
+                document.body.classList.remove('domain-expansion');
+                setTimeout(() => {
+                    document.body.classList.remove('domain-reverting');
+                    active = false;
+                }, 700);
+            }, 7000);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey || event.metaKey || event.altKey) return;
+            const key = event.key?.toLowerCase();
+            if (!key || key.length !== 1) return;
+            buffer = (buffer + key).slice(-TARGET.length);
+            if (buffer === TARGET) trigger();
+        });
+    })();
+
+    // ============================================================
+    // 🟣 Secret Mode (end)
+    // ============================================================
+
     document.addEventListener('click', (event) => {
         const btn = event.target.closest('.reaction-btn');
         if (btn) handleReactionClick(btn);
     });
+
 
     function renderWorkCards(apiCards) {
         const grid = document.querySelector('.project-grid');
@@ -2086,11 +2154,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applyLanguage(currentLang);
 
+    let progressBumpTimer = null;
     function updateProgress() {
         if (!scrollRoot || !progress) return;
         const maxScroll = scrollRoot.scrollHeight - scrollRoot.clientHeight;
         const amount = maxScroll > 0 ? scrollRoot.scrollTop / maxScroll : 0;
-        progress.style.transform = `scaleX(${Math.min(1, Math.max(0, amount))})`;
+        progress.style.width = `${Math.min(1, Math.max(0, amount)) * 100}%`;
+
+        progress.classList.add('is-bumping');
+        clearTimeout(progressBumpTimer);
+        progressBumpTimer = setTimeout(() => progress.classList.remove('is-bumping'), 260);
     }
 
     scrollRoot?.addEventListener('scroll', updateProgress, { passive: true });
