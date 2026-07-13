@@ -3432,6 +3432,20 @@ window.addEventListener('beforeunload', () => {
         startTime:       Date.now()
     };
 
+    // هوية ثابتة للزائر (بتتحفظ في متصفحه) عشان نعرف نميز الزيارات
+    // المتكررة لنفس الشخص
+    function getVisitorId() {
+        try {
+            let id = localStorage.getItem('toji_visitor_id');
+            if (!id) {
+                id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() :
+                    'v-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+                localStorage.setItem('toji_visitor_id', id);
+            }
+            return id;
+        } catch { return ''; }
+    }
+
     // تسجيل الزيارة الأولية
     async function trackVisit() {
         try {
@@ -3439,12 +3453,14 @@ window.addEventListener('beforeunload', () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    device:   detectDevice(),
-                    os:       detectOS(),
-                    browser:  detectBrowser(),
-                    referrer: document.referrer || '',
-                    language: navigator.language || '',
-                    screen:   `${screen.width}x${screen.height}`
+                    device:    detectDevice(),
+                    os:        detectOS(),
+                    browser:   detectBrowser(),
+                    referrer:  document.referrer || '',
+                    language:  navigator.language || '',
+                    screen:    `${screen.width}x${screen.height}`,
+                    timezone:  Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+                    visitorId: getVisitorId()
                 })
             });
             const data = await res.json();
