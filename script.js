@@ -2111,7 +2111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dockWrapper.classList.add('dock-peeking');
             peekBtn.classList.add('is-hidden');
             clearTimeout(hideTimer);
-            hideTimer = setTimeout(hideDock, 2000);
+            hideTimer = setTimeout(hideDock, 900);
         }
 
         function hideDock() {

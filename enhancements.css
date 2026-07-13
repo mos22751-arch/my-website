@@ -1878,31 +1878,31 @@ body.lang-ar .project-card h3 {
         justify-content: center !important;
         align-items: center !important;
         width: auto !important;
-        height: min(88vh, 680px) !important;
+        height: min(64vh, 460px) !important;
         min-height: 0 !important;
         max-height: none !important;
         overflow: visible !important;
-        padding: clamp(0.4rem, 2vh, 0.6rem) !important;
-        gap: clamp(0.2rem, 1.6vh, 0.55rem) !important;
-        border-radius: 26px !important;
+        padding: clamp(0.3rem, 1.6vh, 0.45rem) !important;
+        gap: clamp(0.15rem, 1.1vh, 0.4rem) !important;
+        border-radius: 20px !important;
         box-shadow: 0 -2px 32px rgba(0, 0, 0, 0.3), var(--shadow) !important;
     }
 
     .dock-btn {
         flex: 1 1 0 !important;
         min-height: 0 !important;
-        max-height: 54px !important;
+        max-height: 40px !important;
         min-width: 0 !important;
-        width: 50px !important;
-        border-radius: 15px !important;
+        width: 38px !important;
+        border-radius: 12px !important;
         transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
                     background 0.22s ease,
                     color 0.22s ease !important;
     }
 
     .dock-btn svg {
-        width: 21px !important;
-        height: 21px !important;
+        width: 17px !important;
+        height: 17px !important;
     }
 
     .dock-btn:active {
