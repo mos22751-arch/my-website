@@ -1922,30 +1922,82 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.classList.add('is-visible');
     }
 
-    const EASE_STRETCH = 'ease-out';
+    const EASE_GROW = 'cubic-bezier(0.3, 0, 0.2, 1)';
+    const EASE_TRAVEL = 'cubic-bezier(0.45, 0, 0.15, 1)';
     const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
-    function animateStretch(indicator, prev, box) {
+    function animateStretch(indicator, prev, box, target, container) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const stretchDur = isDock ? 0.26 : 0.16;
-        const settleDur = isDock ? 0.52 : 0.34;
+        const growDur = isDock ? 0.2 : 0.16;
+        const travelDur = isDock ? 0.44 : 0.4;
+        const settleDur = isDock ? 0.42 : 0.34;
 
-        // Phase 1: elongate into a pill bridging the old and new spot (rubber-band pull)
-        const left = Math.min(prev.cx - prev.w / 2, box.cx - box.w / 2);
-        const right = Math.max(prev.cx + prev.w / 2, box.cx + box.w / 2);
-        const bridgeW = right - left;
-        const bridgeH = Math.min(prev.h, box.h) * 0.72;
-        const bridgeCx = (left + right) / 2;
-        const bridgeCy = (prev.cy + box.cy) / 2;
+        // Phase 1: grow big right where it already is — the magnifying-glass look
+        let growW, growH, growRadius;
+        if (isDock) {
+            const growSize = prev.h * 1.65;
+            growW = growSize;
+            growH = growSize;
+            growRadius = '50%';
+        } else {
+            growW = prev.w * 1.35;
+            growH = prev.h * 1.4;
+            growRadius = `${growH / 2}px`;
+        }
 
-        indicator.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}, width ${stretchDur}s ${EASE_STRETCH}, height ${stretchDur}s ${EASE_STRETCH}, border-radius ${stretchDur}s ${EASE_STRETCH}`;
-        placeIndicator(indicator, { cx: bridgeCx, cy: bridgeCy, w: bridgeW, h: bridgeH, radius: `${bridgeH / 2}px` });
+        indicator.style.transition = `transform ${growDur}s ${EASE_GROW}, width ${growDur}s ${EASE_GROW}, height ${growDur}s ${EASE_GROW}, border-radius ${growDur}s ${EASE_GROW}`;
+        placeIndicator(indicator, { cx: prev.cx, cy: prev.cy, w: growW, h: growH, radius: growRadius });
 
-        // Phase 2: contract into the final circle/pill at the new spot
         setTimeout(() => {
-            indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
-            placeIndicator(indicator, box);
-        }, stretchDur * 1000);
+            // Phase 2: glide across to the destination while it's still big — a smooth,
+            // continuous travel, not a shrink-then-move
+            indicator.style.transition = `transform ${travelDur}s ${EASE_TRAVEL}`;
+            placeIndicator(indicator, { cx: box.cx, cy: box.cy, w: growW, h: growH, radius: growRadius });
+
+            // Every word the glass glides over gets a quick magnify pulse as it passes;
+            // the destination word stays magnified until the glass actually settles
+            if (!isDock && target && container) {
+                const links = Array.from(container.querySelectorAll('.nav-link'));
+                const from = prev.cx;
+                const to = box.cx;
+                const lo = Math.min(from, to) - 2;
+                const hi = Math.max(from, to) + 2;
+
+                links.forEach((link) => {
+                    const r = link.getBoundingClientRect();
+                    const cRect = container.getBoundingClientRect();
+                    const linkCx = r.left - cRect.left + r.width / 2;
+                    if (linkCx < lo || linkCx > hi) return;
+
+                    const progress = to === from ? 1 : (linkCx - from) / (to - from);
+                    const delay = Math.max(0, Math.min(1, progress)) * travelDur;
+                    const isFinal = link === target;
+
+                    setTimeout(() => {
+                        link.style.transition = `transform 0.16s ${EASE_GROW}`;
+                        link.style.transform = 'scale(1.12)';
+                        if (!isFinal) {
+                            setTimeout(() => {
+                                link.style.transition = `transform 0.22s ${EASE_SETTLE}`;
+                                link.style.transform = 'scale(1)';
+                            }, 150);
+                        }
+                    }, delay * 1000);
+                });
+            }
+
+            // Phase 3: arrive — shrink back down to the true final size, with a soft spring —
+            // this is exactly when the destination word drops back to its normal size
+            setTimeout(() => {
+                indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
+                placeIndicator(indicator, box);
+
+                if (!isDock && target) {
+                    target.style.transition = `transform ${settleDur}s ${EASE_SETTLE}`;
+                    target.style.transform = 'scale(1)';
+                }
+            }, travelDur * 1000);
+        }, growDur * 1000);
     }
 
     function moveIndicator(container, indicator, target, size, animate = true) {
@@ -1955,7 +2007,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const moved = prev && (Math.round(prev.cx) !== Math.round(box.cx) || Math.round(prev.cy) !== Math.round(box.cy));
 
         if (animate && moved) {
-            animateStretch(indicator, prev, box);
+            animateStretch(indicator, prev, box, target, container);
         } else {
             indicator.style.transition = 'none';
             placeIndicator(indicator, box);
@@ -1966,15 +2018,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function syncIndicators(animate = true) {
         const navContainer = document.querySelector('.nav-links');
-        const dockContainer = document.querySelector('.floating-dock');
+        const dockPanel = document.querySelector('.floating-dock');
         const activeNav = navContainer?.querySelector('.nav-link.active');
-        const activeDock = dockContainer?.querySelector('.dock-btn.active');
+        const activeDock = dockPanel?.querySelector('.dock-btn.active');
 
         if (navContainer && activeNav) {
             moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav, undefined, animate);
         }
-        if (dockContainer && activeDock) {
-            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, 40, animate);
+        if (dockPanel && activeDock) {
+            const dockSize = activeDock.getBoundingClientRect().width;
+            moveIndicator(dockPanel, ensureIndicator(dockPanel, 'dock-indicator'), activeDock, dockSize, animate);
         }
     }
     window.syncLiquidIndicators = syncIndicators;
