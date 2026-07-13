@@ -1922,63 +1922,29 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.classList.add('is-visible');
     }
 
-    const EASE_STRETCH = 'cubic-bezier(0.55, 0, 0.15, 1)';
-    const EASE_BULGE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+    const EASE_STRETCH = 'ease-out';
     const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
-    function animateStretch(indicator, prev, box, target) {
+    function animateStretch(indicator, prev, box) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const stretchDur = isDock ? 0.3 : 0.22;
-        const bulgeDur = isDock ? 0.16 : 0.12;
-        const settleDur = isDock ? 0.46 : 0.36;
+        const stretchDur = isDock ? 0.26 : 0.16;
+        const settleDur = isDock ? 0.52 : 0.34;
 
-        // Phase 1: elongate into a pill that bridges the old spot and the new spot —
-        // this is the "المط" rubber-band pull while it's actually traveling
+        // Phase 1: elongate into a pill bridging the old and new spot (rubber-band pull)
         const left = Math.min(prev.cx - prev.w / 2, box.cx - box.w / 2);
         const right = Math.max(prev.cx + prev.w / 2, box.cx + box.w / 2);
-        const bridgeW = (right - left) * 1.05;
-        const bridgeH = Math.min(prev.h, box.h) * (isDock ? 0.6 : 0.48);
+        const bridgeW = right - left;
+        const bridgeH = Math.min(prev.h, box.h) * 0.72;
         const bridgeCx = (left + right) / 2;
         const bridgeCy = (prev.cy + box.cy) / 2;
 
         indicator.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}, width ${stretchDur}s ${EASE_STRETCH}, height ${stretchDur}s ${EASE_STRETCH}, border-radius ${stretchDur}s ${EASE_STRETCH}`;
         placeIndicator(indicator, { cx: bridgeCx, cy: bridgeCy, w: bridgeW, h: bridgeH, radius: `${bridgeH / 2}px` });
 
-        // The nav's own text "magnifies" for as long as the glass is stretched/enlarged,
-        // covering both the bridge and the bulge, then relaxes once settling begins
-        if (!isDock && target) {
-            target.style.transition = `transform ${stretchDur + bulgeDur}s ${EASE_STRETCH}`;
-            target.style.transform = 'scale(1.1)';
-        }
-
+        // Phase 2: contract into the final circle/pill at the new spot
         setTimeout(() => {
-            // Phase 2: land on the new spot, briefly bulging past the final size (liquid overshoot)
-            let bulgeW, bulgeH, bulgeRadius;
-            if (isDock) {
-                const bulgeSize = box.w * 1.35;
-                bulgeW = bulgeSize;
-                bulgeH = bulgeSize;
-                bulgeRadius = '50%';
-            } else {
-                bulgeW = box.w * 1.32;
-                bulgeH = box.h * 1.22;
-                bulgeRadius = `${bulgeH / 2}px`;
-            }
-
-            indicator.style.transition = `transform ${bulgeDur}s ${EASE_BULGE}, width ${bulgeDur}s ${EASE_BULGE}, height ${bulgeDur}s ${EASE_BULGE}, border-radius ${bulgeDur}s ${EASE_BULGE}`;
-            placeIndicator(indicator, { cx: box.cx, cy: box.cy, w: bulgeW, h: bulgeH, radius: bulgeRadius });
-
-            // Phase 3: settle back down to the true final size, with a soft spring —
-            // this is exactly when the nav text drops back to its normal size
-            setTimeout(() => {
-                indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
-                placeIndicator(indicator, box);
-
-                if (!isDock && target) {
-                    target.style.transition = `transform ${settleDur}s ${EASE_SETTLE}`;
-                    target.style.transform = 'scale(1)';
-                }
-            }, bulgeDur * 1000);
+            indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
+            placeIndicator(indicator, box);
         }, stretchDur * 1000);
     }
 
@@ -1989,7 +1955,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const moved = prev && (Math.round(prev.cx) !== Math.round(box.cx) || Math.round(prev.cy) !== Math.round(box.cy));
 
         if (animate && moved) {
-            animateStretch(indicator, prev, box, target);
+            animateStretch(indicator, prev, box);
         } else {
             indicator.style.transition = 'none';
             placeIndicator(indicator, box);
@@ -2000,16 +1966,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function syncIndicators(animate = true) {
         const navContainer = document.querySelector('.nav-links');
-        const dockPanel = document.querySelector('.floating-dock');
+        const dockContainer = document.querySelector('.floating-dock');
         const activeNav = navContainer?.querySelector('.nav-link.active');
-        const activeDock = dockPanel?.querySelector('.dock-btn.active');
+        const activeDock = dockContainer?.querySelector('.dock-btn.active');
 
         if (navContainer && activeNav) {
             moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav, undefined, animate);
         }
-        if (dockPanel && activeDock) {
-            const dockSize = activeDock.getBoundingClientRect().width;
-            moveIndicator(dockPanel, ensureIndicator(dockPanel, 'dock-indicator'), activeDock, dockSize, animate);
+        if (dockContainer && activeDock) {
+            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, 40, animate);
         }
     }
     window.syncLiquidIndicators = syncIndicators;
