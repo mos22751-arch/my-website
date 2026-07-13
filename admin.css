@@ -1711,6 +1711,14 @@ code {
 
 .analytics-visitors { display: flex; flex-direction: column; gap: 10px; }
 
+.analytics-telegram-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 4px 0 14px;
+}
+
 .analytics-visitors-header {
     display: flex;
     align-items: center;

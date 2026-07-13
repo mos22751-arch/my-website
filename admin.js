@@ -2860,6 +2860,24 @@ Do not resell the customized public version as a separate template unless your s
 
     el('refreshAnalyticsBtn').addEventListener('click', loadAnalytics);
 
+    const sendSummaryBtn = el('sendDailySummaryBtn');
+    if (sendSummaryBtn) {
+        sendSummaryBtn.addEventListener('click', async () => {
+            sendSummaryBtn.disabled = true;
+            const original = sendSummaryBtn.textContent;
+            sendSummaryBtn.textContent = '⏳ بيتبعت...';
+            try {
+                const res = await window.TojiAPI.AnalyticsAPI.sendDailySummary();
+                showBanner('✅ ' + (res?.message || 'اتبعت بنجاح'), 'success');
+            } catch (err) {
+                showBanner('❌ ' + err.message, 'error');
+            } finally {
+                sendSummaryBtn.disabled = false;
+                sendSummaryBtn.textContent = original;
+            }
+        });
+    }
+
     // تحميل تلقائي عند فتح الأدمن
     if (window.TojiAPI?.AnalyticsAPI) loadAnalytics();
 

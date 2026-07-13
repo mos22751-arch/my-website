@@ -176,7 +176,8 @@ const ConfigAPI = {
 const AnalyticsAPI = {
     getStats: () => apiFetch('/analytics/stats'),
     getVisitors: (page = 1, limit = 20) =>
-        apiFetch(`/analytics/visitors?page=${page}&limit=${limit}`)
+        apiFetch(`/analytics/visitors?page=${page}&limit=${limit}`),
+    sendDailySummary: () => apiFetch('/analytics/send-daily-summary', { method: 'POST' })
 };
 
 // تصدير موحد لكل الـ APIs
