@@ -810,12 +810,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<a href="${card.liveUrl}" target="_blank" rel="noreferrer" class="project-live-link">View Project →</a>`
                 : '';
             const banner = localized(card.banner) || card.banner || String(index + 1).padStart(2, '0');
-            const projectKey = card._id || slugifyKey(`${banner}-${localized(card.title) || index}`);
-            const given = getGivenReactions();
-            const fireActive  = given.includes(`${projectKey}:fire`)  ? 'active' : '';
-            const heartActive = given.includes(`${projectKey}:heart`) ? 'active' : '';
             return `
-                <article class="project-card glass-card reveal-up tilt-effect ${index ? `delay-${Math.min(index, 3)}` : ''}" data-project-key="${projectKey}">
+                <article class="project-card glass-card reveal-up tilt-effect ${index ? `delay-${Math.min(index, 3)}` : ''}">
                     <div class="project-preview preview-${index % 3}" aria-hidden="true">
                         <span>${banner}</span>
                     </div>
@@ -823,14 +819,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3>${localized(card.title) || ''}</h3>
                     <p>${localized(card.copy) || ''}</p>
                     <div class="project-tags">${tags}</div>
-                    <div class="project-reactions">
-                        <button type="button" class="reaction-btn ${fireActive}" data-reaction="fire" aria-label="Fire">
-                            🔥 <span class="reaction-count">${reactionCountFor(projectKey, 'fire')}</span>
-                        </button>
-                        <button type="button" class="reaction-btn ${heartActive}" data-reaction="heart" aria-label="Love">
-                            ❤️ <span class="reaction-count">${reactionCountFor(projectKey, 'heart')}</span>
-                        </button>
-                    </div>
                     ${liveBtn}
                 </article>
             `;
@@ -1183,6 +1171,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const link  = card.liveUrl
                 ? `<a href="${card.liveUrl}" target="_blank" rel="noreferrer" class="live-project-link">View Project →</a>`
                 : '';
+            const projectKey = card._id || slugifyKey(`${card.banner || i}-${title}`);
+            const given = getGivenReactions();
+            const fireActive  = given.includes(`${projectKey}:fire`)  ? 'active' : '';
+            const heartActive = given.includes(`${projectKey}:heart`) ? 'active' : '';
 
             // ✅ لو عندها صورة مرفوعة من الأدمن، اعرضها فوق الكارت بدل صندوق البانر النصي
             const media = card.imageUrl
@@ -1193,11 +1185,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<span class="live-project-banner">${card.banner || String(i+1).padStart(2,'0')}</span>`;
 
             return `
-                <article class="live-project-card ${card.imageUrl ? 'has-media' : ''} reveal-up ${i ? `delay-${Math.min(i, 3)}` : ''}">
+                <article class="live-project-card ${card.imageUrl ? 'has-media' : ''} reveal-up ${i ? `delay-${Math.min(i, 3)}` : ''}" data-project-key="${projectKey}">
                     ${media}
                     <h3>${title}</h3>
                     <p>${copy}</p>
                     <div class="live-project-tags">${tags}</div>
+                    <div class="project-reactions">
+                        <button type="button" class="reaction-btn ${fireActive}" data-reaction="fire" aria-label="Fire">
+                            🔥 <span class="reaction-count">${reactionCountFor(projectKey, 'fire')}</span>
+                        </button>
+                        <button type="button" class="reaction-btn ${heartActive}" data-reaction="heart" aria-label="Love">
+                            ❤️ <span class="reaction-count">${reactionCountFor(projectKey, 'heart')}</span>
+                        </button>
+                    </div>
                     ${link}
                 </article>`;
         }).join('');
