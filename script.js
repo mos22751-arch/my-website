@@ -664,6 +664,119 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function slugifyKey(str) {
+        return String(str || '').toLowerCase().trim().replace(/[^a-z0-9\u0600-\u06FF]+/g, '-').replace(/^-+|-+$/g, '') || 'project';
+    }
+
+    const REACTION_STORAGE_KEY = 'toji_reactions_given';
+    function getGivenReactions() {
+        try { return JSON.parse(localStorage.getItem(REACTION_STORAGE_KEY) || '[]'); } catch { return []; }
+    }
+    function setGivenReactions(list) {
+        localStorage.setItem(REACTION_STORAGE_KEY, JSON.stringify(list));
+    }
+
+    let reactionCounts = {};
+
+    async function loadReactions() {
+        try {
+            const res = await window.TojiAPI?.ReactionsAPI?.getAll();
+            reactionCounts = res?.data || {};
+        } catch (err) {
+            reactionCounts = {};
+        }
+    }
+
+    function reactionCountFor(key, type) {
+        return reactionCounts[key]?.[type] || 0;
+    }
+
+    async function handleReactionClick(btn) {
+        const key   = btn.closest('[data-project-key]')?.dataset.projectKey;
+        const type  = btn.dataset.reaction;
+        if (!key || !type) return;
+
+        const given = getGivenReactions();
+        const token = `${key}:${type}`;
+        const alreadyGiven = given.includes(token);
+        const action = alreadyGiven ? 'remove' : 'add';
+
+        btn.disabled = true;
+        btn.classList.toggle('active', !alreadyGiven);
+        const countEl = btn.querySelector('.reaction-count');
+        const current = parseInt(countEl.textContent, 10) || 0;
+        countEl.textContent = Math.max(0, current + (alreadyGiven ? -1 : 1));
+
+        try {
+            const res = await window.TojiAPI?.ReactionsAPI?.react(key, type, action);
+            if (res?.data) {
+                countEl.textContent = res.data[type] ?? countEl.textContent;
+                reactionCounts[key] = res.data;
+            }
+            setGivenReactions(alreadyGiven ? given.filter((t) => t !== token) : [...given, token]);
+        } catch (err) {
+            // فشل الاتصال — نرجع الزرار زي ما كان
+            btn.classList.toggle('active', alreadyGiven);
+            countEl.textContent = current;
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // ============================================================
+    // 🦇 Easter Egg — اكتب "toji" في أي مكان في الصفحة
+    // ============================================================
+    (function initEasterEgg() {
+        const TARGET = 'toji';
+        let buffer = '';
+        let cooldown = false;
+
+        function showEasterEgg() {
+            if (cooldown) return;
+            cooldown = true;
+
+            const MESSAGES = currentLang === 'ar'
+                ? ['لقيتها! 🦇', 'أهو TOJI بنفسه 👀', 'حد بيدور على حاجة؟ 😄', 'يا هلا بيك هنا كمان 🙌']
+                : ['You found it! 🦇', 'TOJI himself, hi 👀', 'Looking for something? 😄', 'Fancy seeing you here 🙌'];
+
+            const overlay = document.createElement('div');
+            overlay.className = 'easter-egg-overlay';
+            overlay.innerHTML = `
+                <div class="easter-egg-card">
+                    <span class="easter-egg-bat">🦇</span>
+                    <p>${MESSAGES[Math.floor(Math.random() * MESSAGES.length)]}</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.classList.add('is-visible'));
+
+            const dismiss = () => {
+                overlay.classList.remove('is-visible');
+                setTimeout(() => overlay.remove(), 300);
+            };
+            overlay.addEventListener('click', dismiss);
+            setTimeout(dismiss, 2600);
+            setTimeout(() => { cooldown = false; }, 3000);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey || event.metaKey || event.altKey) return;
+            const key = event.key?.toLowerCase();
+            if (!key || key.length !== 1) return;
+            buffer = (buffer + key).slice(-TARGET.length);
+            if (buffer === TARGET) showEasterEgg();
+        });
+    })();
+
+    // ============================================================
+    // 🦇 Easter Egg — اكتب "toji" في أي مكان في الصفحة (end)
+    // ============================================================
+
+    document.addEventListener('click', (event) => {
+        const btn = event.target.closest('.reaction-btn');
+        if (btn) handleReactionClick(btn);
+    });
+
     function renderWorkCards(apiCards) {
         const grid = document.querySelector('.project-grid');
         if (!grid) return;
@@ -697,8 +810,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<a href="${card.liveUrl}" target="_blank" rel="noreferrer" class="project-live-link">View Project →</a>`
                 : '';
             const banner = localized(card.banner) || card.banner || String(index + 1).padStart(2, '0');
+            const projectKey = card._id || slugifyKey(`${banner}-${localized(card.title) || index}`);
+            const given = getGivenReactions();
+            const fireActive  = given.includes(`${projectKey}:fire`)  ? 'active' : '';
+            const heartActive = given.includes(`${projectKey}:heart`) ? 'active' : '';
             return `
-                <article class="project-card glass-card reveal-up tilt-effect ${index ? `delay-${Math.min(index, 3)}` : ''}">
+                <article class="project-card glass-card reveal-up tilt-effect ${index ? `delay-${Math.min(index, 3)}` : ''}" data-project-key="${projectKey}">
                     <div class="project-preview preview-${index % 3}" aria-hidden="true">
                         <span>${banner}</span>
                     </div>
@@ -706,6 +823,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3>${localized(card.title) || ''}</h3>
                     <p>${localized(card.copy) || ''}</p>
                     <div class="project-tags">${tags}</div>
+                    <div class="project-reactions">
+                        <button type="button" class="reaction-btn ${fireActive}" data-reaction="fire" aria-label="Fire">
+                            🔥 <span class="reaction-count">${reactionCountFor(projectKey, 'fire')}</span>
+                        </button>
+                        <button type="button" class="reaction-btn ${heartActive}" data-reaction="heart" aria-label="Love">
+                            ❤️ <span class="reaction-count">${reactionCountFor(projectKey, 'heart')}</span>
+                        </button>
+                    </div>
                     ${liveBtn}
                 </article>
             `;
@@ -1158,7 +1283,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return currentLang === 'ar' ? `من ${days} يوم` : `${days}d ago`;
     }
 
+    let lastGuestbookEntries = [];
+
     function renderGuestbookEntries(entries) {
+        lastGuestbookEntries = entries;
         const list = document.getElementById('guestbookList');
         if (!list) return;
 
@@ -1190,7 +1318,85 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function generateGuestbookWallImage() {
+        const entries = lastGuestbookEntries.slice(0, 6);
+        if (!entries.length) {
+            showToast(t('guestbook.empty'));
+            return;
+        }
+
+        const width  = 1200;
+        const rowH   = 130;
+        const height = 220 + rowH * entries.length;
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext('2d');
+
+        context.fillStyle = '#0a0a0b';
+        context.fillRect(0, 0, width, height);
+
+        context.strokeStyle = 'rgba(255,255,255,0.06)';
+        context.lineWidth = 1;
+        for (let x = 100; x < width; x += 150) {
+            context.beginPath(); context.moveTo(x, 0); context.lineTo(x, height); context.stroke();
+        }
+
+        context.fillStyle = '#f7f5ef';
+        context.font = '900 44px Arial, sans-serif';
+        context.fillText(`${profileNickname} — ${t('guestbook.eyebrow')}`, 60, 90);
+
+        context.fillStyle = '#8b8f98';
+        context.font = '600 24px Arial, sans-serif';
+        context.fillText(t('guestbook.title'), 60, 130);
+
+        let y = 190;
+        entries.forEach((entry) => {
+            roundRect(context, 60, y, width - 120, rowH - 24, 20);
+            context.fillStyle = 'rgba(255,255,255,0.045)';
+            context.fill();
+            context.strokeStyle = 'rgba(255,255,255,0.1)';
+            context.stroke();
+
+            context.font = '40px Arial, sans-serif';
+            context.fillStyle = '#f7f5ef';
+            context.fillText(entry.mood || '💬', 92, y + 66);
+
+            context.font = '900 26px Arial, sans-serif';
+            context.fillStyle = '#f7f5ef';
+            context.fillText(entry.name, 150, y + 42);
+
+            context.font = '400 24px Arial, sans-serif';
+            context.fillStyle = '#a7acb7';
+            const msg = entry.message.length > 68 ? entry.message.slice(0, 68) + '…' : entry.message;
+            context.fillText(msg, 150, y + 78);
+
+            y += rowH;
+        });
+
+        context.fillStyle = '#6d7178';
+        context.font = '600 22px Arial, sans-serif';
+        context.fillText(getProfileUrl().replace(/^https?:\/\//, ''), 60, height - 32);
+
+        await downloadCanvasImageAs(canvas, `${profileNickname}-guestbook.png`);
+    }
+
+    function downloadCanvasImageAs(canvas, filename) {
+        return new Promise((resolve) => {
+            canvas.toBlob((blob) => {
+                if (!blob) { resolve(false); return; }
+                downloadFile(filename, blob, 'image/png');
+                showToast(t('toast.shareImageReady'));
+                resolve(true);
+            }, 'image/png');
+        });
+    }
+
     function initGuestbookForm() {
+        document.getElementById('guestbookWallBtn')?.addEventListener('click', () => {
+            generateGuestbookWallImage();
+        });
+
         const form   = document.getElementById('guestbookForm');
         const submit = document.getElementById('guestbookSubmit');
         const picker = document.getElementById('guestbookMoodPicker');
@@ -1224,7 +1430,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (res?.success) {
                     nameInput.value = '';
                     msgInput.value = '';
-                    if (statusEl) statusEl.textContent = t('guestbook.pending');
+                    if (statusEl) statusEl.textContent = res.zazaReply ? `🦇 زعزع: ${res.zazaReply}` : t('guestbook.pending');
                 }
             } catch (err) {
                 // silently fail — الفورم بيفضل زي ما هو عشان يحاول تاني
@@ -1665,7 +1871,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderTemplateFeatures();
         // Fetch live projects from backend and overlay on static content
-        loadProjectsFromAPI();
+        loadReactions().then(() => loadProjectsFromAPI());
         loadSongs();
         loadWip();
         loadLinksGrid();
@@ -1922,82 +2128,30 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.classList.add('is-visible');
     }
 
-    const EASE_GROW = 'cubic-bezier(0.3, 0, 0.2, 1)';
-    const EASE_TRAVEL = 'cubic-bezier(0.45, 0, 0.15, 1)';
+    const EASE_STRETCH = 'ease-out';
     const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
-    function animateStretch(indicator, prev, box, target, container) {
+    function animateStretch(indicator, prev, box) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const growDur = isDock ? 0.2 : 0.16;
-        const travelDur = isDock ? 0.44 : 0.4;
-        const settleDur = isDock ? 0.42 : 0.34;
+        const stretchDur = isDock ? 0.26 : 0.16;
+        const settleDur = isDock ? 0.52 : 0.34;
 
-        // Phase 1: grow big right where it already is — the magnifying-glass look
-        let growW, growH, growRadius;
-        if (isDock) {
-            const growSize = prev.h * 1.65;
-            growW = growSize;
-            growH = growSize;
-            growRadius = '50%';
-        } else {
-            growW = prev.w * 1.35;
-            growH = prev.h * 1.4;
-            growRadius = `${growH / 2}px`;
-        }
+        // Phase 1: elongate into a pill bridging the old and new spot (rubber-band pull)
+        const left = Math.min(prev.cx - prev.w / 2, box.cx - box.w / 2);
+        const right = Math.max(prev.cx + prev.w / 2, box.cx + box.w / 2);
+        const bridgeW = right - left;
+        const bridgeH = Math.min(prev.h, box.h) * 0.72;
+        const bridgeCx = (left + right) / 2;
+        const bridgeCy = (prev.cy + box.cy) / 2;
 
-        indicator.style.transition = `transform ${growDur}s ${EASE_GROW}, width ${growDur}s ${EASE_GROW}, height ${growDur}s ${EASE_GROW}, border-radius ${growDur}s ${EASE_GROW}`;
-        placeIndicator(indicator, { cx: prev.cx, cy: prev.cy, w: growW, h: growH, radius: growRadius });
+        indicator.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}, width ${stretchDur}s ${EASE_STRETCH}, height ${stretchDur}s ${EASE_STRETCH}, border-radius ${stretchDur}s ${EASE_STRETCH}`;
+        placeIndicator(indicator, { cx: bridgeCx, cy: bridgeCy, w: bridgeW, h: bridgeH, radius: `${bridgeH / 2}px` });
 
+        // Phase 2: contract into the final circle/pill at the new spot
         setTimeout(() => {
-            // Phase 2: glide across to the destination while it's still big — a smooth,
-            // continuous travel, not a shrink-then-move
-            indicator.style.transition = `transform ${travelDur}s ${EASE_TRAVEL}`;
-            placeIndicator(indicator, { cx: box.cx, cy: box.cy, w: growW, h: growH, radius: growRadius });
-
-            // Every word the glass glides over gets a quick magnify pulse as it passes;
-            // the destination word stays magnified until the glass actually settles
-            if (!isDock && target && container) {
-                const links = Array.from(container.querySelectorAll('.nav-link'));
-                const from = prev.cx;
-                const to = box.cx;
-                const lo = Math.min(from, to) - 2;
-                const hi = Math.max(from, to) + 2;
-
-                links.forEach((link) => {
-                    const r = link.getBoundingClientRect();
-                    const cRect = container.getBoundingClientRect();
-                    const linkCx = r.left - cRect.left + r.width / 2;
-                    if (linkCx < lo || linkCx > hi) return;
-
-                    const progress = to === from ? 1 : (linkCx - from) / (to - from);
-                    const delay = Math.max(0, Math.min(1, progress)) * travelDur;
-                    const isFinal = link === target;
-
-                    setTimeout(() => {
-                        link.style.transition = `transform 0.16s ${EASE_GROW}`;
-                        link.style.transform = 'scale(1.12)';
-                        if (!isFinal) {
-                            setTimeout(() => {
-                                link.style.transition = `transform 0.22s ${EASE_SETTLE}`;
-                                link.style.transform = 'scale(1)';
-                            }, 150);
-                        }
-                    }, delay * 1000);
-                });
-            }
-
-            // Phase 3: arrive — shrink back down to the true final size, with a soft spring —
-            // this is exactly when the destination word drops back to its normal size
-            setTimeout(() => {
-                indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
-                placeIndicator(indicator, box);
-
-                if (!isDock && target) {
-                    target.style.transition = `transform ${settleDur}s ${EASE_SETTLE}`;
-                    target.style.transform = 'scale(1)';
-                }
-            }, travelDur * 1000);
-        }, growDur * 1000);
+            indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
+            placeIndicator(indicator, box);
+        }, stretchDur * 1000);
     }
 
     function moveIndicator(container, indicator, target, size, animate = true) {
@@ -2007,7 +2161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const moved = prev && (Math.round(prev.cx) !== Math.round(box.cx) || Math.round(prev.cy) !== Math.round(box.cy));
 
         if (animate && moved) {
-            animateStretch(indicator, prev, box, target, container);
+            animateStretch(indicator, prev, box);
         } else {
             indicator.style.transition = 'none';
             placeIndicator(indicator, box);
@@ -2018,16 +2172,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function syncIndicators(animate = true) {
         const navContainer = document.querySelector('.nav-links');
-        const dockPanel = document.querySelector('.floating-dock');
+        const dockContainer = document.querySelector('.floating-dock');
         const activeNav = navContainer?.querySelector('.nav-link.active');
-        const activeDock = dockPanel?.querySelector('.dock-btn.active');
+        const activeDock = dockContainer?.querySelector('.dock-btn.active');
 
         if (navContainer && activeNav) {
             moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav, undefined, animate);
         }
-        if (dockPanel && activeDock) {
-            const dockSize = activeDock.getBoundingClientRect().width;
-            moveIndicator(dockPanel, ensureIndicator(dockPanel, 'dock-indicator'), activeDock, dockSize, animate);
+        if (dockContainer && activeDock) {
+            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, 40, animate);
         }
     }
     window.syncLiquidIndicators = syncIndicators;

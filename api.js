@@ -244,4 +244,12 @@ const GuestbookAPI = {
     remove:         (id)          => apiFetch(`/guestbook/${id}`, { method: 'DELETE' })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, LinksAPI, GuestbookAPI, API_BASE_URL };
+// ============================================================
+// Reactions API — 🔥 / ❤️ على المشاريع
+// ============================================================
+const ReactionsAPI = {
+    getAll: ()               => apiFetch('/reactions'),
+    react:  (key, type, action) => apiFetch(`/reactions/${encodeURIComponent(key)}`, { method: 'POST', body: JSON.stringify({ type, action }) })
+};
+
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, LinksAPI, GuestbookAPI, ReactionsAPI, API_BASE_URL };

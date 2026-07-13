@@ -534,6 +534,7 @@ window.TOJI_CONTENT = {
                 "submit": "Sign the guestbook",
                 "sending": "Sending...",
                 "pending": "Got it! Your message will show up after a quick review.",
+                "wallButton": "Share as image",
                 "empty": "No messages yet — be the first!",
                 "loadError": "Couldn't load the guestbook right now."
             },
@@ -710,6 +711,7 @@ window.TOJI_CONTENT = {
                 "submit": "وقّع في الدفتر",
                 "sending": "بيتبعت...",
                 "pending": "وصلت! هتظهر بعد ما اراجعها.",
+                "wallButton": "صورة مشاركة",
                 "empty": "لسه مفيش رسايل — يبقى إنت الأول!",
                 "loadError": "مقدرتش أجيب دفتر الزوار دلوقتي."
             },
