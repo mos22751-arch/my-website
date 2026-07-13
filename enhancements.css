@@ -1507,16 +1507,31 @@ body.lang-ar .project-card h3 {
     position: relative;
     width: min(400px, 100%);
     max-height: 78vh;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(20, 20, 24, 0.86);
     border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: 24px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    backdrop-filter: blur(3px) saturate(140%);
-    -webkit-backdrop-filter: blur(3px) saturate(140%);
     box-shadow: 0 24px 60px rgba(0,0,0,0.5);
     animation: botPanelUp 0.28s ease-out;
+    will-change: transform, opacity;
+}
+/* blur only kicks in once the pop-in animation is done — animating a
+   backdrop-filter layer every frame is what was hanging low-end/mobile GPUs */
+.ai-chat-panel.settled {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(3px) saturate(140%);
+    -webkit-backdrop-filter: blur(3px) saturate(140%);
+}
+
+/* Everything else on the page is fully hidden behind the full-screen overlay
+   anyway, so keeping their backdrop-filter alive just burns GPU for nothing
+   (this is the main mobile hang: nav + dock blur layers repainting under it) */
+body.ai-chat-open .modern-nav,
+body.ai-chat-open .floating-dock {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 /* subtle top highlight — plain gradient, no mix-blend-mode (cheaper to composite) */
 .ai-chat-panel::before {
@@ -1595,8 +1610,7 @@ body.lang-ar .project-card h3 {
 .ai-chat-close {
     width: 30px; height: 30px; border-radius: 50%;
     border: 1px solid rgba(255,255,255,0.14);
-    background: rgba(255,255,255,0.06);
-    backdrop-filter: blur(6px);
+    background: rgba(40,40,44,0.6);
     color: rgba(255,255,255,0.6);
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;

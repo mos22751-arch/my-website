@@ -1092,8 +1092,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // ── open/close ─────────────────────────────────────────────
+        const panelEl = overlay.querySelector('.ai-chat-panel');
         function openChat() {
+            document.body.classList.add('ai-chat-open');
             overlay.hidden   = false;
+            if (panelEl) {
+                panelEl.classList.remove('settled');
+                panelEl.addEventListener('animationend', () => panelEl.classList.add('settled'), { once: true });
+            }
             msgEl.innerHTML  = '';
             history          = [];
             setBusy(false);
@@ -1107,6 +1113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         openBtn.addEventListener('click', openChat);
         const close = () => {
+            document.body.classList.remove('ai-chat-open');
             overlay.hidden = true;
             history        = [];
             msgEl.innerHTML = '';
