@@ -4,11 +4,11 @@
 
 :root {
     --bg: #0d0e10;
-    --panel: rgba(26, 27, 30, 0.9);
+    --panel: rgba(255, 255, 255, 0.045);
     --panel-solid: #1a1b1e;
-    --panel-soft: rgba(17, 18, 20, 0.86);
-    --border: rgba(150, 138, 138, 0.18);
-    --border-strong: rgba(128, 117, 117, 0.5);
+    --panel-soft: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.1);
+    --border-strong: rgba(255, 255, 255, 0.22);
     --text: #f0efec;
     --muted: #9fa1a6;
     --accent: #807575;
@@ -129,8 +129,8 @@ body {
 .auth-orb {
     position: absolute;
     border-radius: 50%;
-    filter: blur(70px);
-    opacity: 0.55;
+    filter: blur(90px);
+    opacity: 0.35;
     pointer-events: none;
     animation: auth-float 12s ease-in-out infinite;
 }
@@ -163,14 +163,13 @@ body {
     width: min(420px, 100%);
     display: grid;
     gap: 22px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 28px;
-    background:
-        linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.025));
-    backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 32px;
+    background: rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
     padding: 36px 30px;
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
     animation: auth-card-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -192,11 +191,14 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #807575, #4a3d3d);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(10px) saturate(160%);
+    -webkit-backdrop-filter: blur(10px) saturate(160%);
     color: #fff;
     font-weight: 900;
     font-size: 1.4rem;
-    box-shadow: 0 12px 30px rgba(128, 117, 117, 0.5);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
 }
 
 .auth-brand-kicker {
@@ -275,14 +277,16 @@ body {
     padding-inline-end: 42px;
     min-height: 50px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: #fff;
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
 }
 
 .auth-input-wrap input:focus {
-    border-color: #c98787;
-    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.07);
 }
 
 .auth-input-icon {
@@ -320,19 +324,22 @@ body {
 .auth-submit-btn {
     position: relative;
     min-height: 50px;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
-    background: linear-gradient(135deg, #7a3535, #4a1c1c);
+    background: rgba(128, 117, 117, 0.22);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
     color: #fff;
     font-weight: 800;
     font-size: 0.95rem;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-    box-shadow: 0 14px 34px rgba(99, 38, 38, 0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3);
 }
 
 .auth-submit-btn:hover {
     transform: translateY(-1px);
+    background: rgba(128, 117, 117, 0.32);
 }
 
 .auth-submit-btn:disabled {
@@ -468,11 +475,11 @@ body {
 .panel,
 .notice {
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 20px;
     background: var(--panel);
     box-shadow: var(--shadow);
-    backdrop-filter: blur(18px) saturate(160%);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
 }
 
 .topbar {
@@ -1230,7 +1237,7 @@ code {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    border-radius: 8px;
+    border-radius: 999px;
     font-size: 0.82rem;
     font-weight: 600;
     padding: 8px 14px;
@@ -1254,32 +1261,36 @@ code {
 .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
 .btn-secondary {
-    background: rgba(128, 117, 117, 0.12);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--accent);
-    border: 1px solid rgba(128, 117, 117, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
 }
-.btn-secondary:hover { background: rgba(128, 117, 117, 0.22); }
+.btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
 
 .btn-ghost {
     background: transparent;
     color: var(--muted);
     border: 1px solid var(--border);
 }
-.btn-ghost:hover { background: rgba(255,255,255,0.06); color: var(--fg); }
+.btn-ghost:hover { background: rgba(255,255,255,0.08); color: var(--fg); transform: translateY(-1px); }
 
 .btn-danger {
-    background: rgba(248, 113, 113, 0.12);
+    background: rgba(248, 113, 113, 0.1);
     color: #f87171;
-    border: 1px solid rgba(248, 113, 113, 0.25);
+    border: 1px solid rgba(248, 113, 113, 0.22);
+    backdrop-filter: blur(10px) saturate(150%);
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
 }
-.btn-danger:hover { background: rgba(248, 113, 113, 0.22); }
+.btn-danger:hover { background: rgba(248, 113, 113, 0.18); }
 
 .btn-link {
     background: transparent;
     color: var(--muted);
     border: 1px solid var(--border);
 }
-.btn-link:hover { color: var(--fg); background: rgba(255,255,255,0.06); }
+.btn-link:hover { color: var(--fg); background: rgba(255,255,255,0.08); }
 
 /* Sync Banner */
 .sync-banner {
@@ -1931,7 +1942,7 @@ code {
 /* Collapsible panels — details/summary */
 .panel {
     margin-bottom: 6px;
-    border-radius: 10px;
+    border-radius: 16px;
     border: 1px solid var(--border);
     background: var(--panel);
     overflow: hidden;
