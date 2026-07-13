@@ -1922,29 +1922,42 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.classList.add('is-visible');
     }
 
-    const EASE_STRETCH = 'ease-out';
+    const EASE_STRETCH = 'cubic-bezier(0.55, 0, 0.15, 1)';
     const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
-    function animateStretch(indicator, prev, box) {
+    function animateStretch(indicator, prev, box, target) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const stretchDur = isDock ? 0.26 : 0.16;
-        const settleDur = isDock ? 0.52 : 0.34;
+        const stretchDur = isDock ? 0.34 : 0.26;
+        const settleDur = isDock ? 0.52 : 0.42;
 
-        // Phase 1: elongate into a pill bridging the old and new spot (rubber-band pull)
+        // Phase 1: elongate into a pill that bridges the old spot and the new spot —
+        // this is the "المط" rubber-band pull while it's actually traveling
         const left = Math.min(prev.cx - prev.w / 2, box.cx - box.w / 2);
         const right = Math.max(prev.cx + prev.w / 2, box.cx + box.w / 2);
-        const bridgeW = right - left;
-        const bridgeH = Math.min(prev.h, box.h) * 0.72;
+        const bridgeW = (right - left) * 1.05;
+        const bridgeH = Math.min(prev.h, box.h) * (isDock ? 0.6 : 0.48);
         const bridgeCx = (left + right) / 2;
         const bridgeCy = (prev.cy + box.cy) / 2;
 
         indicator.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}, width ${stretchDur}s ${EASE_STRETCH}, height ${stretchDur}s ${EASE_STRETCH}, border-radius ${stretchDur}s ${EASE_STRETCH}`;
         placeIndicator(indicator, { cx: bridgeCx, cy: bridgeCy, w: bridgeW, h: bridgeH, radius: `${bridgeH / 2}px` });
 
-        // Phase 2: contract into the final circle/pill at the new spot
+        // The nav's own text "magnifies" while the glass is stretched over it, then
+        // relaxes back to normal size the instant the glass settles in place
+        if (!isDock && target) {
+            target.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}`;
+            target.style.transform = 'scale(1.1)';
+        }
+
+        // Phase 2: contract back into the true final shape at the new spot, with a soft spring
         setTimeout(() => {
             indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
             placeIndicator(indicator, box);
+
+            if (!isDock && target) {
+                target.style.transition = `transform ${settleDur}s ${EASE_SETTLE}`;
+                target.style.transform = 'scale(1)';
+            }
         }, stretchDur * 1000);
     }
 
@@ -1955,7 +1968,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const moved = prev && (Math.round(prev.cx) !== Math.round(box.cx) || Math.round(prev.cy) !== Math.round(box.cy));
 
         if (animate && moved) {
-            animateStretch(indicator, prev, box);
+            animateStretch(indicator, prev, box, target);
         } else {
             indicator.style.transition = 'none';
             placeIndicator(indicator, box);
@@ -1966,15 +1979,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function syncIndicators(animate = true) {
         const navContainer = document.querySelector('.nav-links');
-        const dockContainer = document.querySelector('.floating-dock');
+        const dockPanel = document.querySelector('.floating-dock');
         const activeNav = navContainer?.querySelector('.nav-link.active');
-        const activeDock = dockContainer?.querySelector('.dock-btn.active');
+        const activeDock = dockPanel?.querySelector('.dock-btn.active');
 
         if (navContainer && activeNav) {
             moveIndicator(navContainer, ensureIndicator(navContainer, 'nav-indicator'), activeNav, undefined, animate);
         }
-        if (dockContainer && activeDock) {
-            moveIndicator(dockContainer, ensureIndicator(dockContainer, 'dock-indicator'), activeDock, 40, animate);
+        if (dockPanel && activeDock) {
+            const dockSize = activeDock.getBoundingClientRect().width;
+            moveIndicator(dockPanel, ensureIndicator(dockPanel, 'dock-indicator'), activeDock, dockSize, animate);
         }
     }
     window.syncLiquidIndicators = syncIndicators;
