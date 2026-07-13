@@ -1923,12 +1923,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const EASE_STRETCH = 'cubic-bezier(0.55, 0, 0.15, 1)';
+    const EASE_BULGE = 'cubic-bezier(0.22, 1, 0.36, 1)';
     const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
     function animateStretch(indicator, prev, box, target) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const stretchDur = isDock ? 0.34 : 0.26;
-        const settleDur = isDock ? 0.52 : 0.42;
+        const stretchDur = isDock ? 0.3 : 0.22;
+        const bulgeDur = isDock ? 0.16 : 0.12;
+        const settleDur = isDock ? 0.46 : 0.36;
 
         // Phase 1: elongate into a pill that bridges the old spot and the new spot —
         // this is the "المط" rubber-band pull while it's actually traveling
@@ -1942,22 +1944,41 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}, width ${stretchDur}s ${EASE_STRETCH}, height ${stretchDur}s ${EASE_STRETCH}, border-radius ${stretchDur}s ${EASE_STRETCH}`;
         placeIndicator(indicator, { cx: bridgeCx, cy: bridgeCy, w: bridgeW, h: bridgeH, radius: `${bridgeH / 2}px` });
 
-        // The nav's own text "magnifies" while the glass is stretched over it, then
-        // relaxes back to normal size the instant the glass settles in place
+        // The nav's own text "magnifies" for as long as the glass is stretched/enlarged,
+        // covering both the bridge and the bulge, then relaxes once settling begins
         if (!isDock && target) {
-            target.style.transition = `transform ${stretchDur}s ${EASE_STRETCH}`;
+            target.style.transition = `transform ${stretchDur + bulgeDur}s ${EASE_STRETCH}`;
             target.style.transform = 'scale(1.1)';
         }
 
-        // Phase 2: contract back into the true final shape at the new spot, with a soft spring
         setTimeout(() => {
-            indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
-            placeIndicator(indicator, box);
-
-            if (!isDock && target) {
-                target.style.transition = `transform ${settleDur}s ${EASE_SETTLE}`;
-                target.style.transform = 'scale(1)';
+            // Phase 2: land on the new spot, briefly bulging past the final size (liquid overshoot)
+            let bulgeW, bulgeH, bulgeRadius;
+            if (isDock) {
+                const bulgeSize = box.w * 1.35;
+                bulgeW = bulgeSize;
+                bulgeH = bulgeSize;
+                bulgeRadius = '50%';
+            } else {
+                bulgeW = box.w * 1.32;
+                bulgeH = box.h * 1.22;
+                bulgeRadius = `${bulgeH / 2}px`;
             }
+
+            indicator.style.transition = `transform ${bulgeDur}s ${EASE_BULGE}, width ${bulgeDur}s ${EASE_BULGE}, height ${bulgeDur}s ${EASE_BULGE}, border-radius ${bulgeDur}s ${EASE_BULGE}`;
+            placeIndicator(indicator, { cx: box.cx, cy: box.cy, w: bulgeW, h: bulgeH, radius: bulgeRadius });
+
+            // Phase 3: settle back down to the true final size, with a soft spring —
+            // this is exactly when the nav text drops back to its normal size
+            setTimeout(() => {
+                indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
+                placeIndicator(indicator, box);
+
+                if (!isDock && target) {
+                    target.style.transition = `transform ${settleDur}s ${EASE_SETTLE}`;
+                    target.style.transform = 'scale(1)';
+                }
+            }, bulgeDur * 1000);
         }, stretchDur * 1000);
     }
 
