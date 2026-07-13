@@ -3115,16 +3115,16 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(() => {
             // ✅ back-ease: الشريط بيمتد لطول أكبر من طوله الطبيعي شوية
             // وبعدين يرجع يستقر عليه — حركة سبرينج ناعمة وأبطأ
-            dock.style.transition = 'width 1.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            dock.style.transition = 'width 0.85s cubic-bezier(0.34, 1.56, 0.64, 1)';
             dock.style.width = naturalWidth + 'px';
 
             // الأيقونات تبان تدريجيًا قرب ما الشريط يوصل لأقصى مده
             setTimeout(() => {
                 items.forEach((item, i) => {
-                    item.style.transition = `opacity 0.5s ease ${i * 0.045}s`;
+                    item.style.transition = `opacity 0.33s ease ${i * 0.03}s`;
                     item.style.opacity = '1';
                 });
-            }, 560);
+            }, 365);
 
             // بعد ما الشريط يستقر تمامًا، رجّع العرض auto عشان يفضل responsive
             const cleanup = (event) => {
@@ -3136,7 +3136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 items.forEach((item) => { item.style.transition = ''; });
             };
             dock.addEventListener('transitionend', cleanup);
-            setTimeout(cleanup, 1800); // fallback لو الـ transitionend مطلعش
+            setTimeout(cleanup, 1180); // fallback لو الـ transitionend مطلعش
         });
     }
 
