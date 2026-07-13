@@ -2096,6 +2096,45 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollRoot?.addEventListener('scroll', updateProgress, { passive: true });
     updateProgress();
 
+    // ── Mobile-only: the bottom dock becomes a vertical dock on the left edge.
+    // It peeks in on scroll/movement, auto-hides after 2s of inactivity, and
+    // can also be revealed manually via the small arrow tab.
+    (function setupMobileDockPeek() {
+        const dockWrapper = document.querySelector('.floating-dock-wrapper');
+        const peekBtn = document.getElementById('dockPeekBtn');
+        if (!dockWrapper || !peekBtn) return;
+
+        let hideTimer = null;
+
+        function showDock() {
+            if (!mobileViewport.matches) return;
+            dockWrapper.classList.add('dock-peeking');
+            peekBtn.classList.add('is-hidden');
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(hideDock, 2000);
+        }
+
+        function hideDock() {
+            dockWrapper.classList.remove('dock-peeking');
+            peekBtn.classList.remove('is-hidden');
+        }
+
+        scrollRoot?.addEventListener('scroll', showDock, { passive: true });
+        window.addEventListener('touchmove', showDock, { passive: true });
+
+        peekBtn.addEventListener('click', showDock);
+
+        // interacting with the dock itself keeps it open instead of letting it
+        // vanish mid-tap
+        dockWrapper.addEventListener('touchstart', () => clearTimeout(hideTimer), { passive: true });
+        dockWrapper.addEventListener('click', showDock);
+
+        mobileViewport.addEventListener?.('change', () => {
+            clearTimeout(hideTimer);
+            hideDock();
+        });
+    })();
+
     function ensureIndicator(container, className) {
         if (!container) return null;
         let el = container.querySelector(`:scope > .${className}`);
