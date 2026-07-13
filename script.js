@@ -984,7 +984,89 @@ document.addEventListener('DOMContentLoaded', () => {
         const inputRow = document.getElementById('botInputRow');
         const inputEl  = document.getElementById('botInput');
         const sendBtn  = document.getElementById('botInputSend');
+        const voiceSelect = document.getElementById('aiVoiceSelect');
+        const voiceToggle = document.getElementById('aiVoiceToggle');
         if (!overlay || !openBtn) return;
+
+        // ── Text-to-Speech: زعزع بيرد بصوته، والنبرة بتتغيّر حسب المود ──────
+        const synth = window.speechSynthesis || null;
+        let voiceMuted = localStorage.getItem('toji_ai_voice_muted') === '1';
+        let voices = [];
+
+        const MOOD_TONE = {
+            happy:     { pitch: 1.15, rate: 1.05 },
+            excited:   { pitch: 1.3,  rate: 1.18 },
+            playful:   { pitch: 1.2,  rate: 1.1  },
+            confident: { pitch: 1.0,  rate: 1.0  },
+            sad:       { pitch: 0.8,  rate: 0.88 },
+            calm:      { pitch: 0.9,  rate: 0.92 },
+            neutral:   { pitch: 1.0,  rate: 1.0  }
+        };
+
+        function updateVoiceToggleUI() {
+            if (!voiceToggle) return;
+            voiceToggle.classList.toggle('muted', voiceMuted);
+            voiceToggle.setAttribute('aria-pressed', String(!voiceMuted));
+            voiceToggle.innerHTML = '<i data-lucide="' + (voiceMuted ? 'volume-x' : 'volume-2') + '" aria-hidden="true"></i>';
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function populateVoices() {
+            if (!synth || !voiceSelect) return;
+            voices = synth.getVoices() || [];
+            if (!voices.length) return;
+            const saved = localStorage.getItem('toji_ai_voice_uri') || '';
+            // العربي يظهر الأول، وبعدين الباقي
+            const sorted = [...voices].sort((a, b) => {
+                const aAr = /ar/i.test(a.lang) ? 0 : 1;
+                const bAr = /ar/i.test(b.lang) ? 0 : 1;
+                return aAr - bAr;
+            });
+            voiceSelect.innerHTML = sorted.map(v =>
+                '<option value="' + v.voiceURI + '">' + v.name + (v.lang ? ' (' + v.lang + ')' : '') + '</option>'
+            ).join('');
+            if (saved && sorted.some(v => v.voiceURI === saved)) voiceSelect.value = saved;
+        }
+        if (synth) {
+            populateVoices();
+            synth.addEventListener?.('voiceschanged', populateVoices);
+            synth.onvoiceschanged = populateVoices;
+        }
+
+        voiceSelect?.addEventListener('change', () => {
+            localStorage.setItem('toji_ai_voice_uri', voiceSelect.value);
+        });
+        voiceToggle?.addEventListener('click', () => {
+            voiceMuted = !voiceMuted;
+            localStorage.setItem('toji_ai_voice_muted', voiceMuted ? '1' : '0');
+            if (voiceMuted && synth) synth.cancel();
+            updateVoiceToggleUI();
+        });
+        updateVoiceToggleUI();
+
+        function stripForSpeech(text) {
+            // مفيش داعي المحرك يحاول ينطق الإيموجي
+            return String(text || '').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
+        }
+
+        function speakReply(text, mood) {
+            if (!synth || voiceMuted) return;
+            const clean = stripForSpeech(text);
+            if (!clean) return;
+            synth.cancel(); // نوقف أي كلام سابق قبل الجديد
+            const utter = new SpeechSynthesisUtterance(clean);
+            const tone  = MOOD_TONE[mood] || MOOD_TONE.neutral;
+            utter.pitch = tone.pitch;
+            utter.rate  = tone.rate;
+            const uri = voiceSelect?.value || localStorage.getItem('toji_ai_voice_uri');
+            const picked = uri && voices.find(v => v.voiceURI === uri);
+            if (picked) utter.voice = picked;
+            else {
+                const arVoice = voices.find(v => /ar/i.test(v.lang));
+                if (arVoice) utter.voice = arVoice;
+            }
+            synth.speak(utter);
+        }
 
         // ── معرّف ثابت لكل زائر، بيتحفظ في المتصفح بتاعه، عشان لوحة الأدمن
         //    تقدر تجمع كل رسايله في محادثة واحدة لوحدها بدل ما تتلخبط مع زوار تانيين ──
@@ -1008,9 +1090,10 @@ document.addEventListener('DOMContentLoaded', () => {
         function scroll() { msgEl.scrollTop = msgEl.scrollHeight; }
         const aiAvatarHTML = '<span class="ai-msg-avatar"><img src="assets/profile.webp" alt="" onerror="this.style.display=\'none\'"></span>';
 
-        function addMsg(text, role) {
+        function addMsg(text, role, mood) {
             const d = document.createElement('div');
             d.className = 'ai-msg ' + role;
+            if (role === 'ai' && mood) d.dataset.mood = mood;
             d.innerHTML = (role === 'ai' ? aiAvatarHTML : '') +
                 '<p>' + String(text).split('\n').join('<br>') + '</p>';
             msgEl.appendChild(d);
@@ -1046,8 +1129,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function setBusy(v) {
             busy = v;
-            sendBtn.disabled  = v;
-            inputEl.disabled  = v;
+            sendBtn.disabled = v;
+            // ملحوظة: مش بنعمل disable لـ inputEl هنا — تعطيل input وهو focused
+            // بيقفل الكيبورد فورًا في الموبايل، وده كان بيحصل مع كل رسالة (فتح/قفل
+            // كيبورد متكرر = الإحساس بالتهنيج). الحماية من الإرسال المزدوج بقت
+            // على busy flag جوه sendMessage نفسها بدل ما نلمس الـ input.
         }
 
         async function sendMessage(raw) {
@@ -1065,16 +1151,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 // كل المطابقة (الردود الجاهزة + Gemini) وكل الـ logging بيحصلوا في الباك إند
                 const res   = await window.TojiAPI.AiAPI.chat(history, clientId);
                 const reply = (res && res.content ? String(res.content) : '').trim() || FALLBACK_ERROR;
+                const mood  = (res && res.mood) || 'neutral';
                 hideTyping();
-                addMsg(reply, 'ai');
+                addMsg(reply, 'ai', mood);
+                speakReply(reply, mood);
                 history.push({ role: 'assistant', content: reply });
             } catch (err) {
                 hideTyping();
-                addMsg(FALLBACK_ERROR, 'ai');
+                addMsg(FALLBACK_ERROR, 'ai', 'sad');
+                speakReply(FALLBACK_ERROR, 'sad');
                 console.warn('[TOJI] AI chat error:', err.message);
             } finally {
                 setBusy(false);
-                inputEl.focus();
+                // من غير refocus قسري هنا — الـ input أصلاً فضل focused ومكانتش
+                // اتقفل، فمفيش داعي نرجّع نفتح الكيبورد تاني (ده كان بيعمل رجّة/تهنيج)
             }
         }
 
@@ -1106,13 +1196,16 @@ document.addEventListener('DOMContentLoaded', () => {
             inputRow.hidden  = false;
             inputEl.value    = '';
             if (window.lucide) window.lucide.createIcons();
-            addMsg('يا هلا 👋 أنا زعزع، مساعد Toji الذكي! اسألني أي حاجة عن شغله، أو دردش معايا في أي موضوع تاني، أنا هنا 😄', 'ai');
+            const greeting = 'يا هلا 👋 أنا زعزع، مساعد Toji الذكي! اسألني أي حاجة عن شغله، أو دردش معايا في أي موضوع تاني، أنا هنا 😄';
+            addMsg(greeting, 'ai', 'happy');
+            speakReply(greeting, 'happy');
             showSuggestions();
             inputEl.focus();
         }
 
         openBtn.addEventListener('click', openChat);
         const close = () => {
+            if (synth) synth.cancel();
             document.body.classList.remove('ai-chat-open');
             overlay.hidden = true;
             history        = [];

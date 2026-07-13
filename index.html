@@ -563,9 +563,15 @@
                         <p class="ai-chat-sub" id="botHeaderSub"><span class="ai-chat-online-dot" aria-hidden="true"></span>مساعد Toji الذكي 🇪🇬</p>
                     </div>
                 </div>
-                <button class="ai-chat-close" id="closeAiChat" aria-label="Close">
-                    <i data-lucide="x" aria-hidden="true"></i>
-                </button>
+                <div class="ai-chat-header-actions">
+                    <select class="ai-chat-voice-select" id="aiVoiceSelect" aria-label="اختار صوت زعزع"></select>
+                    <button class="ai-chat-voice-toggle" id="aiVoiceToggle" aria-label="تشغيل/إيقاف صوت زعزع" aria-pressed="true">
+                        <i data-lucide="volume-2" aria-hidden="true"></i>
+                    </button>
+                    <button class="ai-chat-close" id="closeAiChat" aria-label="Close">
+                        <i data-lucide="x" aria-hidden="true"></i>
+                    </button>
+                </div>
             </div>
             <div class="ai-chat-messages" id="aiChatMessages"></div>
             <!-- quick-suggestion chips -->
