@@ -2149,6 +2149,7 @@ html[dir="rtl"] .contact-form .share-profile {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 0.35rem;
     width: min(1120px, calc(100% - 2rem));
     margin: 0 auto;
@@ -2159,6 +2160,13 @@ html[dir="rtl"] .contact-form .share-profile {
     line-height: 1.6;
     text-align: center;
     scroll-snap-align: end;
+}
+
+.owner-credit .owner-copyright {
+    width: 100%;
+    opacity: 0.6;
+    font-weight: 500;
+    font-size: 0.72rem;
 }
 
 .owner-credit a {

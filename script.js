@@ -1,3 +1,17 @@
+/*!
+ * TOJI Portfolio — © 2026 Mohamed Mostafa. All rights reserved.
+ * This source is not licensed for reuse, redistribution, or resale.
+ */
+(function () {
+    try {
+        console.log(
+            '%c© 2026 Mohamed Mostafa — TOJI Portfolio\n%cThis code is not open-source. Copying/reusing it without permission is a copyright violation.',
+            'color:#c98787;font-weight:800;font-size:13px;',
+            'color:#9fa1a6;font-size:11px;'
+        );
+    } catch {}
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     function deepMerge(base, override) {
         if (Array.isArray(base) || Array.isArray(override)) {
