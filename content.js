@@ -1,12 +1,12 @@
 window.TOJI_CONTENT = {
     "site": {
         "defaultLang": "en",
-        "canonicalUrl": "./",
+        "canonicalUrl": "https://toji-portfolio-eight.vercel.app/",
         "robots": "index, follow",
         "themeColor": "#050506",
         "backgroundColor": "#050506",
         "schemaType": "Person",
-        "sitemapUrl": "./sitemap.xml",
+        "sitemapUrl": "https://toji-portfolio-eight.vercel.app/sitemap.xml",
         "robotsText": "User-agent: *\nAllow: /\nDisallow: /admin.html\nDisallow: /admin.js\nDisallow: /admin.css"
     },
     "sections": {
@@ -62,7 +62,7 @@ window.TOJI_CONTENT = {
             "youtube": "",
             "x": "",
             "linkedin": "",
-            "website": "./"
+            "website": "https://toji-portfolio-eight.vercel.app/"
         },
         "assets": {
             "favicon": "assets/favicon.svg",
@@ -425,8 +425,8 @@ window.TOJI_CONTENT = {
     "translations": {
         "en": {
             "meta": {
-                "title": "TOJI | Mohamed Mostafa",
-                "description": "Mohamed Mostafa, TOJI. Personal portfolio, links, QR contact, web page builds, and clean front-end details."
+                "title": "TOJI | Mohamed Mostafa — Freelance Web Developer",
+                "description": "Mohamed Mostafa (TOJI) is a freelance web developer building custom portfolios, landing pages, and link-hub websites with clean, fast front-end code. Based in Egypt, working with clients worldwide."
             },
             "lang": {
                 "nextLabel": "AR",
@@ -602,8 +602,8 @@ window.TOJI_CONTENT = {
         },
         "ar": {
             "meta": {
-                "title": "TOJI | محمد مصطفى",
-                "description": "محمد مصطفى، TOJI. بروفايل شخصي وروابط وQR للتواصل وصفحات ويب خفيفة بتفاصيل نظيفة."
+                "title": "TOJI | محمد مصطفى — مطور مواقع فريلانس",
+                "description": "محمد مصطفى (TOJI) مطور مواقع فريلانس بيصمم بورتفوليوهات وصفحات هبوط وصفحات روابط مخصصة بكود نظيف وسريع. من مصر، وبيشتغل مع عملاء من كل مكان."
             },
             "lang": {
                 "nextLabel": "EN",
