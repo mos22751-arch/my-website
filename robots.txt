@@ -3,3 +3,5 @@ Allow: /
 Disallow: /admin.html
 Disallow: /admin.js
 Disallow: /admin.css
+
+Sitemap: https://toji-portfolio-eight.vercel.app/sitemap.xml

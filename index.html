@@ -28,9 +28,12 @@
     <link rel="apple-touch-icon" href="assets/icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700;900&family=Aref+Ruqaa:wght@400;700&display=swap">
+    <!-- صورة البروفايل هي الـ LCP element (أول حاجة كبيرة تتشاف) — بنحملها بدري -->
+    <link rel="preload" as="image" href="assets/profile.webp" fetchpriority="high">
     <link rel="stylesheet" href="style.css?v=22">
     <link rel="stylesheet" href="enhancements.css?v=6">
-    <script src="content.js?v=18"></script>
+    <script src="content.js?v=18" defer></script>
     <script id="profileSchema" type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -136,7 +139,7 @@
                         <span class="pulse-dot" aria-hidden="true"></span>
                     </div>
                     <div class="profile-mark" aria-hidden="true">
-                        <img class="profile-photo" id="profilePhoto" src="assets/profile.webp" alt="TOJI" loading="lazy">
+                        <img class="profile-photo" id="profilePhoto" src="assets/profile.webp" alt="TOJI" fetchpriority="high">
                     </div>
                     <div class="profile-name" id="profileCardName">TOJI</div>
                     <p class="profile-caption" data-i18n="profile.caption">Code, training, links, and better details.</p>
@@ -556,7 +559,7 @@
             <div class="ai-chat-header">
                 <div class="ai-chat-header-info">
                     <span class="ai-chat-avatar-wrap">
-                        <img class="ai-chat-avatar" src="assets/profile.webp" alt="زعزع" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ai-chat-avatar ai-chat-avatar-fallback',textContent:'ز'}))">
+                        <img class="ai-chat-avatar" src="assets/profile.webp" alt="زعزع" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ai-chat-avatar ai-chat-avatar-fallback',textContent:'ز'}))">
                         <span class="ai-chat-avatar-dot" aria-hidden="true"></span>
                     </span>
                     <div>

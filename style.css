@@ -1,5 +1,6 @@
 /* EN: Caveat handwriting | AR: Aref Ruqaa (Ruqʿah script — Arabic handwriting) */
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700;900&family=Aref+Ruqaa:wght@400;700&display=swap');
+/* الخط اتنقل لـ <link> في index.html <head> — @import هنا كان بيأخر الرندر
+   (المتصفح مش بيكتشفه غير بعد ما يحمّل style.css كامل الأول) */
 
 :root {
     --primary: #632626;
