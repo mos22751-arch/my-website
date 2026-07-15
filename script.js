@@ -1237,6 +1237,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function extractYouTubeId(url) {
+        if (!url) return '';
+        var m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+        return m ? m[1] : '';
+    }
+
     function renderSongsSection(songs) {
         var section = document.getElementById('songs');
         var grid    = document.getElementById('songsGrid');
@@ -1261,10 +1267,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? '<a class="song-pill spotify" href="' + song.spotifyUrl + '" target="_blank" rel="noreferrer" aria-label="Spotify">'
                   + '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>'
                   + '</a>' : '';
-            var youtube = song.youtubeUrl
-                ? '<a class="song-pill youtube" href="' + song.youtubeUrl + '" target="_blank" rel="noreferrer" aria-label="YouTube">'
+            var ytId = extractYouTubeId(song.youtubeUrl);
+            var youtube = (song.youtubeUrl && ytId)
+                ? '<a class="song-pill youtube js-mini-player" href="javascript:void(0)" data-yt="' + ytId + '" data-title="' + (song.title||'').replace(/"/g,'&quot;') + '" data-artist="' + (song.artist||'').replace(/"/g,'&quot;') + '" aria-label="Play">'
                   + '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>'
-                  + '</a>' : '';
+                  + '</a>'
+                : (song.youtubeUrl
+                    ? '<a class="song-pill youtube" href="' + song.youtubeUrl + '" target="_blank" rel="noreferrer" aria-label="YouTube">'
+                      + '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>'
+                      + '</a>'
+                    : '');
 
             return '<article class="song-card-modern reveal-up ' + (i ? 'delay-' + Math.min(i%4,3) : '') + '" data-mood="' + (song.mood||'vibe') + '">'
                 + '<div class="song-glow"></div>'
@@ -1287,6 +1299,117 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshDomCollections();
         setTimeout(function() { if (typeof syncObservedElements==='function') syncObservedElements(); }, 50);
     }
+
+    // ============================================================
+    // 🎧 Mini Player — بوباب صغير قابل للسحب، بيفتح جوه الموقع
+    // بدل ما يودّي الزائر ليوتيوب في تاب/صفحة تانية
+    // ============================================================
+    var miniPlayerEl = null;
+
+    function ensureMiniPlayer() {
+        if (miniPlayerEl) return miniPlayerEl;
+
+        var el = document.createElement('div');
+        el.className = 'mini-player glass-panel';
+        el.innerHTML =
+            '<div class="mini-player-head" data-drag-handle>' +
+                '<div class="mini-player-info">' +
+                    '<span class="mini-player-title"></span>' +
+                    '<span class="mini-player-artist"></span>' +
+                '</div>' +
+                '<button type="button" class="mini-player-close" aria-label="Close">&times;</button>' +
+            '</div>' +
+            '<div class="mini-player-body"></div>';
+        document.body.appendChild(el);
+
+        el.querySelector('.mini-player-close').addEventListener('click', closeMiniPlayer);
+        makeDraggable(el, el.querySelector('[data-drag-handle]'));
+
+        miniPlayerEl = el;
+        return el;
+    }
+
+    function openMiniPlayer(ytId, title, artist) {
+        if (!ytId) return;
+        var el = ensureMiniPlayer();
+        el.querySelector('.mini-player-title').textContent = title || '';
+        el.querySelector('.mini-player-artist').textContent = artist || '';
+
+        var body = el.querySelector('.mini-player-body');
+        body.innerHTML = '<iframe src="https://www.youtube.com/embed/' + ytId +
+            '?autoplay=1&rel=0&modestbranding=1&playsinline=1" ' +
+            'frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+
+        // لو أول مرة تتفتح، نحطها في مكان افتراضي (تحت يمين) بدل النص
+        if (!el.classList.contains('positioned')) {
+            el.style.right = '20px';
+            el.style.bottom = '20px';
+            el.style.left = 'auto';
+            el.style.top = 'auto';
+            el.classList.add('positioned');
+        }
+
+        el.classList.add('is-open');
+    }
+
+    function closeMiniPlayer() {
+        if (!miniPlayerEl) return;
+        // بنمسح الـ iframe فعليًا (مش بس نخفيه) عشان الصوت يوقف فعلاً
+        miniPlayerEl.querySelector('.mini-player-body').innerHTML = '';
+        miniPlayerEl.classList.remove('is-open');
+    }
+
+    function makeDraggable(el, handle) {
+        var offsetX = 0, offsetY = 0, dragging = false;
+
+        function onDown(e) {
+            dragging = true;
+            var point = e.touches ? e.touches[0] : e;
+            var rect = el.getBoundingClientRect();
+            offsetX = point.clientX - rect.left;
+            offsetY = point.clientY - rect.top;
+            el.style.left = rect.left + 'px';
+            el.style.top = rect.top + 'px';
+            el.style.right = 'auto';
+            el.style.bottom = 'auto';
+            el.classList.add('dragging');
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('mouseup', onUp);
+            document.addEventListener('touchend', onUp);
+        }
+
+        function onMove(e) {
+            if (!dragging) return;
+            if (e.touches) e.preventDefault();
+            var point = e.touches ? e.touches[0] : e;
+            var w = el.offsetWidth, h = el.offsetHeight;
+            var x = Math.min(Math.max(0, point.clientX - offsetX), window.innerWidth  - w);
+            var y = Math.min(Math.max(0, point.clientY - offsetY), window.innerHeight - h);
+            el.style.left = x + 'px';
+            el.style.top  = y + 'px';
+        }
+
+        function onUp() {
+            dragging = false;
+            el.classList.remove('dragging');
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('touchmove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            document.removeEventListener('touchend', onUp);
+        }
+
+        handle.addEventListener('mousedown', onDown);
+        handle.addEventListener('touchstart', onDown, { passive: true });
+    }
+
+    // تفويض الكليك على أزرار "شغّل" جوه كروت الأغاني
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest && e.target.closest('.js-mini-player');
+        if (!btn) return;
+        e.preventDefault();
+        openMiniPlayer(btn.getAttribute('data-yt'), btn.getAttribute('data-title'), btn.getAttribute('data-artist'));
+    });
 
         // ---- Load projects from backend API (with graceful fallback) ----
     async function loadProjectsFromAPI() {

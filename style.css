@@ -2347,3 +2347,94 @@ video { object-fit: cover; width: 100%; height: 100%; }
 /* LAZY LOADING */
 img[loading="lazy"] { background: rgba(255, 255, 255, 0.1); }
 
+
+/* ============================================================
+   🎧 MINI PLAYER — بوباب أغاني قابل للسحب (Liquid Glass)
+   ============================================================ */
+.mini-player {
+    position: fixed;
+    z-index: 3000;
+    width: 300px;
+    max-width: calc(100vw - 24px);
+    border-radius: 14px;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(3px) saturate(140%);
+    -webkit-backdrop-filter: blur(3px) saturate(140%);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.mini-player.is-open { display: flex; }
+
+.mini-player.dragging { transition: none; cursor: grabbing; user-select: none; }
+
+.mini-player-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.55rem 0.7rem;
+    cursor: grab;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mini-player-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+}
+
+.mini-player-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.92);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mini-player-artist {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mini-player-close {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.mini-player-close:hover { background: rgba(255, 255, 255, 0.09); }
+
+.mini-player-body {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+}
+
+.mini-player-body iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+@media (max-width: 480px) {
+    .mini-player { width: calc(100vw - 24px); }
+}
