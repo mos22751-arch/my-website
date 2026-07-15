@@ -2546,7 +2546,7 @@ Do not resell the customized public version as a separate template unless your s
             } else {
                 const moodEmoji = { chill: '🧊', hype: '🔥', sad: '🌧️', focus: '⚡', vibe: '🎵' };
                 list.innerHTML = songs.map((song) => {
-                    const emoji = moodEmoji[song.mood] || '🎵';
+                    const emoji = song.moodEmoji || moodEmoji[song.mood] || '🎵';
                     return `
                     <div class="project-item" data-id="${song._id}">
                         <div class="project-item-main">
@@ -2581,6 +2581,7 @@ Do not resell the customized public version as a separate template unless your s
         el('sYoutube').value     = '';
         el('sCover').value       = '';
         el('sMood').value        = 'vibe';
+        el('sMoodEmoji').value   = '';
         el('sOrder').value       = '0';
         el('sVisible').checked   = true;
         el('songFormMsg').textContent = '';
@@ -2618,7 +2619,8 @@ Do not resell the customized public version as a separate template unless your s
             spotifyUrl:  el('sSpotify').value.trim(),
             youtubeUrl:  el('sYoutube').value.trim(),
             coverUrl:    el('sCover').value.trim(),
-            mood:        el('sMood').value,
+            mood:        el('sMood').value.trim() || 'vibe',
+            moodEmoji:   el('sMoodEmoji').value.trim(),
             order:       Number(el('sOrder').value) || 0,
             visible:     el('sVisible').checked
         };
@@ -2663,6 +2665,7 @@ Do not resell the customized public version as a separate template unless your s
             el('sYoutube').value   = song.youtubeUrl  || '';
             el('sCover').value     = song.coverUrl    || '';
             el('sMood').value      = song.mood        || 'vibe';
+            el('sMoodEmoji').value = song.moodEmoji    || '';
             el('sOrder').value     = song.order       || 0;
             el('sVisible').checked = song.visible !== false;
             el('songFormTitle').textContent = 'تعديل: ' + song.title;

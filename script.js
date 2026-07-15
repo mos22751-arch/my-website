@@ -1259,7 +1259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         var moodEmoji = { chill:'🧊', hype:'🔥', sad:'🌧️', focus:'⚡', vibe:'🎵' };
 
         grid.innerHTML = songs.map(function(song, i) {
-            var emoji = moodEmoji[song.mood] || '🎵';
+            var emoji = song.moodEmoji || moodEmoji[song.mood] || '🎵';
             var desc  = song.description ? '<p class="song-desc">' + song.description + '</p>' : '';
             var mood  = song.mood ? '<span class="song-mood-pill">' + emoji + ' ' + song.mood + '</span>' : '';
 
@@ -1279,7 +1279,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     : '');
 
             return '<article class="song-card-modern reveal-up ' + (i ? 'delay-' + Math.min(i%4,3) : '') + '" data-mood="' + (song.mood||'vibe') + '">'
-                + '<div class="song-glow"></div>'
                 + '<div class="song-modern-cover">'
                 +   '<span class="song-modern-emoji">' + emoji + '</span>'
                 +   '<div class="song-eq-bars"><span></span><span></span><span></span><span></span></div>'
