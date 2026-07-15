@@ -1300,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================================
-    // 🎧 Mini Player — بوباب صغير قابل للسحب، بيفتح جوه الموقع
+    // 🎧 Mini Player — بوباب صغير قابل للسحب والتكبير، بيفتح جوه الموقع
     // بدل ما يودّي الزائر ليوتيوب في تاب/صفحة تانية
     // ============================================================
     var miniPlayerEl = null;
@@ -1318,11 +1318,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 '</div>' +
                 '<button type="button" class="mini-player-close" aria-label="Close">&times;</button>' +
             '</div>' +
-            '<div class="mini-player-body"></div>';
+            '<div class="mini-player-body">' +
+                '<div class="mini-player-shield"></div>' +
+                '<div class="mini-player-resize" data-resize-handle></div>' +
+            '</div>';
         document.body.appendChild(el);
 
         el.querySelector('.mini-player-close').addEventListener('click', closeMiniPlayer);
         makeDraggable(el, el.querySelector('[data-drag-handle]'));
+        makeResizable(el, el.querySelector('[data-resize-handle]'));
 
         miniPlayerEl = el;
         return el;
@@ -1334,15 +1338,18 @@ document.addEventListener('DOMContentLoaded', () => {
         el.querySelector('.mini-player-title').textContent = title || '';
         el.querySelector('.mini-player-artist').textContent = artist || '';
 
-        var body = el.querySelector('.mini-player-body');
-        body.innerHTML = '<iframe src="https://www.youtube.com/embed/' + ytId +
-            '?autoplay=1&rel=0&modestbranding=1&playsinline=1" ' +
-            'frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+        var iframe = document.createElement('iframe');
+        iframe.src = 'https://www.youtube.com/embed/' + ytId + '?autoplay=1&rel=0&modestbranding=1&playsinline=1';
+        iframe.setAttribute('frameborder', '0');
+        iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', '');
+        el.querySelector('.mini-player-body').insertBefore(iframe, el.querySelector('.mini-player-shield'));
 
-        // لو أول مرة تتفتح، نحطها في مكان افتراضي (تحت يمين) بدل النص
+        // لو أول مرة تتفتح، نحطها في مكان افتراضي (تحت يمين) بعيد عن الدوك
         if (!el.classList.contains('positioned')) {
-            el.style.right = '20px';
-            el.style.bottom = '20px';
+            var safeBottom = Math.max(20, (window.visualViewport ? window.innerHeight - window.visualViewport.height : 0) + 20);
+            el.style.right = '16px';
+            el.style.bottom = safeBottom + 'px';
             el.style.left = 'auto';
             el.style.top = 'auto';
             el.classList.add('positioned');
@@ -1354,52 +1361,92 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeMiniPlayer() {
         if (!miniPlayerEl) return;
         // بنمسح الـ iframe فعليًا (مش بس نخفيه) عشان الصوت يوقف فعلاً
-        miniPlayerEl.querySelector('.mini-player-body').innerHTML = '';
+        var oldFrame = miniPlayerEl.querySelector('iframe');
+        if (oldFrame) oldFrame.remove();
         miniPlayerEl.classList.remove('is-open');
     }
 
+    // بيحول أي نقطة/إحداثي لمكان تابت (left/top) بدل right/bottom، عشان السحب يشتغل بحساب واحد بس
+    function pinToLeftTop(el) {
+        var rect = el.getBoundingClientRect();
+        el.style.left = rect.left + 'px';
+        el.style.top = rect.top + 'px';
+        el.style.right = 'auto';
+        el.style.bottom = 'auto';
+        return rect;
+    }
+
     function makeDraggable(el, handle) {
-        var offsetX = 0, offsetY = 0, dragging = false;
+        var offsetX = 0, offsetY = 0, dragging = false, pointerId = null;
 
         function onDown(e) {
+            if (e.target.closest('.mini-player-close')) return;
             dragging = true;
-            var point = e.touches ? e.touches[0] : e;
-            var rect = el.getBoundingClientRect();
-            offsetX = point.clientX - rect.left;
-            offsetY = point.clientY - rect.top;
-            el.style.left = rect.left + 'px';
-            el.style.top = rect.top + 'px';
-            el.style.right = 'auto';
-            el.style.bottom = 'auto';
+            pointerId = e.pointerId;
+            handle.setPointerCapture(pointerId);
+            var rect = pinToLeftTop(el);
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
             el.classList.add('dragging');
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('touchmove', onMove, { passive: false });
-            document.addEventListener('mouseup', onUp);
-            document.addEventListener('touchend', onUp);
         }
 
         function onMove(e) {
-            if (!dragging) return;
-            if (e.touches) e.preventDefault();
-            var point = e.touches ? e.touches[0] : e;
+            if (!dragging || e.pointerId !== pointerId) return;
             var w = el.offsetWidth, h = el.offsetHeight;
-            var x = Math.min(Math.max(0, point.clientX - offsetX), window.innerWidth  - w);
-            var y = Math.min(Math.max(0, point.clientY - offsetY), window.innerHeight - h);
+            var x = Math.min(Math.max(4, e.clientX - offsetX), window.innerWidth  - w - 4);
+            var y = Math.min(Math.max(4, e.clientY - offsetY), window.innerHeight - h - 4);
             el.style.left = x + 'px';
             el.style.top  = y + 'px';
         }
 
-        function onUp() {
+        function onUp(e) {
+            if (!dragging) return;
             dragging = false;
             el.classList.remove('dragging');
-            document.removeEventListener('mousemove', onMove);
-            document.removeEventListener('touchmove', onMove);
-            document.removeEventListener('mouseup', onUp);
-            document.removeEventListener('touchend', onUp);
+            try { handle.releasePointerCapture(pointerId); } catch (_) {}
         }
 
-        handle.addEventListener('mousedown', onDown);
-        handle.addEventListener('touchstart', onDown, { passive: true });
+        handle.addEventListener('pointerdown', onDown);
+        handle.addEventListener('pointermove', onMove);
+        handle.addEventListener('pointerup', onUp);
+        handle.addEventListener('pointercancel', onUp);
+    }
+
+    function makeResizable(el, handle) {
+        var startW = 0, startX = 0, resizing = false, pointerId = null;
+        var MIN_W = 220, MAX_W = 520;
+
+        function onDown(e) {
+            resizing = true;
+            pointerId = e.pointerId;
+            handle.setPointerCapture(pointerId);
+            pinToLeftTop(el);
+            startW = el.offsetWidth;
+            startX = e.clientX;
+            el.classList.add('resizing');
+            e.stopPropagation();
+        }
+
+        function onMove(e) {
+            if (!resizing || e.pointerId !== pointerId) return;
+            // السحب من الزاوية اليمين السفلية: لما تسحب لبره الكارت يكبر
+            var delta = e.clientX - startX;
+            var maxW = Math.min(MAX_W, window.innerWidth - 24);
+            var newW = Math.min(maxW, Math.max(MIN_W, startW + delta));
+            el.style.width = newW + 'px';
+        }
+
+        function onUp() {
+            if (!resizing) return;
+            resizing = false;
+            el.classList.remove('resizing');
+            try { handle.releasePointerCapture(pointerId); } catch (_) {}
+        }
+
+        handle.addEventListener('pointerdown', onDown);
+        handle.addEventListener('pointermove', onMove);
+        handle.addEventListener('pointerup', onUp);
+        handle.addEventListener('pointercancel', onUp);
     }
 
     // تفويض الكليك على أزرار "شغّل" جوه كروت الأغاني
