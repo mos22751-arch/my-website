@@ -1376,77 +1376,102 @@ document.addEventListener('DOMContentLoaded', () => {
         return rect;
     }
 
+    // بنستخدم Touch/Mouse Events مباشرة (مش Pointer Events) عشان أقصى توافق
+    // مع متصفحات الموبايل المدمجة (تليجرام/إنستجرام/واتساب...) اللي دعمها لـ
+    // Pointer Events غالبًا ناقص أو غير مستقر.
+    function bindDrag(handle, onStart, onMove, onEnd) {
+        var touchId = null;
+
+        function point(e) {
+            if (e.touches && e.touches.length) return e.touches[0];
+            if (e.changedTouches && e.changedTouches.length) return e.changedTouches[0];
+            return e;
+        }
+
+        function down(e) {
+            if (e.target.closest && e.target.closest('.mini-player-close')) return;
+            var p = point(e);
+            if (e.touches) touchId = p.identifier;
+            onStart(p.clientX, p.clientY);
+            document.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', up);
+            document.addEventListener('touchmove', move, { passive: false });
+            document.addEventListener('touchend', up);
+            document.addEventListener('touchcancel', up);
+        }
+
+        function move(e) {
+            var p = point(e);
+            if (e.touches) {
+                var found = false;
+                for (var i = 0; i < e.touches.length; i++) {
+                    if (e.touches[i].identifier === touchId) { p = e.touches[i]; found = true; break; }
+                }
+                if (!found) return;
+                e.preventDefault();
+            }
+            onMove(p.clientX, p.clientY);
+        }
+
+        function up(e) {
+            touchId = null;
+            onEnd();
+            document.removeEventListener('mousemove', move);
+            document.removeEventListener('mouseup', up);
+            document.removeEventListener('touchmove', move);
+            document.removeEventListener('touchend', up);
+            document.removeEventListener('touchcancel', up);
+        }
+
+        handle.addEventListener('mousedown', down);
+        handle.addEventListener('touchstart', down, { passive: true });
+    }
+
     function makeDraggable(el, handle) {
-        var offsetX = 0, offsetY = 0, dragging = false, pointerId = null;
+        var offsetX = 0, offsetY = 0;
 
-        function onDown(e) {
-            if (e.target.closest('.mini-player-close')) return;
-            dragging = true;
-            pointerId = e.pointerId;
-            handle.setPointerCapture(pointerId);
-            var rect = pinToLeftTop(el);
-            offsetX = e.clientX - rect.left;
-            offsetY = e.clientY - rect.top;
-            el.classList.add('dragging');
-        }
-
-        function onMove(e) {
-            if (!dragging || e.pointerId !== pointerId) return;
-            var w = el.offsetWidth, h = el.offsetHeight;
-            var x = Math.min(Math.max(4, e.clientX - offsetX), window.innerWidth  - w - 4);
-            var y = Math.min(Math.max(4, e.clientY - offsetY), window.innerHeight - h - 4);
-            el.style.left = x + 'px';
-            el.style.top  = y + 'px';
-        }
-
-        function onUp(e) {
-            if (!dragging) return;
-            dragging = false;
-            el.classList.remove('dragging');
-            try { handle.releasePointerCapture(pointerId); } catch (_) {}
-        }
-
-        handle.addEventListener('pointerdown', onDown);
-        handle.addEventListener('pointermove', onMove);
-        handle.addEventListener('pointerup', onUp);
-        handle.addEventListener('pointercancel', onUp);
+        bindDrag(handle,
+            function onStart(x, y) {
+                var rect = pinToLeftTop(el);
+                offsetX = x - rect.left;
+                offsetY = y - rect.top;
+                el.classList.add('dragging');
+            },
+            function onMove(x, y) {
+                var w = el.offsetWidth, h = el.offsetHeight;
+                var nx = Math.min(Math.max(4, x - offsetX), window.innerWidth  - w - 4);
+                var ny = Math.min(Math.max(4, y - offsetY), window.innerHeight - h - 4);
+                el.style.left = nx + 'px';
+                el.style.top  = ny + 'px';
+            },
+            function onEnd() {
+                el.classList.remove('dragging');
+            }
+        );
     }
 
     function makeResizable(el, handle) {
-        var startW = 0, startX = 0, resizing = false, pointerId = null;
+        var startW = 0, startX = 0;
         var MIN_W = 220, MAX_W = 520;
 
-        function onDown(e) {
-            resizing = true;
-            pointerId = e.pointerId;
-            handle.setPointerCapture(pointerId);
-            pinToLeftTop(el);
-            startW = el.offsetWidth;
-            startX = e.clientX;
-            el.classList.add('resizing');
-            e.stopPropagation();
-        }
-
-        function onMove(e) {
-            if (!resizing || e.pointerId !== pointerId) return;
-            // السحب من الزاوية اليمين السفلية: لما تسحب لبره الكارت يكبر
-            var delta = e.clientX - startX;
-            var maxW = Math.min(MAX_W, window.innerWidth - 24);
-            var newW = Math.min(maxW, Math.max(MIN_W, startW + delta));
-            el.style.width = newW + 'px';
-        }
-
-        function onUp() {
-            if (!resizing) return;
-            resizing = false;
-            el.classList.remove('resizing');
-            try { handle.releasePointerCapture(pointerId); } catch (_) {}
-        }
-
-        handle.addEventListener('pointerdown', onDown);
-        handle.addEventListener('pointermove', onMove);
-        handle.addEventListener('pointerup', onUp);
-        handle.addEventListener('pointercancel', onUp);
+        bindDrag(handle,
+            function onStart(x) {
+                pinToLeftTop(el);
+                startW = el.offsetWidth;
+                startX = x;
+                el.classList.add('resizing');
+            },
+            function onMove(x) {
+                // السحب لبره (يمين) يكبر الكارت
+                var delta = x - startX;
+                var maxW = Math.min(MAX_W, window.innerWidth - 24);
+                var newW = Math.min(maxW, Math.max(MIN_W, startW + delta));
+                el.style.width = newW + 'px';
+            },
+            function onEnd() {
+                el.classList.remove('resizing');
+            }
+        );
     }
 
     // تفويض الكليك على أزرار "شغّل" جوه كروت الأغاني
@@ -1454,7 +1479,11 @@ document.addEventListener('DOMContentLoaded', () => {
         var btn = e.target.closest && e.target.closest('.js-mini-player');
         if (!btn) return;
         e.preventDefault();
-        openMiniPlayer(btn.getAttribute('data-yt'), btn.getAttribute('data-title'), btn.getAttribute('data-artist'));
+        try {
+            openMiniPlayer(btn.getAttribute('data-yt'), btn.getAttribute('data-title'), btn.getAttribute('data-artist'));
+        } catch (err) {
+            console.error('[MiniPlayer] failed to open:', err);
+        }
     });
 
         // ---- Load projects from backend API (with graceful fallback) ----
