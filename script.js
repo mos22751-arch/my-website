@@ -630,10 +630,12 @@ document.addEventListener('DOMContentLoaded', () => {
         ].filter((item) => item.enabled);
 
         // أقسام ديناميكية — تظهر فقط لما في داتا من البيكاند
-        // Songs عند المركز الثالت (بعد home + about)
+        // الخوارزمية تحت بتدرج كل قسم ديناميكي بعد أول قسم ثابت (mainItems) بيطابق
+        // insertAfter، وبترتيب حسب ترتيبهم في المصفوفة دي — فالاتنين لازم يتحطوا
+        // بعد نفس القسم الثابت (work) عشان يطلعوا بالترتيب الصح: work → projects → songs
         const dynamicSections = [
-            { id: 'songs',    label: 'Fav Songs', icon: 'music',       dockId: 'dockSongs',    navId: 'navSongs',    startHidden: true, insertAfter: 'expertise' },
-            { id: 'projects', label: 'Projects',  icon: 'layout-grid', dockId: 'dockProjects', navId: 'navProjects', startHidden: true, insertAfter: 'work' }
+            { id: 'projects', label: 'Projects',  icon: 'layout-grid', dockId: 'dockProjects', navId: 'navProjects', startHidden: true, insertAfter: 'work' },
+            { id: 'songs',    label: 'Fav Songs', icon: 'music',       dockId: 'dockSongs',    navId: 'navSongs',    startHidden: true, insertAfter: 'work' }
         ];
 
         // دمج الأقسام بالترتيب الصح
