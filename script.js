@@ -2541,11 +2541,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const EASE_TRAVEL = 'cubic-bezier(0.45, 0, 0.15, 1)';
     const EASE_SETTLE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
 
+    // بنستنى الفريم الجاي قبل ما نغيّر الستايل، عشان التغيير يتزامن مع رسم
+    // المتصفح الفعلي بدل ما يعتمد على توقيت setTimeout (اللي ممكن يتأخر شوية
+    // ويعمل تقطيع بسيط) — نفس الحركة بالظبط، بس تنفيذها أدق وأنعم.
+    function afterDelay(ms, fn) {
+        setTimeout(() => requestAnimationFrame(fn), ms);
+    }
+
     function animateStretch(indicator, prev, box, target, container) {
         const isDock = indicator.classList.contains('dock-indicator');
-        const growDur = isDock ? 0.13 : 0.19;
-        const travelDur = isDock ? 0.24 : 0.48;
-        const settleDur = isDock ? 0.24 : 0.42;
+        // ⚡ مراحل أسرع من الأول بنسبة تقريبًا 25% — نفس الحركة (تكبير ثم انزلاق
+        // ثم استقرار برجّة خفيفة)، بس أسرع وأخف حس
+        const growDur = isDock ? 0.10 : 0.15;
+        const travelDur = isDock ? 0.18 : 0.36;
+        const settleDur = isDock ? 0.18 : 0.32;
         const travelEase = isDock ? EASE_TRAVEL : 'cubic-bezier(0.4, 0, 0.2, 1)';
 
         // Phase 1: grow big right where it already is — the magnifying-glass look
@@ -2564,7 +2573,7 @@ document.addEventListener('DOMContentLoaded', () => {
         indicator.style.transition = `transform ${growDur}s ${EASE_GROW}, width ${growDur}s ${EASE_GROW}, height ${growDur}s ${EASE_GROW}, border-radius ${growDur}s ${EASE_GROW}`;
         placeIndicator(indicator, { cx: prev.cx, cy: prev.cy, w: growW, h: growH, radius: growRadius });
 
-        setTimeout(() => {
+        afterDelay(growDur * 1000, () => {
             // Phase 2: glide across to the destination while it's still big — a smooth,
             // continuous travel, not a shrink-then-move
             indicator.style.transition = `transform ${travelDur}s ${travelEase}`;
@@ -2589,22 +2598,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     const delay = Math.max(0, Math.min(1, progress)) * travelDur;
                     const isFinal = link === target;
 
-                    setTimeout(() => {
-                        link.style.transition = `transform 0.16s ${EASE_GROW}`;
+                    afterDelay(delay * 1000, () => {
+                        link.style.transition = `transform 0.13s ${EASE_GROW}`;
                         link.style.transform = 'scale(1.12)';
                         if (!isFinal) {
-                            setTimeout(() => {
-                                link.style.transition = `transform 0.22s ${EASE_SETTLE}`;
+                            afterDelay(120, () => {
+                                link.style.transition = `transform 0.18s ${EASE_SETTLE}`;
                                 link.style.transform = 'scale(1)';
-                            }, 150);
+                            });
                         }
-                    }, delay * 1000);
+                    });
                 });
             }
 
             // Phase 3: arrive — shrink back down to the true final size, with a soft spring —
             // this is exactly when the destination word drops back to its normal size
-            setTimeout(() => {
+            afterDelay(travelDur * 1000, () => {
                 indicator.style.transition = `transform ${settleDur}s ${EASE_SETTLE}, width ${settleDur}s ${EASE_SETTLE}, height ${settleDur}s ${EASE_SETTLE}, border-radius ${settleDur}s ${EASE_SETTLE}`;
                 placeIndicator(indicator, box);
 
@@ -2612,8 +2621,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     target.style.transition = `transform ${settleDur}s ${EASE_SETTLE}`;
                     target.style.transform = 'scale(1)';
                 }
-            }, travelDur * 1000);
-        }, growDur * 1000);
+            });
+        });
     }
 
     function moveIndicator(container, indicator, target, size, animate = true) {
