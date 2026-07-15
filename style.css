@@ -335,9 +335,12 @@ body:not(.is-loading) .page-loader {
         linear-gradient(130deg, rgba(99, 38, 38, 0.16), transparent 38%),
         linear-gradient(300deg, rgba(128, 117, 117, 0.18), transparent 34%),
         linear-gradient(40deg, rgba(156, 115, 115, 0.12), transparent 32%);
-    filter: blur(14px);
+    /* ✅ الجراديانت أصلًا ناعم الحواف (transparent في الآخر)، فـ filter:blur()
+       فوقيه كان بيضاعف تكلفة الرندر على مساحة الشاشة كلها من غير فرق بصري
+       يستاهل — ده كان أكبر سبب في تهنيج الزوم والتحميل الأول */
     animation: drift 22s ease-in-out infinite alternate;
     will-change: transform;
+    contain: strict;
 }
 
 .grain-layer {
@@ -2372,7 +2375,15 @@ img[loading="lazy"] { background: rgba(255, 255, 255, 0.1); }
 .mini-player.is-open { display: flex; }
 
 .mini-player.dragging,
-.mini-player.resizing { transition: none; user-select: none; }
+.mini-player.resizing {
+    transition: none;
+    user-select: none;
+    /* إيقاف البلور وقت الحركة — إعادة حسابه كل فريم تقيلة جدًا على الموبايل */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(18, 18, 20, 0.92);
+    will-change: transform;
+}
 
 .mini-player-head {
     display: flex;

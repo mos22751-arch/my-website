@@ -347,10 +347,11 @@ svg,
     pointer-events: none;
     z-index: -3;
     border-radius: 50%;
-    /* ✅ كان blur(72px) — تقليل نصف القطر تقريبًا بيقلل تكلفة الـ blur على الـ GPU
-       بشكل كبير (التكلفة بتزيد تقريبًا مع مربع نصف القطر) من غير ما اللمسة البصرية تختفي */
-    filter: blur(44px);
+    /* ✅ الجراديانت أصلًا بيوصل transparent قبل حافة الدايرة (نص القطر التاني كله
+       شفاف)، يعني مفيش حافة حادة يستاهل الـ blur يتحسب عشانها كل فريم — شيلها
+       كان أكبر سبب في تهنيج الزوم والتحميل الأول */
     will-change: transform;
+    contain: strict;
     animation: orbFloat 20s ease-in-out infinite alternate;
 }
 
