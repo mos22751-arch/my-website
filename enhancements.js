@@ -674,21 +674,37 @@
     }
 
     /* ======================================================
-       21. SERVICE WORKER PRE-CACHE PING
+       21. SERVICE WORKER — تحديث تلقائي + ريفريش لوحده
+       لما ترفع ملفات جديدة (وتزود رقم النسخة في sw.js)، أي حد فاتح
+       الموقع دلوقتي هيتاخد له تحديث لوحده من غير ما يمسح كاش يدوي
        ====================================================== */
     function initServiceWorkerEnhancements() {
         if (!('serviceWorker' in navigator)) return;
 
+        let reloading = false;
+
+        // لما SW جديد ياخد السيطرة، الصفحة بترفرش لوحدها مرة واحدة بس
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (reloading) return;
+            reloading = true;
+            window.location.reload();
+        });
+
         navigator.serviceWorker.ready.then((reg) => {
-            // Update found — could show a "New version available" toast
             reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
                 newWorker?.addEventListener('statechange', () => {
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        // Silently update — don't interrupt user
-                        console.info('[TOJI] New version cached.');
+                        console.info('[TOJI] فيه نسخة جديدة، جاري التحديث...');
                     }
                 });
+            });
+
+            // بنسأل المتصفح "فيه sw.js جديد؟" كل 60 ثانية، وكل مرة التاب يرجع
+            // فوكس — بدل ما نستنى المتصفح يتأكد لوحده (ممكن ياخد ساعات)
+            setInterval(() => reg.update().catch(() => {}), 60 * 1000);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') reg.update().catch(() => {});
             });
         }).catch(() => {});
     }
