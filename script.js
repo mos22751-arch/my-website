@@ -3617,7 +3617,7 @@ window.addEventListener('beforeunload', () => {
 // ============================================================
 (function initTracking() {
     if (!window.TojiAPI) return;
-    const API = 'https://portfolio-backend-production-1901.up.railway.app/api/analytics';
+    const API = 'https://portfolio-backend-production-e01e.up.railway.app/api/analytics';
 
     // كشف الجهاز
     function detectDevice() {

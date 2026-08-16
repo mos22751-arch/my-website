@@ -7,7 +7,7 @@
 const API_BASE_URL =
     window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://localhost:5000/api'                                          // Local development
-        : 'https://portfolio-backend-production-1901.up.railway.app/api';     // Railway production
+        : 'https://portfolio-backend-production-e01e.up.railway.app/api';     // Railway production
 
 // ============================================================
 // Token Management
