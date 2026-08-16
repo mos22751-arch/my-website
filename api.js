@@ -126,6 +126,9 @@ const ProjectsAPI = {
             body: JSON.stringify(projectData)
         }),
 
+    // جيب مشروع واحد بالـ id (صفحة تفاصيل منفصلة)
+    getOne: (id) => apiFetch(`/projects/${id}`),
+
     // احذف مشروع
     delete: (id) =>
         apiFetch(`/projects/${id}`, { method: 'DELETE' })
@@ -254,4 +257,80 @@ const ReactionsAPI = {
     react:  (key, type, action) => apiFetch(`/reactions/${encodeURIComponent(key)}`, { method: 'POST', body: JSON.stringify({ type, action }) })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, LinksAPI, GuestbookAPI, ReactionsAPI, API_BASE_URL };
+// ============================================================
+// Pricing API — باقات الأسعار
+// ============================================================
+const PricingAPI = {
+    getPublic: ()      => apiFetch('/pricing'),
+    getAll:    ()      => apiFetch('/pricing/all'),
+    create:    (data)  => apiFetch('/pricing',       { method: 'POST', body: JSON.stringify(data) }),
+    update:    (id, d) => apiFetch('/pricing/' + id, { method: 'PUT',  body: JSON.stringify(d)    }),
+    remove:    (id)    => apiFetch('/pricing/' + id, { method: 'DELETE' })
+};
+
+// ============================================================
+// Process API — خطوات العمل
+// ============================================================
+const ProcessAPI = {
+    getPublic: ()      => apiFetch('/process'),
+    getAll:    ()      => apiFetch('/process/all'),
+    create:    (data)  => apiFetch('/process',       { method: 'POST', body: JSON.stringify(data) }),
+    update:    (id, d) => apiFetch('/process/' + id, { method: 'PUT',  body: JSON.stringify(d)    }),
+    remove:    (id)    => apiFetch('/process/' + id, { method: 'DELETE' })
+};
+
+// ============================================================
+// Blog API — مقالات
+// ============================================================
+const BlogAPI = {
+    getPublic: ()      => apiFetch('/blog'),
+    getAll:    ()      => apiFetch('/blog/all'),
+    getBySlug: (slug)  => apiFetch(`/blog/post/${encodeURIComponent(slug)}`),
+    create:    (data)  => apiFetch('/blog',       { method: 'POST', body: JSON.stringify(data) }),
+    update:    (id, d) => apiFetch('/blog/' + id, { method: 'PUT',  body: JSON.stringify(d)    }),
+    remove:    (id)    => apiFetch('/blog/' + id, { method: 'DELETE' })
+};
+
+// ============================================================
+// Changelog API — سجل التحديثات
+// ============================================================
+const ChangelogAPI = {
+    getPublic: ()      => apiFetch('/changelog'),
+    getAll:    ()      => apiFetch('/changelog/all'),
+    create:    (data)  => apiFetch('/changelog',       { method: 'POST', body: JSON.stringify(data) }),
+    update:    (id, d) => apiFetch('/changelog/' + id, { method: 'PUT',  body: JSON.stringify(d)    }),
+    remove:    (id)    => apiFetch('/changelog/' + id, { method: 'DELETE' })
+};
+
+// ============================================================
+// Stack API — التقنيات المستخدمة
+// ============================================================
+const StackAPI = {
+    getPublic: ()      => apiFetch('/stack'),
+    getAll:    ()      => apiFetch('/stack/all'),
+    create:    (data)  => apiFetch('/stack',       { method: 'POST', body: JSON.stringify(data) }),
+    update:    (id, d) => apiFetch('/stack/' + id, { method: 'PUT',  body: JSON.stringify(d)    }),
+    remove:    (id)    => apiFetch('/stack/' + id, { method: 'DELETE' })
+};
+
+// ============================================================
+// Quote API — طلبات عروض أسعار
+// ============================================================
+const QuoteAPI = {
+    send:         (data)     => apiFetch('/quote', { method: 'POST', body: JSON.stringify(data) }),
+    getAll:       ()         => apiFetch('/quote'),
+    updateStatus: (id, s)    => apiFetch(`/quote/${id}`, { method: 'PATCH', body: JSON.stringify({ status: s }) }),
+    remove:       (id)       => apiFetch(`/quote/${id}`, { method: 'DELETE' })
+};
+
+// ============================================================
+// Booking API — طلبات حجز مكالمة
+// ============================================================
+const BookingAPI = {
+    send:         (data)     => apiFetch('/booking', { method: 'POST', body: JSON.stringify(data) }),
+    getAll:       ()         => apiFetch('/booking'),
+    updateStatus: (id, s)    => apiFetch(`/booking/${id}`, { method: 'PATCH', body: JSON.stringify({ status: s }) }),
+    remove:       (id)       => apiFetch(`/booking/${id}`, { method: 'DELETE' })
+};
+
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, LinksAPI, GuestbookAPI, ReactionsAPI, PricingAPI, ProcessAPI, BlogAPI, ChangelogAPI, StackAPI, QuoteAPI, BookingAPI, API_BASE_URL };

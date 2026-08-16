@@ -1,0 +1,201 @@
+/* ============================================================
+   TOJI — Extra Pages Stylesheet
+   ستايلات إضافية للصفحات المنفصلة (pricing, blog, changelog...)
+   بتستخدم نفس المتغيرات والكلاسات الأساسية من style.css
+   ============================================================ */
+
+.page-hero {
+    padding: 140px 24px 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.page-hero .eyebrow { justify-content: center; }
+
+.page-hero h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin: 12px 0 16px;
+    color: var(--text-main);
+}
+
+.page-hero p {
+    color: var(--text-muted);
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.back-home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+    transition: color 0.2s ease;
+}
+.back-home-link:hover { color: var(--primary); }
+
+.page-body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 24px 100px;
+}
+
+/* ---------- Pricing ---------- */
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 32px;
+}
+.pricing-card {
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.pricing-card.is-highlighted {
+    border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 40%, transparent);
+}
+.pricing-badge {
+    align-self: flex-start;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 16%, transparent);
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+.pricing-card h3 { margin: 0; font-size: 1.3rem; color: var(--text-main); }
+.pricing-price { font-size: 2rem; font-weight: 700; color: var(--text-main); }
+.pricing-price span { font-size: 0.9rem; font-weight: 400; color: var(--text-muted); }
+.pricing-desc { color: var(--text-muted); font-size: 0.9rem; }
+.pricing-features { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-direction: column; gap: 8px; }
+.pricing-features li { display: flex; gap: 8px; align-items: flex-start; font-size: 0.9rem; color: var(--text-main); }
+.pricing-features li::before { content: "✓"; color: var(--primary); font-weight: 700; }
+
+/* ---------- Process timeline ---------- */
+.timeline { display: flex; flex-direction: column; gap: 0; margin-top: 32px; }
+.timeline-step {
+    display: flex;
+    gap: 20px;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--glass-border);
+}
+.timeline-step:last-child { border-bottom: none; }
+.timeline-index {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--primary);
+    font-weight: 700;
+}
+.timeline-content h3 { margin: 0 0 6px; color: var(--text-main); }
+.timeline-content p { margin: 0; color: var(--text-muted); font-size: 0.92rem; line-height: 1.6; }
+.timeline-duration { font-size: 0.78rem; color: var(--primary); margin-top: 6px; display: inline-block; }
+
+/* ---------- Blog ---------- */
+.blog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 32px; }
+.blog-card { padding: 22px; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; }
+.blog-card img { width: 100%; border-radius: 12px; aspect-ratio: 16/9; object-fit: cover; }
+.blog-card h3 { margin: 0; color: var(--text-main); font-size: 1.1rem; }
+.blog-card p { margin: 0; color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; }
+.blog-card .blog-date { font-size: 0.75rem; color: var(--primary); }
+.blog-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.blog-tags span { font-size: 0.7rem; padding: 3px 9px; border-radius: 999px; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-muted); }
+
+.blog-post-body { max-width: 720px; margin: 0 auto; padding: 20px 24px 100px; }
+.blog-post-body img.cover { width: 100%; border-radius: 16px; margin-bottom: 24px; }
+.blog-post-content { color: var(--text-main); line-height: 1.9; font-size: 1.02rem; white-space: pre-wrap; }
+
+/* ---------- Changelog ---------- */
+.changelog-list { display: flex; flex-direction: column; gap: 16px; margin-top: 32px; }
+.changelog-entry { padding: 20px 22px; display: flex; gap: 16px; align-items: flex-start; }
+.changelog-type {
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+.changelog-type.feature { background: color-mix(in srgb, var(--primary) 18%, transparent); color: var(--primary); }
+.changelog-type.fix { background: color-mix(in srgb, #ff5f7e 18%, transparent); color: #ff5f7e; }
+.changelog-type.improvement { background: color-mix(in srgb, var(--mint, #5ee2a0) 18%, transparent); color: var(--mint, #5ee2a0); }
+.changelog-entry h3 { margin: 0 0 4px; color: var(--text-main); font-size: 1rem; }
+.changelog-entry p { margin: 0; color: var(--text-muted); font-size: 0.88rem; }
+.changelog-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; display: block; }
+
+/* ---------- Stack ---------- */
+.stack-category-title { margin: 32px 0 14px; color: var(--text-main); font-size: 1.1rem; text-transform: capitalize; }
+.stack-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.stack-item { padding: 18px; display: flex; gap: 12px; align-items: center; }
+.stack-item i { color: var(--primary); flex-shrink: 0; }
+.stack-item h4 { margin: 0; font-size: 0.95rem; color: var(--text-main); }
+.stack-item p { margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted); }
+
+/* ---------- Forms (quote / book) ---------- */
+.page-form { max-width: 560px; margin: 32px auto 0; display: flex; flex-direction: column; gap: 16px; padding: 28px; }
+.page-form label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: var(--text-muted); }
+.page-form input, .page-form select, .page-form textarea {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.92rem;
+}
+.page-form textarea { resize: vertical; min-height: 90px; }
+.page-form input:focus, .page-form select:focus, .page-form textarea:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+}
+.form-status { font-size: 0.85rem; text-align: center; min-height: 20px; }
+.form-status.is-success { color: var(--mint, #5ee2a0); }
+.form-status.is-error { color: #ff5f7e; }
+
+.empty-state { text-align: center; color: var(--text-muted); padding: 60px 20px; }
+
+/* ---------- Work detail ---------- */
+.work-detail-hero { padding: 140px 24px 30px; max-width: 900px; margin: 0 auto; }
+.work-detail-banner { font-size: 0.8rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.08em; }
+.work-detail-hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 10px 0; color: var(--text-main); }
+.work-detail-image { width: 100%; border-radius: 18px; margin: 24px 0; }
+.work-detail-body { max-width: 900px; margin: 0 auto; padding: 0 24px 100px; color: var(--text-main); line-height: 1.8; }
+.work-detail-tags { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+
+@media (max-width: 640px) {
+    .page-hero { padding: 110px 18px 30px; }
+    .page-body, .blog-post-body, .work-detail-body { padding-left: 18px; padding-right: 18px; }
+}
+
+/* ---------- Footer pages nav (homepage only) ---------- */
+.footer-pages-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 16px;
+    padding: 24px 20px 0;
+    max-width: 720px;
+    margin: 0 auto;
+}
+.footer-pages-nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    transition: color 0.2s ease;
+}
+.footer-pages-nav a:hover { color: var(--primary); }

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://portfolio-backend-production-e01e.up.railway.app http://localhost:5000; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <title>Changelog | TOJI</title>
+    <meta name="description" content="A running log of updates and improvements to the TOJI site.">
+    <meta name="theme-color" content="#050506">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap">
+    <link rel="stylesheet" href="style.css?v=22">
+    <link rel="stylesheet" href="enhancements.css?v=6">
+    <link rel="stylesheet" href="pages.css?v=1">
+</head>
+<body class="dark-theme is-loading preset-graphite">
+    <div class="mesh-bg" aria-hidden="true"></div>
+    <nav class="modern-nav glass-panel" aria-label="Primary navigation">
+        <a class="brand" href="index.html" aria-label="TOJI home"><span>TOJI</span><span class="dot">.</span></a>
+        <div class="nav-links" aria-label="Section links">
+            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link" href="pricing.html">Pricing</a>
+            <a class="nav-link" href="process.html">Process</a>
+            <a class="nav-link" href="blog.html">Blog</a>
+            <a class="nav-link" href="changelog.html">Changelog</a>
+            <a class="nav-link" href="stack.html">Stack</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-switch" id="themeToggle" type="button" aria-label="Switch theme">
+                <i data-lucide="sun" class="icon-sun" aria-hidden="true"></i>
+                <i data-lucide="moon" class="icon-moon" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+    <main class="smooth-scroll">
+
+        <section class="page-hero">
+            <p class="eyebrow">Changelog</p>
+            <h1>What changed, and when.</h1>
+            <p>A running log of updates to this site.</p>
+        </section>
+        <section class="page-body">
+            <div class="changelog-list" id="changelogList">
+                <p class="empty-state">Loading…</p>
+            </div>
+        </section>
+    </main>
+    <footer class="owner-credit" data-owner-credit=""><span>Website created by:</span><a href="https://www.instagram.com/mouhamedmostafffa" target="_blank" rel="noopener noreferrer">@mouhamedmostafffa</a><span class="owner-copyright">© 2026 Mohamed Mostafa. All rights reserved.</span></footer>
+    <script src="vendor/lucide.min.js?v=18"></script>
+    <script src="api.js?v=20"></script>
+    <script src="pages-shell.js?v=1"></script>
+<script src="changelog.js?v=1"></script>
+</body>
+</html>

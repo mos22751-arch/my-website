@@ -1495,6 +1495,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await window.TojiAPI.ProjectsAPI.getPublic();
             if (response && Array.isArray(response.data) && response.data.length > 0) {
                 const apiCards = response.data.map((p) => ({
+                    _id:      p._id,
                     banner:   p.banner,
                     title:    p.title,
                     copy:     p.copy,
@@ -1537,6 +1538,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const link  = card.liveUrl
                 ? `<a href="${card.liveUrl}" target="_blank" rel="noreferrer" class="live-project-link">View Project →</a>`
                 : '';
+            const detailLink = card._id
+                ? `<a href="work.html?id=${card._id}" class="live-project-link live-project-detail-link">Read more →</a>`
+                : '';
             const projectKey = card._id || slugifyKey(`${card.banner || i}-${title}`);
             const given = getGivenReactions();
             const fireActive  = given.includes(`${projectKey}:fire`)  ? 'active' : '';
@@ -1565,6 +1569,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>
                     </div>
                     ${link}
+                    ${detailLink}
                 </article>`;
         }).join('');
 

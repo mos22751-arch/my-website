@@ -497,6 +497,160 @@
                         </div>
                     </details>
 
+
+                    <details class="panel" id="pricingPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">💳</span>
+                            <span>الباقات والأسعار</span>
+                            <span class="panel-summary-sub">إدارة صفحة /pricing</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="projects-toolbar">
+                                <button id="pricingLoadBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
+                                <button id="pricingAddBtn" type="button" class="btn-primary"><span>+</span> إضافة جديد</button>
+                            </div>
+                            <div class="project-form" id="pricingForm" hidden>
+                                <h3 id="pricingFormTitle">عنصر جديد</h3>
+                                <input type="hidden" id="pricingFormId">
+                                <div class="project-form-grid" id="pricingFields"></div>
+                                <div class="project-form-actions">
+                                    <button id="pricingSaveBtn" type="button" class="btn-primary">💾 حفظ</button>
+                                    <button id="pricingCancelBtn" type="button" class="btn-ghost">إلغاء</button>
+                                </div>
+                                <p id="pricingFormMsg" class="form-msg"></p>
+                            </div>
+                            <div id="pricingList"><p class="projects-hint">اضغط "تحميل" لعرض العناصر.</p></div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="processPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🧭</span>
+                            <span>خطوات العمل</span>
+                            <span class="panel-summary-sub">إدارة صفحة /process</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="projects-toolbar">
+                                <button id="processLoadBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
+                                <button id="processAddBtn" type="button" class="btn-primary"><span>+</span> إضافة جديد</button>
+                            </div>
+                            <div class="project-form" id="processForm" hidden>
+                                <h3 id="processFormTitle">عنصر جديد</h3>
+                                <input type="hidden" id="processFormId">
+                                <div class="project-form-grid" id="processFields"></div>
+                                <div class="project-form-actions">
+                                    <button id="processSaveBtn" type="button" class="btn-primary">💾 حفظ</button>
+                                    <button id="processCancelBtn" type="button" class="btn-ghost">إلغاء</button>
+                                </div>
+                                <p id="processFormMsg" class="form-msg"></p>
+                            </div>
+                            <div id="processList"><p class="projects-hint">اضغط "تحميل" لعرض العناصر.</p></div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="blogPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">📝</span>
+                            <span>المدونة</span>
+                            <span class="panel-summary-sub">إدارة صفحة /blog</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="projects-toolbar">
+                                <button id="blogLoadBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
+                                <button id="blogAddBtn" type="button" class="btn-primary"><span>+</span> إضافة جديد</button>
+                            </div>
+                            <div class="project-form" id="blogForm" hidden>
+                                <h3 id="blogFormTitle">عنصر جديد</h3>
+                                <input type="hidden" id="blogFormId">
+                                <div class="project-form-grid" id="blogFields"></div>
+                                <div class="project-form-actions">
+                                    <button id="blogSaveBtn" type="button" class="btn-primary">💾 حفظ</button>
+                                    <button id="blogCancelBtn" type="button" class="btn-ghost">إلغاء</button>
+                                </div>
+                                <p id="blogFormMsg" class="form-msg"></p>
+                            </div>
+                            <div id="blogList"><p class="projects-hint">اضغط "تحميل" لعرض العناصر.</p></div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="changelogPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🗓️</span>
+                            <span>سجل التحديثات</span>
+                            <span class="panel-summary-sub">إدارة صفحة /changelog</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="projects-toolbar">
+                                <button id="changelogLoadBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
+                                <button id="changelogAddBtn" type="button" class="btn-primary"><span>+</span> إضافة جديد</button>
+                            </div>
+                            <div class="project-form" id="changelogForm" hidden>
+                                <h3 id="changelogFormTitle">عنصر جديد</h3>
+                                <input type="hidden" id="changelogFormId">
+                                <div class="project-form-grid" id="changelogFields"></div>
+                                <div class="project-form-actions">
+                                    <button id="changelogSaveBtn" type="button" class="btn-primary">💾 حفظ</button>
+                                    <button id="changelogCancelBtn" type="button" class="btn-ghost">إلغاء</button>
+                                </div>
+                                <p id="changelogFormMsg" class="form-msg"></p>
+                            </div>
+                            <div id="changelogList"><p class="projects-hint">اضغط "تحميل" لعرض العناصر.</p></div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="stackPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">🧱</span>
+                            <span>الستاك التقني</span>
+                            <span class="panel-summary-sub">إدارة صفحة /stack</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="projects-toolbar">
+                                <button id="stackLoadBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
+                                <button id="stackAddBtn" type="button" class="btn-primary"><span>+</span> إضافة جديد</button>
+                            </div>
+                            <div class="project-form" id="stackForm" hidden>
+                                <h3 id="stackFormTitle">عنصر جديد</h3>
+                                <input type="hidden" id="stackFormId">
+                                <div class="project-form-grid" id="stackFields"></div>
+                                <div class="project-form-actions">
+                                    <button id="stackSaveBtn" type="button" class="btn-primary">💾 حفظ</button>
+                                    <button id="stackCancelBtn" type="button" class="btn-ghost">إلغاء</button>
+                                </div>
+                                <p id="stackFormMsg" class="form-msg"></p>
+                            </div>
+                            <div id="stackList"><p class="projects-hint">اضغط "تحميل" لعرض العناصر.</p></div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="quotePanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">💬</span>
+                            <span>طلبات عروض الأسعار</span>
+                            <span class="panel-summary-sub">الطلبات الجاية من صفحة /quote</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="projects-toolbar">
+                                <button id="quoteLoadBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
+                            </div>
+                            <div id="quoteList"><p class="projects-hint">اضغط "تحميل" لعرض الطلبات.</p></div>
+                        </div>
+                    </details>
+
+                    <details class="panel" id="bookingPanel">
+                        <summary class="panel-summary">
+                            <span class="panel-summary-icon">📅</span>
+                            <span>طلبات الحجز</span>
+                            <span class="panel-summary-sub">الطلبات الجاية من صفحة /book</span>
+                        </summary>
+                        <div class="panel-body">
+                            <div class="projects-toolbar">
+                                <button id="bookingLoadBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
+                            </div>
+                            <div id="bookingList"><p class="projects-hint">اضغط "تحميل" لعرض الطلبات.</p></div>
+                        </div>
+                    </details>
+
                     <details class="panel" id="analyticsPanel">
                         <summary class="panel-summary">
                             <span class="panel-summary-icon">📊</span>
@@ -596,6 +750,7 @@
 
     <script src="content.js?v=18"></script>
     <script src="api.js?v=21"></script>
-    <script src="admin.js?v=22"></script>
+    <script src="admin.js?v=24"></script>
+    <script src="admin-content.js?v=1"></script>
 </body>
 </html>
