@@ -3778,4 +3778,35 @@ window.addEventListener('beforeunload', () => {
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') updateSession();
     });
+
+    // ============================================================
+    // ✦ PAGES QUICK MENU — زرار في الدوك يفتح منيو فيها كل الصفحات
+    //    الجديدة (Pricing, Blog, Stack...) متاح من أي مكان في الموقع
+    // ============================================================
+    (function initPagesMenu() {
+        const btn = document.getElementById('dockPagesBtn');
+        const menu = document.getElementById('pagesMenu');
+        if (!btn || !menu) return;
+
+        function closeMenu() {
+            menu.hidden = true;
+            btn.setAttribute('aria-expanded', 'false');
+        }
+        function openMenu() {
+            menu.hidden = false;
+            btn.setAttribute('aria-expanded', 'true');
+        }
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (menu.hidden) openMenu(); else closeMenu();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!menu.hidden && !menu.contains(e.target) && e.target !== btn) closeMenu();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeMenu();
+        });
+    })();
 })();

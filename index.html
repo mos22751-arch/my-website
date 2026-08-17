@@ -522,6 +522,16 @@
     </button>
 
     <div class="floating-dock-wrapper" aria-label="Quick navigation" data-i18n-attr="aria-label:aria.quickNav">
+        <nav class="pages-menu glass-panel" id="pagesMenu" hidden aria-label="More pages">
+            <a href="pricing.html"><i data-lucide="credit-card" aria-hidden="true"></i> Pricing</a>
+            <a href="process.html"><i data-lucide="route" aria-hidden="true"></i> Process</a>
+            <a href="blog.html"><i data-lucide="notebook-pen" aria-hidden="true"></i> Blog</a>
+            <a href="changelog.html"><i data-lucide="calendar-clock" aria-hidden="true"></i> Changelog</a>
+            <a href="stack.html"><i data-lucide="layers" aria-hidden="true"></i> Stack</a>
+            <a href="guestbook.html"><i data-lucide="book-open" aria-hidden="true"></i> Guestbook</a>
+            <a href="quote.html"><i data-lucide="message-square-text" aria-hidden="true"></i> Get a Quote</a>
+            <a href="book.html"><i data-lucide="calendar-check" aria-hidden="true"></i> Book a Call</a>
+        </nav>
         <div class="floating-dock glass-panel">
             <button class="dock-btn active" type="button" data-target="home" aria-label="Home" data-i18n-attr="aria-label:nav.home">
                 <i data-lucide="home" aria-hidden="true"></i>
@@ -540,6 +550,9 @@
             </button>
             <button class="dock-btn" type="button" data-target="connect" aria-label="Links" data-i18n-attr="aria-label:nav.links">
                 <i data-lucide="link-2" aria-hidden="true"></i>
+            </button>
+            <button class="dock-btn" type="button" id="dockPagesBtn" aria-label="More pages" aria-haspopup="true" aria-expanded="false">
+                <i data-lucide="layout-panel-top" aria-hidden="true"></i>
             </button>
             <button class="dock-btn" type="button" data-target="quickMessageForm" aria-label="WhatsApp" id="dockWhatsapp">
                 <i data-lucide="message-circle" aria-hidden="true"></i>
@@ -564,8 +577,9 @@
     <script src="config.js?v=18"></script>
     <script src="status.js?v=18"></script>
     <script src="api.js?v=21"></script>
-        <script src="script.js?v=27"></script>
+        <script src="script.js?v=28"></script>
     <script src="enhancements.js?v=1"></script>
+    <script src="quick-nav.js?v=1"></script>
 
 
 
