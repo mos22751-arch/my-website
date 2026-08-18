@@ -243,6 +243,9 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 10px;
+    /* الحاوية نفسها متلمسش أي حاجة — بس الزرار والمينيو (لما تكون فاتحة) */
+    pointer-events: none;
+    touch-action: none;
 }
 .quick-nav-toggle {
     width: 52px;
@@ -254,14 +257,19 @@
     -webkit-backdrop-filter: blur(14px);
     color: var(--primary);
     font-size: 1.2rem;
-    cursor: pointer;
+    cursor: grab;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 .quick-nav-toggle:hover { transform: scale(1.06); }
+.quick-nav-toggle.is-dragging { cursor: grabbing; box-shadow: 0 4px 40px rgba(0,0,0,0.4); transform: scale(1.08); }
 .quick-nav-icon-close { display: none; }
 .quick-nav.is-open .quick-nav-icon-open { display: none; }
 .quick-nav.is-open .quick-nav-icon-close { display: inline; }
@@ -281,13 +289,17 @@
     opacity: 0;
     transform: translateY(8px) scale(0.98);
     pointer-events: none;
-    transition: opacity 0.18s ease, transform 0.18s ease;
+    visibility: hidden;
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
 }
 .quick-nav.is-open .quick-nav-panel {
     opacity: 1;
     transform: translateY(0) scale(1);
     pointer-events: auto;
+    visibility: visible;
 }
+.quick-nav.flip-below .quick-nav-panel { order: 2; transform: translateY(-8px) scale(0.98); }
+.quick-nav.flip-below.is-open .quick-nav-panel { transform: translateY(0) scale(1); }
 .quick-nav-item {
     display: flex;
     align-items: center;
@@ -303,6 +315,7 @@
 .quick-nav-item.is-current { color: var(--primary); font-weight: 600; }
 
 @media (max-width: 640px) {
+
     .quick-nav { right: 14px; bottom: 14px; }
     .quick-nav-toggle { width: 46px; height: 46px; }
 }

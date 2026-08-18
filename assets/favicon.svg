@@ -1,7 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="TOJI">
-  <rect width="128" height="128" rx="28" fill="#050506"/>
-  <circle cx="36" cy="38" r="28" fill="#39d0ff" opacity="0.35"/>
-  <circle cx="92" cy="92" r="34" fill="#ff7a3d" opacity="0.3"/>
-  <text x="64" y="76" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="900" fill="#f7f5ef">TOJI</text>
-  <circle cx="103" cy="78" r="5" fill="#ff7a3d"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="TOJI">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d0d0f"/>
+      <stop offset="1" stop-color="#050506"/>
+    </linearGradient>
+    <linearGradient id="glassFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.09"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.03"/>
+    </linearGradient>
+  </defs>
+
+  <!-- خلفية داكنة صافية، زي متغير خلفية الموقع -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- لوحة زجاج شفافة نضيفة (Liquid Glass) — بلا أي توهج ملون -->
+  <rect x="40" y="40" width="432" height="432" rx="92" fill="url(#glassFill)" stroke="#ffffff" stroke-opacity="0.10" stroke-width="2"/>
+
+  <!-- خط علوي رفيع بيدي إحساس انعكاس الزجاج -->
+  <path d="M 72 112 Q 256 76 440 112" stroke="#ffffff" stroke-opacity="0.14" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- TOJI wordmark -->
+  <text x="256" y="296" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="120" font-weight="800" letter-spacing="6" fill="#f5f5f4">TOJI</text>
+
+  <!-- نقطة محايدة صغيرة بدل التوهج القديم -->
+  <circle cx="256" cy="360" r="7" fill="#e5e7eb"/>
 </svg>

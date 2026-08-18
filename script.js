@@ -2474,21 +2474,19 @@ document.addEventListener('DOMContentLoaded', () => {
     updateProgress();
 
     // ── Mobile-only: the bottom dock becomes a vertical dock on the left edge.
-    // It peeks in on scroll/movement, auto-hides after 2s of inactivity, and
-    // can also be revealed manually via the small arrow tab.
+    // بدل ما تظهر تلقائي مع كل سكرول وتختفي بسرعة، دلوقتي زرار التاب هو اللي
+    // بيتحكم فيها: دوسة تفتحها وتفضل مفتوحة، دوسة تانية أو برا تقفلها.
     (function setupMobileDockPeek() {
         const dockWrapper = document.querySelector('.floating-dock-wrapper');
         const peekBtn = document.getElementById('dockPeekBtn');
         if (!dockWrapper || !peekBtn) return;
 
-        let hideTimer = null;
+        function isOpen() { return dockWrapper.classList.contains('dock-peeking'); }
 
         function showDock() {
             if (!mobileViewport.matches) return;
             dockWrapper.classList.add('dock-peeking');
             peekBtn.classList.add('is-hidden');
-            clearTimeout(hideTimer);
-            hideTimer = setTimeout(hideDock, 900);
         }
 
         function hideDock() {
@@ -2496,20 +2494,27 @@ document.addEventListener('DOMContentLoaded', () => {
             peekBtn.classList.remove('is-hidden');
         }
 
-        scrollRoot?.addEventListener('scroll', showDock, { passive: true });
-        window.addEventListener('touchmove', showDock, { passive: true });
-
-        peekBtn.addEventListener('click', showDock);
-
-        // interacting with the dock itself keeps it open instead of letting it
-        // vanish mid-tap
-        dockWrapper.addEventListener('touchstart', () => clearTimeout(hideTimer), { passive: true });
-        dockWrapper.addEventListener('click', showDock);
-
-        mobileViewport.addEventListener?.('change', () => {
-            clearTimeout(hideTimer);
-            hideDock();
+        peekBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isOpen() ? hideDock() : showDock();
         });
+
+        // اختيار عنصر من الدوك يقفلها لوحدها (بعد ما الانتقال يحصل)
+        dockWrapper.addEventListener('click', (e) => {
+            if (e.target.closest('.dock-btn')) {
+                setTimeout(hideDock, 250);
+            }
+        });
+
+        // دوسة برا الدوك تقفلها
+        document.addEventListener('click', (e) => {
+            if (!mobileViewport.matches) return;
+            if (isOpen() && !dockWrapper.contains(e.target) && e.target !== peekBtn) {
+                hideDock();
+            }
+        });
+
+        mobileViewport.addEventListener?.('change', hideDock);
     })();
 
     function ensureIndicator(container, className) {
