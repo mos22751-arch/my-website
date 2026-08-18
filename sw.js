@@ -1,9 +1,9 @@
 // ============================================================
-// TOJI Service Worker — v21.24.854
+// TOJI Service Worker — v29.24.854
 // ✅ Network-First for HTML/JS (يجيب من الشبكة أول)
 //    Cache-First for assets only (صور، icons)
 // ============================================================
-const CACHE_NAME = 'toji-site-v27';
+const CACHE_NAME = 'toji-site-v29';
 
 // فقط الأصول الثابتة اللي بتتكاش (مش HTML أو JS)
 const STATIC_ASSETS = [
