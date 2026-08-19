@@ -2897,6 +2897,7 @@ Do not resell the customized public version as a separate template unless your s
             const target = tab.dataset.tab;
             document.getElementById('aiTabSettings').hidden = target !== 'settings';
             document.getElementById('aiTabLogs').hidden     = target !== 'logs';
+            document.getElementById('aiTabMoods').hidden    = target !== 'moods';
             if (target === 'logs') loadAiThreads();
             if (target === 'settings') loadAiSettings();
         });

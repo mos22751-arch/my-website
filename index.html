@@ -37,7 +37,7 @@
     <link rel="preload" as="image" href="assets/profile.webp" fetchpriority="high">
     <link rel="stylesheet" href="style.css?v=22">
     <link rel="stylesheet" href="enhancements.css?v=6">
-    <link rel="stylesheet" href="pages.css?v=2">
+    <link rel="stylesheet" href="pages.css?v=3">
     <script src="content.js?v=18" defer></script>
     <script id="profileSchema" type="application/ld+json">
     {
@@ -126,10 +126,10 @@
                             <i data-lucide="message-circle" aria-hidden="true"></i>
                             <span>WhatsApp</span>
                         </a>
-                        <button class="action-btn action-ai" type="button" id="openAiChat">
+                        <a class="action-btn action-ai" href="zaza.html">
                             <i data-lucide="sparkles" aria-hidden="true"></i>
                             <span>Ask زعزع</span>
-                        </button>
+                        </a>
                     </div>
                     <div class="signal-row" aria-label="Profile highlights">
                         <div class="signal-item">
@@ -560,9 +560,9 @@
             <button class="dock-btn" type="button" data-target="themePanel" aria-label="Themes" id="dockThemes">
                 <i data-lucide="palette" aria-hidden="true"></i>
             </button>
-            <button class="dock-btn dock-bot-btn" type="button" id="dockBotBtn" aria-label="Ask زعزع">
+            <a class="dock-btn dock-bot-btn" href="zaza.html" aria-label="Ask زعزع">
                 <i data-lucide="bot" aria-hidden="true"></i>
-            </button>
+            </a>
             <div class="dock-divider" aria-hidden="true"></div>
             <button class="dock-btn dock-sound-btn" type="button" id="soundToggle" aria-label="Sound off — tap to enable">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="icon-mute"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
@@ -576,8 +576,8 @@
     <script src="vendor/qrcode.min.js?v=18"></script>
     <script src="config.js?v=18"></script>
     <script src="status.js?v=18"></script>
-    <script src="api.js?v=21"></script>
-        <script src="script.js?v=28"></script>
+    <script src="api.js?v=22"></script>
+        <script src="script.js?v=29"></script>
     <script src="enhancements.js?v=1"></script>
     <script src="quick-nav.js?v=2"></script>
 
@@ -589,38 +589,6 @@
 
 
 
-
-
-    <!-- ==================== AI CHAT WIDGET — زعزع (Gemini, Egyptian Arabic) ==================== -->
-    <div class="ai-chat-overlay" id="aiChatOverlay" hidden>
-        <div class="ai-chat-panel" id="aiChatPanel" role="dialog" aria-label="Chat with Zaza, Toji's AI assistant">
-            <div class="ai-chat-header">
-                <div class="ai-chat-header-info">
-                    <span class="ai-chat-avatar-wrap">
-                        <img class="ai-chat-avatar" src="assets/profile.webp" alt="زعزع" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ai-chat-avatar ai-chat-avatar-fallback',textContent:'ز'}))">
-                        <span class="ai-chat-avatar-dot" aria-hidden="true"></span>
-                    </span>
-                    <div>
-                        <p class="ai-chat-title" id="botHeaderTitle">زعزع 🤖</p>
-                        <p class="ai-chat-sub" id="botHeaderSub"><span class="ai-chat-online-dot" aria-hidden="true"></span>مساعد Toji الذكي 🇪🇬</p>
-                    </div>
-                </div>
-                <button class="ai-chat-close" id="closeAiChat" aria-label="Close">
-                    <i data-lucide="x" aria-hidden="true"></i>
-                </button>
-            </div>
-            <div class="ai-chat-messages" id="aiChatMessages"></div>
-            <!-- quick-suggestion chips -->
-            <div class="bot-choices" id="botChoices"></div>
-            <!-- free-text chat input -->
-            <div class="bot-input-row" id="botInputRow">
-                <input class="ai-chat-input" id="botInput" type="text" autocomplete="off" maxlength="300" dir="rtl" placeholder="اكتب سؤالك هنا...">
-                <button class="ai-chat-send" id="botInputSend" aria-label="Send">
-                    <i data-lucide="send" aria-hidden="true"></i>
-                </button>
-            </div>
-        </div>
-    </div>
 
 
     <!-- Admin preview click tracking -->

@@ -109,6 +109,19 @@
                 { id: 'isVisible', label: 'ظاهر على الموقع', type: 'checkbox', default: true }
             ],
             renderItem: (it) => ({ title: it.name, sub: it.category, visible: it.isVisible })
+        },
+        moods: {
+            api: () => window.TojiAPI.AiMoodAPI,
+            title: 'مود جديد',
+            fields: [
+                { id: 'key', label: 'المفتاح (إنجليزي، بدون مسافات)', type: 'text', placeholder: 'chill' },
+                { id: 'label', label: 'الاسم الظاهر للزوار', type: 'text', placeholder: 'هادي' },
+                { id: 'emoji', label: 'إيموجي', type: 'text', placeholder: '😌' },
+                { id: 'instruction', label: 'تعليمات الشخصية (إنجليزي، بتتبعت لـ AI)', type: 'textarea-lg' },
+                { id: 'order', label: 'الترتيب', type: 'number', default: 0 },
+                { id: 'enabled', label: 'ظاهر للزوار', type: 'checkbox', default: true }
+            ],
+            renderItem: (it) => ({ title: `${it.emoji || '✨'} ${it.label}`, sub: it.key, visible: it.enabled })
         }
     };
 

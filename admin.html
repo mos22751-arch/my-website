@@ -311,6 +311,7 @@
                             <div class="bot-tabs">
                                 <button class="bot-tab active" data-tab="settings">⚙️ الإعدادات</button>
                                 <button class="bot-tab" data-tab="logs">💬 محادثات الزوار</button>
+                                <button class="bot-tab" data-tab="moods">🎭 المودات</button>
                             </div>
 
                             <div class="bot-tab-content" id="aiTabSettings">
@@ -349,6 +350,25 @@
                                         <p class="projects-hint">اختار زائر من القائمة عشان تشوف محادثته كاملة.</p>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div class="bot-tab-content" id="aiTabMoods" hidden>
+                                <p class="projects-hint" style="margin:0 0 14px">المودات دي بتظهر جنب "هزار"/"جد" لما زائر يفتح شات زعزع — كل مود ليه تعليمات شخصية خاصة بيه.</p>
+                                <div class="projects-toolbar">
+                                    <button id="moodsAddBtn" type="button" class="btn-primary"><span>+</span> إضافة مود جديد</button>
+                                    <button id="moodsLoadBtn" type="button" class="btn-secondary">🔄 تحديث</button>
+                                </div>
+                                <div class="project-form" id="moodsForm" hidden>
+                                    <h4 id="moodsFormTitle">مود جديد</h4>
+                                    <input type="hidden" id="moodsFormId">
+                                    <div class="project-form-grid" id="moodsFields"></div>
+                                    <div class="projects-toolbar">
+                                        <button id="moodsSaveBtn" type="button" class="btn-primary">💾 حفظ</button>
+                                        <button id="moodsCancelBtn" type="button" class="btn-secondary">إلغاء</button>
+                                    </div>
+                                    <p id="moodsFormMsg" class="form-msg"></p>
+                                </div>
+                                <div id="moodsList"><p class="projects-hint">اضغط "تحديث" لعرض المودات.</p></div>
                             </div>
                         </div>
                     </details>
@@ -749,8 +769,8 @@
     </main>
 
     <script src="content.js?v=18"></script>
-    <script src="api.js?v=21"></script>
-    <script src="admin.js?v=24"></script>
-    <script src="admin-content.js?v=1"></script>
+    <script src="api.js?v=22"></script>
+    <script src="admin.js?v=25"></script>
+    <script src="admin-content.js?v=2"></script>
 </body>
 </html>

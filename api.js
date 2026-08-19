@@ -211,9 +211,25 @@ const WipAPI = {
 // ============================================================
 const AiAPI = {
     // messages: [{ role: 'user'|'assistant', content: string }, ...]
-    chat:   (messages, clientId, userName, mode) => apiFetch('/ai/chat', { method: 'POST', body: JSON.stringify({ messages, clientId, userName, mode }) }),
+    chat: (messages, clientId, userName, mode, moodKey, imageUrl) => apiFetch('/ai/chat', {
+        method: 'POST',
+        body: JSON.stringify({ messages, clientId, userName, mode, moodKey, imageUrl })
+    }),
     status: ()           => apiFetch('/ai/status'),
     rateLog: (id, rating) => apiFetch(`/ai/logs/${id}/rate`, { method: 'PATCH', body: JSON.stringify({ rating }) }),
+
+    // صورة الشات — صورة واحدة بس في اليوم لكل زائر
+    imageQuota: (clientId) => apiFetch(`/ai/chat-image/quota?clientId=${encodeURIComponent(clientId)}`),
+    uploadChatImage: async (file, clientId) => {
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('clientId', clientId);
+        const res = await fetch(`${API_BASE_URL}/ai/chat-image`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || 'فشل رفع الصورة');
+        return data;
+    },
+
     // Admin
     getSettings:    ()      => apiFetch('/ai/settings'),
     updateSettings: (data)  => apiFetch('/ai/settings', { method: 'PUT', body: JSON.stringify(data) }),
@@ -225,6 +241,17 @@ const AiAPI = {
     getLogs:        (page = 1) => apiFetch(`/ai/logs?page=${page}`),
     deleteLog:      (id)    => apiFetch(`/ai/logs/${id}`, { method: 'DELETE' }),
     deleteAllLogs:  ()      => apiFetch('/ai/logs', { method: 'DELETE' })
+};
+
+// ============================================================
+// AI Moods API — المودات الإضافية اللي الأدمن بيتحكم فيها
+// ============================================================
+const AiMoodAPI = {
+    getPublic: ()      => apiFetch('/ai/moods'),
+    getAll:    ()      => apiFetch('/ai/moods/all'),
+    create:    (data)  => apiFetch('/ai/moods',       { method: 'POST',   body: JSON.stringify(data) }),
+    update:    (id, d) => apiFetch('/ai/moods/' + id, { method: 'PUT',    body: JSON.stringify(d)    }),
+    remove:    (id)    => apiFetch('/ai/moods/' + id, { method: 'DELETE' })
 };
 
 // ============================================================
@@ -333,4 +360,4 @@ const BookingAPI = {
     remove:       (id)       => apiFetch(`/booking/${id}`, { method: 'DELETE' })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, LinksAPI, GuestbookAPI, ReactionsAPI, PricingAPI, ProcessAPI, BlogAPI, ChangelogAPI, StackAPI, QuoteAPI, BookingAPI, API_BASE_URL };
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, AiMoodAPI, LinksAPI, GuestbookAPI, ReactionsAPI, PricingAPI, ProcessAPI, BlogAPI, ChangelogAPI, StackAPI, QuoteAPI, BookingAPI, API_BASE_URL };

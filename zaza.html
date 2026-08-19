@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://portfolio-backend-production-e01e.up.railway.app http://localhost:5000; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <title>زعزع — AI Assistant | TOJI</title>
+    <meta name="description" content="Chat with Zaza, Toji's Egyptian-Arabic AI assistant.">
+    <meta name="theme-color" content="#050506">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap">
+    <link rel="stylesheet" href="style.css?v=22">
+    <link rel="stylesheet" href="enhancements.css?v=6">
+    <link rel="stylesheet" href="pages.css?v=3">
+</head>
+<body class="dark-theme is-loading preset-graphite">
+    <div class="mesh-bg" aria-hidden="true"></div>
+    <nav class="modern-nav glass-panel" aria-label="Primary navigation">
+        <a class="brand" href="index.html" aria-label="TOJI home"><span>TOJI</span><span class="dot">.</span></a>
+        <div class="nav-links" aria-label="Section links">
+            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link" href="pricing.html">Pricing</a>
+            <a class="nav-link" href="process.html">Process</a>
+            <a class="nav-link" href="blog.html">Blog</a>
+            <a class="nav-link" href="changelog.html">Changelog</a>
+            <a class="nav-link" href="stack.html">Stack</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-switch" id="themeToggle" type="button" aria-label="Switch theme">
+                <i data-lucide="sun" class="icon-sun" aria-hidden="true"></i>
+                <i data-lucide="moon" class="icon-moon" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+    <main class="smooth-scroll">
+
+        <section class="page-hero">
+            <p class="eyebrow">AI Assistant</p>
+            <h1>دردش مع زعزع</h1>
+            <p>مساعد Toji الذكي، بيتكلم مصري بس. اسأله عن شغل Toji أو دردش معاه في أي حاجة.</p>
+        </section>
+        <section class="page-body zaza-page-body">
+            <div class="ai-chat-panel zaza-panel settled" id="zazaPanel" role="region" aria-label="Chat with Zaza, Toji's AI assistant">
+                <div class="ai-chat-header">
+                    <div class="ai-chat-header-info">
+                        <span class="ai-chat-avatar-wrap">
+                            <img class="ai-chat-avatar" src="assets/profile.webp" alt="زعزع" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ai-chat-avatar ai-chat-avatar-fallback',textContent:'ز'}))">
+                            <span class="ai-chat-avatar-dot" aria-hidden="true"></span>
+                        </span>
+                        <div>
+                            <p class="ai-chat-title" id="botHeaderTitle">زعزع 🤖</p>
+                            <p class="ai-chat-sub" id="botHeaderSub"><span class="ai-chat-online-dot" aria-hidden="true"></span>مساعد Toji الذكي 🇪🇬</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-chat-messages" id="aiChatMessages"></div>
+                <!-- quick-suggestion chips + mode/mood chips -->
+                <div class="bot-choices" id="botChoices"></div>
+                <!-- pending image preview before sending -->
+                <div class="bot-image-preview" id="botImagePreview" hidden></div>
+                <!-- free-text chat input -->
+                <div class="bot-input-row" id="botInputRow">
+                    <label class="bot-image-btn" id="botImageBtn" title="ابعت صورة (1 يوميًا)" aria-label="Attach an image">
+                        <input type="file" id="botImageInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+                        <i data-lucide="image" aria-hidden="true"></i>
+                    </label>
+                    <input class="ai-chat-input" id="botInput" type="text" autocomplete="off" maxlength="300" dir="rtl" placeholder="اكتب سؤالك هنا...">
+                    <button class="ai-chat-send" id="botInputSend" aria-label="Send">
+                        <i data-lucide="send" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="owner-credit" data-owner-credit=""><span>Website created by:</span><a href="https://www.instagram.com/mouhamedmostafffa" target="_blank" rel="noopener noreferrer">@mouhamedmostafffa</a><span class="owner-copyright">© 2026 Mohamed Mostafa. All rights reserved.</span></footer>
+    <script src="vendor/lucide.min.js?v=18"></script>
+    <script src="api.js?v=22"></script>
+    <script src="pages-shell.js?v=1"></script>
+    <script src="quick-nav.js?v=2"></script>
+    <script src="zaza.js?v=1"></script>
+</body>
+</html>
