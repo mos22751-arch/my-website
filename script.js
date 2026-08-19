@@ -1017,8 +1017,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const clientId = getClientId();
 
-        let history = []; // [{ role: 'user'|'assistant', content }] — في الذاكرة بس، طول ما البوكس مفتوح
-        let busy    = false;
+        // ── اسم الزائر: بيتحفظ في المتصفح بتاعه عشان لو رجع تاني زعزع يفتكره
+        //    ويسأله يهزر ولا يتكلم جد من غير ما يطلب الاسم تاني ──
+        function getSavedName() {
+            try { return (localStorage.getItem('toji_ai_user_name') || '').trim(); } catch { return ''; }
+        }
+        function saveName(n) {
+            try { localStorage.setItem('toji_ai_user_name', String(n || '').trim().slice(0, 60)); } catch {}
+        }
+
+        let history  = []; // [{ role: 'user'|'assistant', content }] — في الذاكرة بس، طول ما البوكس مفتوح
+        let busy     = false;
+        let userName = getSavedName();
+        let mode     = null;         // 'joke' | 'serious' — بيتحدد كل مرة تفتح فيها الشات
+        let stage    = 'name';       // 'name' → 'mode' → 'chat'
 
         // ── render helpers ───────────────────────────────────────
         function scroll() { msgEl.scrollTop = msgEl.scrollHeight; }
@@ -1108,6 +1120,24 @@ document.addEventListener('DOMContentLoaded', () => {
             ).join('');
         }
 
+        // ── سؤال المود: هزار (يدخل رومانسي) ولا جد ──────────────────
+        function showModeChoices() {
+            choices.innerHTML =
+                '<button class="bot-choice-btn" data-mode="joke">😄 هزار</button>' +
+                '<button class="bot-choice-btn" data-mode="serious">🧐 جد</button>';
+        }
+
+        function chooseMode(m) {
+            mode  = (m === 'joke') ? 'joke' : 'serious';
+            stage = 'chat';
+            clearChoices();
+            inputRow.hidden = false;
+            addMsg(mode === 'joke' ? 'يلا بينا نهزر شوية 😄' : 'تمام، هنتكلم كلام جد 🙂', 'ai', { noActions: true });
+            addMsg('أسألني أي حاجة عن شغل Toji، أو دردش معايا في أي موضوع تاني 😊', 'ai', { noActions: true });
+            showSuggestions();
+            inputEl.focus();
+        }
+
         const FALLBACK_ERROR = 'معلش 🙏 في مشكلة بسيطة في الاتصال، جرب تاني كمان شوية.';
 
         function setBusy(v) {
@@ -1121,7 +1151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         async function askAndAppend() {
             try {
                 // كل المطابقة (الردود الجاهزة + Gemini) وكل الـ logging بيحصلوا في الباك إند
-                const res   = await window.TojiAPI.AiAPI.chat(history, clientId);
+                const res   = await window.TojiAPI.AiAPI.chat(history, clientId, userName, mode);
                 const reply = (res && res.content ? String(res.content) : '').trim() || FALLBACK_ERROR;
                 hideTyping();
                 addMsg(reply, 'ai', { logId: res && res.logId });
@@ -1139,6 +1169,20 @@ document.addEventListener('DOMContentLoaded', () => {
         async function sendMessage(raw) {
             const text = String(raw || '').trim();
             if (!text || busy) return;
+
+            // ── أول رسالة بتتبعت وإحنا لسه ما عرفناش اسم الزائر ──
+            if (stage === 'name') {
+                addMsg(text, 'user');
+                inputEl.value = '';
+                const cleanName = text.slice(0, 60);
+                userName = cleanName;
+                saveName(cleanName);
+                addMsg('تشرفنا يا ' + cleanName + '! 😄 عايزنا نهزر ولا نتكلم جد النهارده؟', 'ai', { noActions: true });
+                stage = 'mode';
+                inputRow.hidden = true;
+                showModeChoices();
+                return;
+            }
 
             addMsg(text, 'user');
             history.push({ role: 'user', content: text });
@@ -1171,8 +1215,14 @@ document.addEventListener('DOMContentLoaded', () => {
             await askAndAppend();
         }
 
-        // ── quick-suggestion chips ────────────────────────────────
+        // ── quick-suggestion chips + أزرار اختيار المود ────────────
         choices.addEventListener('click', (e) => {
+            const modeBtn = e.target.closest('[data-mode]');
+            if (modeBtn) {
+                if (busy) return;
+                chooseMode(modeBtn.dataset.mode);
+                return;
+            }
             const btn = e.target.closest('[data-msg]');
             if (!btn || busy) return;
             sendMessage(btn.dataset.msg);
@@ -1196,12 +1246,26 @@ document.addEventListener('DOMContentLoaded', () => {
             msgEl.innerHTML  = '';
             history          = [];
             setBusy(false);
-            inputRow.hidden  = false;
             inputEl.value    = '';
             if (window.lucide) window.lucide.createIcons();
-            addMsg('يا هلا 👋 أنا زعزع، مساعد Toji الذكي! اسألني أي حاجة عن شغله، أو دردش معايا في أي موضوع تاني، أنا هنا 😄', 'ai', { noActions: true });
-            showSuggestions();
-            inputEl.focus();
+
+            userName = getSavedName();
+            mode     = null;
+            clearChoices();
+
+            if (userName) {
+                // ── زعزع فاكر الزائر ده من زيارة قبل كده ──────────────
+                stage = 'mode';
+                inputRow.hidden = true;
+                addMsg('يا هلا بيك تاني يا ' + userName + ' 👋 أنا زعزع.. عايزنا نهزر ولا نتكلم جد النهارده؟', 'ai', { noActions: true });
+                showModeChoices();
+            } else {
+                // ── أول مرة: نسأل عن الاسم قبل أي حاجة تانية ──────────
+                stage = 'name';
+                inputRow.hidden = false;
+                addMsg('يا هلا 👋 أنا زعزع، مساعد Toji الذكي! قبل ما نبدأ.. اسمك إيه؟', 'ai', { noActions: true });
+                inputEl.focus();
+            }
         }
 
         openBtn.addEventListener('click', openChat);

@@ -2956,6 +2956,7 @@ Do not resell the customized public version as a separate template unless your s
     let activeThreadKey = null;
 
     function threadDisplayName(thread) {
+        if (thread.lastUserName) return '👤 ' + thread.lastUserName;
         if (thread.clientId) return '👤 زائر #' + String(thread.clientId).slice(-6);
         return '🌐 ' + (thread.ip || 'مجهول');
     }

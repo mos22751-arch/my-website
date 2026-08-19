@@ -211,7 +211,7 @@ const WipAPI = {
 // ============================================================
 const AiAPI = {
     // messages: [{ role: 'user'|'assistant', content: string }, ...]
-    chat:   (messages, clientId) => apiFetch('/ai/chat', { method: 'POST', body: JSON.stringify({ messages, clientId }) }),
+    chat:   (messages, clientId, userName, mode) => apiFetch('/ai/chat', { method: 'POST', body: JSON.stringify({ messages, clientId, userName, mode }) }),
     status: ()           => apiFetch('/ai/status'),
     rateLog: (id, rating) => apiFetch(`/ai/logs/${id}/rate`, { method: 'PATCH', body: JSON.stringify({ rating }) }),
     // Admin
