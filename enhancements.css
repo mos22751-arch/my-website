@@ -1606,6 +1606,19 @@ body.ai-chat-open .floating-dock {
 .ai-chat-close:hover { background: rgba(255,90,90,0.16); color: #ff8080; transform: rotate(90deg); }
 .ai-chat-close svg { width: 14px; height: 14px; }
 
+.ai-chat-edit-name-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(40,40,44,0.6);
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s, transform 0.15s;
+    flex-shrink: 0;
+}
+.ai-chat-edit-name-btn:hover { background: rgba(255,255,255,0.14); color: #fff; transform: scale(1.08); }
+.ai-chat-edit-name-btn svg { width: 14px; height: 14px; }
+
 /* Messages */
 .ai-chat-messages {
     flex: 1;

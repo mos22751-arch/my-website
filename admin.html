@@ -332,6 +332,35 @@
                                     <label class="full-width">طريقة التواصل<input id="aiFieldContact" type="text"></label>
                                 </div>
 
+                                <details class="panel" id="aiPromptPanel" style="margin-top:16px">
+                                    <summary class="panel-summary" style="padding:10px 12px">
+                                        <span class="panel-summary-icon">🧬</span>
+                                        <span>الشخصية والبرومبت (متقدم)</span>
+                                        <span class="panel-summary-sub">تحكم كامل في شخصية زعزع والمودات الأساسية</span>
+                                    </summary>
+                                    <div class="panel-body">
+                                        <p class="projects-hint" style="margin:0 0 14px">
+                                            دي النصوص الخام اللي بتتبعت لزعزع كـ "شخصية" أساسية. القيم الافتراضية هي شخصيته الحالية بالظبط —
+                                            ما تلمسهاش لو مش متأكد، لكن تقدر تغيّر أي جزء براحتك (اسمه، طريقة كلامه، شخصية المود الرومانسي/الجد، إلخ).
+                                            سيبها فاضية عشان ترجّع القيمة الافتراضية.
+                                        </p>
+                                        <div class="grid">
+                                            <label class="full-width">مقدمة الشخصية العامة (الاسم، اللغة، القواعد الأساسية)
+                                                <textarea id="aiFieldPersonalityIntro" rows="7" dir="ltr" style="font-family:monospace;font-size:0.82rem"></textarea>
+                                            </label>
+                                            <label class="full-width">تعليمات مود "هزار" (Mode A — رومانسي/كاجوال)
+                                                <textarea id="aiFieldModeA" rows="6" dir="ltr" style="font-family:monospace;font-size:0.82rem"></textarea>
+                                            </label>
+                                            <label class="full-width">تعليمات مود "شغل" (Mode B — احترافي)
+                                                <textarea id="aiFieldModeB" rows="6" dir="ltr" style="font-family:monospace;font-size:0.82rem"></textarea>
+                                            </label>
+                                            <label class="full-width">تعليمات ختامية (تتحط آخر البرومبت دايمًا)
+                                                <textarea id="aiFieldClosing" rows="3" dir="ltr" style="font-family:monospace;font-size:0.82rem"></textarea>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </details>
+
                                 <div class="projects-toolbar" style="margin-top:14px">
                                     <button id="aiSaveSettingsBtn" class="btn-primary">💾 حفظ الإعدادات</button>
                                     <button id="aiRefreshSettingsBtn" class="btn-secondary">🔄 تحديث</button>

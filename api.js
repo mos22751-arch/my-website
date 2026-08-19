@@ -237,6 +237,10 @@ const AiAPI = {
     getThreads:     ()      => apiFetch('/ai/logs/threads'),
     getThread:      (key)   => apiFetch(`/ai/logs/thread/${encodeURIComponent(key)}`),
     deleteThread:   (key)   => apiFetch(`/ai/logs/thread/${encodeURIComponent(key)}`, { method: 'DELETE' }),
+    // تعليمات خاصة بشخص/محادثة بعينها (شخصية زعزع مع الشخص ده تحديدًا)
+    getPersona:     (key)              => apiFetch(`/ai/persona/${encodeURIComponent(key)}`),
+    updatePersona:  (key, instruction) => apiFetch(`/ai/persona/${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify({ instruction }) }),
+    deletePersona:  (key)              => apiFetch(`/ai/persona/${encodeURIComponent(key)}`, { method: 'DELETE' }),
     // (Legacy) قائمة مسطحة
     getLogs:        (page = 1) => apiFetch(`/ai/logs?page=${page}`),
     deleteLog:      (id)    => apiFetch(`/ai/logs/${id}`, { method: 'DELETE' }),

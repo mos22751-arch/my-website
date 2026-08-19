@@ -2919,6 +2919,10 @@ Do not resell the customized public version as a separate template unless your s
             el('aiFieldEducation').value    = s.education  || '';
             el('aiFieldProjects').value     = s.projects   || '';
             el('aiFieldContact').value      = s.contact    || '';
+            el('aiFieldPersonalityIntro').value = s.personalityIntro    || '';
+            el('aiFieldModeA').value            = s.modeAInstructions   || '';
+            el('aiFieldModeB').value            = s.modeBInstructions   || '';
+            el('aiFieldClosing').value          = s.closingInstructions || '';
         } catch (err) {
             msgEl.textContent = '❌ ' + err.message;
             msgEl.className = 'form-msg error';
@@ -2939,7 +2943,11 @@ Do not resell the customized public version as a separate template unless your s
                 experience: el('aiFieldExperience').value.trim(),
                 education:  el('aiFieldEducation').value.trim(),
                 projects:   el('aiFieldProjects').value.trim(),
-                contact:    el('aiFieldContact').value.trim()
+                contact:    el('aiFieldContact').value.trim(),
+                personalityIntro:    el('aiFieldPersonalityIntro').value.trim(),
+                modeAInstructions:   el('aiFieldModeA').value.trim(),
+                modeBInstructions:   el('aiFieldModeB').value.trim(),
+                closingInstructions: el('aiFieldClosing').value.trim()
             });
             msgEl.textContent = '✅ تم الحفظ بنجاح.';
             msgEl.className = 'form-msg success';
@@ -3022,6 +3030,15 @@ Do not resell the customized public version as a separate template unless your s
                     <span>${logs.length} رسالة</span>
                     <button class="btn-danger btn-sm" id="aiDeleteThreadBtn">🗑 مسح المحادثة دي</button>
                 </div>
+                <div class="ai-thread-persona">
+                    <label for="aiThreadPersonaInput">🎭 إزاي زعزع يكلم الشخص ده تحديدًا (تعليمات خاصة، اختياري)</label>
+                    <textarea id="aiThreadPersonaInput" rows="3" placeholder="مثال: ده صاحبي فلان، اتكلم معاه عادي وادّيله ثقة زيادة... / ده عميل محتمل، خليك احترافي جدًا معاه ومتهزرش..."></textarea>
+                    <div class="projects-toolbar">
+                        <button class="btn-primary btn-sm" id="aiThreadPersonaSaveBtn">💾 حفظ التعليمات دي</button>
+                        <button class="btn-secondary btn-sm" id="aiThreadPersonaClearBtn">🗑 امسح (رجّعه للسلوك العام)</button>
+                    </div>
+                    <p id="aiThreadPersonaMsg" class="form-msg"></p>
+                </div>
                 <div class="ai-thread-chat-body">${bubbles || '<p class="projects-hint">مفيش رسائل.</p>'}</div>`;
 
             el('aiDeleteThreadBtn')?.addEventListener('click', async () => {
@@ -3033,6 +3050,48 @@ Do not resell the customized public version as a separate template unless your s
                     chatEl.innerHTML = '<p class="projects-hint">اختار زائر من القائمة عشان تشوف محادثته كاملة.</p>';
                     loadAiThreads();
                 } catch (err) { showBanner('❌ ' + err.message, 'error'); }
+            });
+
+            // ── تعليمات خاصة بالشخص ده (persona override) ────────────
+            const personaInput   = el('aiThreadPersonaInput');
+            const personaMsgEl   = el('aiThreadPersonaMsg');
+            const personaSaveBtn = el('aiThreadPersonaSaveBtn');
+            const personaClearBtn = el('aiThreadPersonaClearBtn');
+
+            try {
+                const personaRes = await window.TojiAPI.AiAPI.getPersona(key);
+                personaInput.value = (personaRes && personaRes.data && personaRes.data.instruction) || '';
+            } catch (err) {
+                personaMsgEl.textContent = '❌ ' + err.message;
+                personaMsgEl.className = 'form-msg error';
+            }
+
+            personaSaveBtn?.addEventListener('click', async () => {
+                personaMsgEl.textContent = '⏳ جارٍ الحفظ...';
+                personaMsgEl.className = 'form-msg';
+                try {
+                    await window.TojiAPI.AiAPI.updatePersona(key, personaInput.value.trim());
+                    personaMsgEl.textContent = '✅ اتحفظت — زعزع هيكلمه كده من دلوقتي.';
+                    personaMsgEl.className = 'form-msg success';
+                } catch (err) {
+                    personaMsgEl.textContent = '❌ ' + err.message;
+                    personaMsgEl.className = 'form-msg error';
+                }
+            });
+
+            personaClearBtn?.addEventListener('click', async () => {
+                if (personaInput.value.trim() && !confirm('تمسح تعليمات الشخص ده وترجّعه للسلوك العام؟')) return;
+                personaMsgEl.textContent = '⏳ جارٍ المسح...';
+                personaMsgEl.className = 'form-msg';
+                try {
+                    await window.TojiAPI.AiAPI.deletePersona(key);
+                    personaInput.value = '';
+                    personaMsgEl.textContent = '✅ رجع للسلوك العام.';
+                    personaMsgEl.className = 'form-msg success';
+                } catch (err) {
+                    personaMsgEl.textContent = '❌ ' + err.message;
+                    personaMsgEl.className = 'form-msg error';
+                }
             });
 
             // يفضل الشات مسكرول لآخر رسالة

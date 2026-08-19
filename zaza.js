@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const imgBtn   = document.getElementById('botImageBtn');
     const imgInput = document.getElementById('botImageInput');
     const imgPreview = document.getElementById('botImagePreview');
+    const editNameBtn = document.getElementById('editNameBtn');
     if (!panel || !msgEl) return;
 
     // ── معرّف ثابت لكل زائر، بيتحفظ في المتصفح بتاعه، عشان لوحة الأدمن
@@ -47,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let mode           = null;   // 'joke' | 'serious'
     let moodKey        = '';     // مود مخصص من اللي الأدمن ضايفهم
     let stage          = 'name'; // 'name' → 'mode' → 'chat'
+    let awaitingNameEdit = false; // true لما الزائر يضغط زرار "غيّر اسمك" (تصحيح اسم اتكتب غلط)
     let moods          = [];     // المودات المخصصة (من الأدمن)
     let remainingImages = 1;     // كام صورة فاضلة النهارده
     let pendingImageUrl = '';    // رابط صورة متبعت وجاهزة تتضاف للرسالة الجاية
@@ -207,18 +209,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = String(raw || '').trim();
         if ((!text && !pendingImageUrl) || busy) return;
 
-        // ── أول رسالة بتتبعت وإحنا لسه ما عرفناش اسم الزائر ──
+        // ── أول رسالة بتتبعت وإحنا لسه ما عرفناش اسم الزائر (أو الزائر بيصحح اسمه) ──
         if (stage === 'name') {
             if (!text) return;
             addMsg(text, 'user');
             inputEl.value = '';
             const cleanName = text.slice(0, 60);
+            const wasCorrection = awaitingNameEdit;
             userName = cleanName;
             saveName(cleanName);
-            addMsg('تشرفنا يا ' + cleanName + '! 😄 عايزنا نهزر ولا نتكلم جد النهارده؟', 'ai', { noActions: true });
-            stage = 'mode';
-            inputRow.hidden = true;
-            showModeChoices();
+            awaitingNameEdit = false;
+
+            if (wasCorrection) {
+                // كان بيصحح اسم اتكتب غلط قبل كده — نكمل من نفس مكان المحادثة
+                addMsg('تمام، هبقى أناديك يا ' + cleanName + ' بقى 😄', 'ai', { noActions: true });
+                stage = 'chat';
+                inputRow.hidden = false;
+                inputEl.focus();
+            } else {
+                addMsg('تشرفنا يا ' + cleanName + '! 😄 عايزنا نهزر ولا نتكلم جد النهارده؟', 'ai', { noActions: true });
+                stage = 'mode';
+                inputRow.hidden = true;
+                showModeChoices();
+            }
             return;
         }
 
@@ -272,6 +285,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = e.target.closest('[data-msg]');
         if (!btn || busy) return;
         sendMessage(btn.dataset.msg);
+    });
+
+    // ── تصحيح الاسم: لو زعزع سأل الاسم وجاوبت غلط، تقدر تصححه في أي وقت ──
+    editNameBtn?.addEventListener('click', () => {
+        if (busy) return;
+        awaitingNameEdit = true;
+        stage = 'name';
+        clearChoices();
+        inputRow.hidden = false;
+        addMsg('تمام، اسمك الصح إيه؟ ✏️', 'ai', { noActions: true });
+        inputEl.value = '';
+        inputEl.focus();
     });
 
     // ── free-text input ───────────────────────────────────────

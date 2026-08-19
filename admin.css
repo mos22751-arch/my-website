@@ -2331,6 +2331,35 @@ code {
     color: var(--muted);
 }
 
+.ai-thread-persona {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding: 12px;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+}
+.ai-thread-persona label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+}
+.ai-thread-persona textarea {
+    width: 100%;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+}
+.ai-thread-persona .projects-toolbar { margin: 0; }
+.ai-thread-persona .form-msg { margin: 0; }
+
 .ai-thread-chat-body {
     display: flex;
     flex-direction: column;
