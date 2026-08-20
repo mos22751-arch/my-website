@@ -36,8 +36,8 @@
     <!-- صورة البروفايل هي الـ LCP element (أول حاجة كبيرة تتشاف) — بنحملها بدري -->
     <link rel="preload" as="image" href="assets/profile.webp" fetchpriority="high">
     <link rel="stylesheet" href="style.css?v=22">
-    <link rel="stylesheet" href="enhancements.css?v=6">
-    <link rel="stylesheet" href="pages.css?v=3">
+    <link rel="stylesheet" href="enhancements.css?v=7">
+    <link rel="stylesheet" href="pages.css?v=4">
     <script src="content.js?v=18" defer></script>
     <script id="profileSchema" type="application/ld+json">
     {
@@ -563,11 +563,32 @@
             <a class="dock-btn dock-bot-btn" href="zaza.html" aria-label="Ask زعزع">
                 <i data-lucide="bot" aria-hidden="true"></i>
             </a>
+            <button class="dock-btn dock-tour-btn" type="button" id="dockTourBtn" aria-label="جولة مع زعزع">
+                <i data-lucide="compass" aria-hidden="true"></i>
+            </button>
             <div class="dock-divider" aria-hidden="true"></div>
             <button class="dock-btn dock-sound-btn" type="button" id="soundToggle" aria-label="Sound off — tap to enable">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="icon-mute"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="icon-on" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
             </button>
+        </div>
+    </div>
+
+    <!-- ==================== زعزع Tour — جولة موجّهة section بـ section ==================== -->
+    <div class="zaza-tour-card" id="zazaTourCard" hidden role="dialog" aria-label="جولة مع زعزع">
+        <div class="zaza-tour-avatar">
+            <img src="assets/profile.webp" alt="" onerror="this.style.display='none'">
+        </div>
+        <div class="zaza-tour-body">
+            <p class="zaza-tour-step" id="zazaTourStep">1/6</p>
+            <p class="zaza-tour-text" id="zazaTourText"></p>
+            <div class="zaza-tour-actions">
+                <button type="button" class="zaza-tour-btn zaza-tour-skip" id="zazaTourSkip">تخطي الجولة</button>
+                <div class="zaza-tour-nav">
+                    <button type="button" class="zaza-tour-btn zaza-tour-prev" id="zazaTourPrev">السابق</button>
+                    <button type="button" class="zaza-tour-btn zaza-tour-next primary" id="zazaTourNext">التالي</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -577,9 +598,10 @@
     <script src="config.js?v=18"></script>
     <script src="status.js?v=18"></script>
     <script src="api.js?v=22"></script>
-        <script src="script.js?v=29"></script>
+        <script src="script.js?v=30"></script>
     <script src="enhancements.js?v=1"></script>
     <script src="quick-nav.js?v=2"></script>
+    <script src="tour.js?v=1"></script>
 
 
 

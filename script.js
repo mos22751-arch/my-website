@@ -663,7 +663,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dock) {
             // احتفظ بالديفايدر + صوت + WhatsApp + Themes الثابتة في الـ DOM
             const savedTail = [];
-            ['dockWhatsapp','dockThemes','.dock-bot-btn','.dock-divider','.dock-sound-btn'].forEach((sel) => {
+            ['dockWhatsapp','dockThemes','.dock-bot-btn','.dock-tour-btn','.dock-divider','.dock-sound-btn'].forEach((sel) => {
                 const el = dock.querySelector(sel.startsWith('.') ? sel : `#${sel}`);
                 if (el) savedTail.push(el.outerHTML);
             });

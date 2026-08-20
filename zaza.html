@@ -12,8 +12,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap">
     <link rel="stylesheet" href="style.css?v=22">
-    <link rel="stylesheet" href="enhancements.css?v=6">
-    <link rel="stylesheet" href="pages.css?v=3">
+    <link rel="stylesheet" href="enhancements.css?v=7">
+    <link rel="stylesheet" href="pages.css?v=4">
 </head>
 <body class="dark-theme is-loading preset-graphite">
     <div class="mesh-bg" aria-hidden="true"></div>
@@ -54,9 +54,14 @@
                             <p class="ai-chat-sub" id="botHeaderSub"><span class="ai-chat-online-dot" aria-hidden="true"></span>مساعد Toji الذكي 🇪🇬</p>
                         </div>
                     </div>
-                    <button class="ai-chat-edit-name-btn" id="editNameBtn" type="button" title="غيّر اسمك عند زعزع" aria-label="Change your name">
-                        <i data-lucide="pencil" aria-hidden="true"></i>
-                    </button>
+                    <div class="ai-chat-header-actions">
+                        <a class="ai-chat-human-link" id="humanContactLink" href="#" target="_blank" rel="noopener noreferrer" title="تكلم مع Toji مباشرة" aria-label="Talk to Toji directly">
+                            <i data-lucide="phone-call" aria-hidden="true"></i>
+                        </a>
+                        <button class="ai-chat-edit-name-btn" id="editNameBtn" type="button" title="غيّر اسمك عند زعزع" aria-label="Change your name">
+                            <i data-lucide="pencil" aria-hidden="true"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="ai-chat-messages" id="aiChatMessages"></div>
                 <!-- quick-suggestion chips + mode/mood chips -->
@@ -82,6 +87,6 @@
     <script src="api.js?v=22"></script>
     <script src="pages-shell.js?v=1"></script>
     <script src="quick-nav.js?v=2"></script>
-    <script src="zaza.js?v=1"></script>
+    <script src="zaza.js?v=2"></script>
 </body>
 </html>

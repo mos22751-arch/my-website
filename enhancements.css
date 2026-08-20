@@ -2349,3 +2349,112 @@ body.domain-reverting::before {
     50% { opacity: 1; transform: scale(1.04); }
 }
 
+/* ==================== زعزع Tour ==================== */
+.zaza-tour-highlight {
+    outline: 2px solid rgba(110, 198, 255, 0.55);
+    outline-offset: 6px;
+    border-radius: 18px;
+    animation: zazaTourPulse 1.6s ease-in-out infinite;
+}
+@keyframes zazaTourPulse {
+    0%, 100% { outline-color: rgba(110, 198, 255, 0.35); }
+    50%      { outline-color: rgba(110, 198, 255, 0.75); }
+}
+
+.zaza-tour-card {
+    position: fixed;
+    left: 50%;
+    bottom: 90px;
+    transform: translate(-50%, 16px);
+    width: min(420px, calc(100vw - 32px));
+    z-index: 950;
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 20px;
+    background: rgba(20, 20, 24, 0.72);
+    border: 1px solid var(--glass-border, rgba(255,255,255,0.12));
+    backdrop-filter: blur(3px) saturate(140%);
+    -webkit-backdrop-filter: blur(3px) saturate(140%);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.zaza-tour-card.is-open {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+}
+.zaza-tour-avatar {
+    flex-shrink: 0;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.16);
+}
+.zaza-tour-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.zaza-tour-body { flex: 1; min-width: 0; }
+.zaza-tour-step {
+    margin: 0 0 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.5);
+}
+.zaza-tour-text {
+    margin: 0 0 12px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: rgba(255,255,255,0.92);
+}
+.zaza-tour-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.zaza-tour-nav { display: flex; gap: 8px; }
+.zaza-tour-btn {
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.85);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, opacity 0.15s ease;
+}
+.zaza-tour-btn:hover { background: rgba(255,255,255,0.14); }
+.zaza-tour-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.zaza-tour-btn.primary {
+    background: #6ec6ff;
+    border-color: #6ec6ff;
+    color: #06131f;
+}
+.zaza-tour-btn.primary:hover { background: #86d2ff; }
+.zaza-tour-skip {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    text-decoration: underline;
+    padding: 7px 4px;
+}
+
+.light-theme .zaza-tour-card {
+    background: rgba(255,255,255,0.85);
+    border-color: rgba(58,52,40,0.14);
+}
+.light-theme .zaza-tour-text { color: rgba(30,25,15,0.88); }
+.light-theme .zaza-tour-btn { color: rgba(30,25,15,0.85); background: rgba(58,52,40,0.06); border-color: rgba(58,52,40,0.14); }
+.light-theme .zaza-tour-btn:hover { background: rgba(58,52,40,0.12); }
+.light-theme .zaza-tour-skip { color: rgba(30,25,15,0.5); }
+
+@media (max-width: 640px) {
+    .zaza-tour-card { bottom: 78px; padding: 12px 14px; }
+    .zaza-tour-actions { flex-direction: column; align-items: stretch; }
+    .zaza-tour-nav { justify-content: space-between; }
+}
+

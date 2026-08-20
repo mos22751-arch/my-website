@@ -408,6 +408,62 @@
     display: block;
 }
 
+/* escalation CTA — "كلم Toji مباشرة" لما زعزع يحس إن الموضوع جد */
+.ai-escalate-card {
+    margin: 4px 16px 14px 46px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: rgba(110, 198, 255, 0.08);
+    border: 1px solid rgba(110, 198, 255, 0.28);
+    animation: aiEscalateIn 0.25s ease;
+}
+@keyframes aiEscalateIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.ai-escalate-text {
+    margin: 0 0 10px;
+    font-size: 0.85rem;
+    color: var(--text-main);
+}
+.ai-escalate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    background: #25d366;
+    color: #05220f;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ai-escalate-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(37,211,102,0.35); }
+.ai-escalate-btn svg { width: 15px; height: 15px; }
+
+/* رابط دايم "تكلم مع Toji" في هيدر صفحة زعزع — احتياطي، متاح دايمًا */
+.ai-chat-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.ai-chat-human-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(40,40,44,0.6);
+    color: rgba(255,255,255,0.6);
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+.ai-chat-human-link:hover { background: rgba(37,211,102,0.18); color: #25d366; transform: scale(1.08); }
+.ai-chat-human-link svg { width: 14px; height: 14px; }
+
 @media (max-width: 640px) {
 
     .quick-nav { right: 14px; bottom: 14px; }

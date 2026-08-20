@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let history       = [];
     let busy           = false;
+    let profilePhone   = '201102550730'; // fallback، بيتحدّث من الإعدادات لو موجودة
     let uploadingImage = false;
     let userName       = getSavedName();
     let mode           = null;   // 'joke' | 'serious'
@@ -196,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hideTyping();
             addMsg(reply, 'ai', { logId: res && res.logId });
             history.push({ role: 'assistant', content: reply });
+            if (res && res.escalate) addEscalateCTA();
         } catch (err) {
             hideTyping();
             addMsg(FALLBACK_ERROR, 'ai', { noActions: true });
@@ -219,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
             userName = cleanName;
             saveName(cleanName);
             awaitingNameEdit = false;
+            updateHumanContactLink();
 
             if (wasCorrection) {
                 // كان بيصحح اسم اتكتب غلط قبل كده — نكمل من نفس مكان المحادثة
@@ -369,10 +372,57 @@ document.addEventListener('DOMContentLoaded', () => {
         updateImageButtonState();
     }
 
+    // ── رقم واتساب Toji من إعدادات الموقع (نفس المستخدم في باقي الصفحات) ──
+    async function loadProfilePhone() {
+        try {
+            const res = await window.TojiAPI?.ConfigAPI?.get?.();
+            const phone = res?.data?.profile?.phone || res?.data?.phone;
+            if (phone) profilePhone = String(phone).replace(/[^\d]/g, '') || profilePhone;
+        } catch {}
+        updateHumanContactLink();
+    }
+
+    // ── الرابط الدايم في الهيدر: احتياطي متاح للزائر أي وقت، مش لازم زعزع يفعّله ──
+    function updateHumanContactLink() {
+        const link = document.getElementById('humanContactLink');
+        if (!link) return;
+        const msg = userName
+            ? `أهلًا Toji، أنا ${userName}. حابب أتكلم معاك مباشرة عن مشروع.`
+            : 'أهلًا Toji، حابب أتكلم معاك مباشرة عن مشروع.';
+        link.href = `https://wa.me/${profilePhone}?text=${encodeURIComponent(msg)}`;
+    }
+
+    // ── زرار "كلم Toji مباشرة" لما زعزع يحس إن الزائر عميل جد محتمل ──
+    function buildEscalateMessage() {
+        const recap = history
+            .filter(m => m.role === 'user')
+            .slice(-4)
+            .map(m => '- ' + String(m.content).replace(/\s+/g, ' ').trim().slice(0, 140))
+            .join('\n');
+
+        const greeting = userName ? `أهلًا Toji، أنا ${userName}.` : 'أهلًا Toji.';
+        return `${greeting} كنت بدردش مع زعزع على الموقع وحابب أكلمك مباشرة عن مشروع/تعاون.\n\nملخص اللي اتكلمنا فيه:\n${recap || '(دردشة عامة)'}`;
+    }
+
+    function addEscalateCTA() {
+        const wrap = document.createElement('div');
+        wrap.className = 'ai-escalate-card';
+        wrap.innerHTML =
+            '<p class="ai-escalate-text">حاسس إن الموضوع ده يستاهل تتكلم مع Toji نفسه؟ 👇</p>' +
+            '<a class="ai-escalate-btn" target="_blank" rel="noopener noreferrer">' +
+            '<i data-lucide="phone-call" aria-hidden="true"></i> كلم Toji مباشرة</a>';
+        const link = wrap.querySelector('.ai-escalate-btn');
+        link.href = `https://wa.me/${profilePhone}?text=${encodeURIComponent(buildEscalateMessage())}`;
+        msgEl.appendChild(wrap);
+        if (window.lucide) window.lucide.createIcons();
+        scroll();
+    }
+
     // ── init الصفحة ─────────────────────────────────────────────
     async function init() {
         await loadMoods();
         loadImageQuota();
+        loadProfilePhone();
 
         msgEl.innerHTML  = '';
         history          = [];
