@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://portfolio-backend-production-e01e.up.railway.app http://localhost:5000 https://accounts.google.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <title>حسابي | TOJI</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#050506">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap">
+    <link rel="stylesheet" href="style.css?v=22">
+    <link rel="stylesheet" href="enhancements.css?v=7">
+    <link rel="stylesheet" href="pages.css?v=4">
+    <link rel="stylesheet" href="account.css?v=1">
+</head>
+<body class="dark-theme is-loading preset-graphite">
+    <div class="mesh-bg" aria-hidden="true"></div>
+    <nav class="modern-nav glass-panel" aria-label="Primary navigation">
+        <a class="brand" href="index.html" aria-label="TOJI home"><span>TOJI</span><span class="dot">.</span></a>
+        <div class="nav-links" aria-label="Section links">
+            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link" href="pricing.html">Pricing</a>
+            <a class="nav-link" href="process.html">Process</a>
+            <a class="nav-link" href="blog.html">Blog</a>
+            <a class="nav-link" href="changelog.html">Changelog</a>
+            <a class="nav-link" href="stack.html">Stack</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-switch" id="themeToggle" type="button" aria-label="Switch theme">
+                <i data-lucide="sun" class="icon-sun" aria-hidden="true"></i>
+                <i data-lucide="moon" class="icon-moon" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+    <main class="smooth-scroll">
+        <section class="page-hero">
+            <p class="eyebrow">حسابي</p>
+            <h1>مساحتك الشخصية</h1>
+            <p>صورتك، نقطك، مشاريعك اللي طلبتها، وأرشيف دردشتك مع زعزع — كله في مكان واحد.</p>
+        </section>
+
+        <section class="page-body">
+            <!-- ── لو مش مسجل دخول ── -->
+            <div class="acc-guest-card glass-card" id="accGuestCard" hidden>
+                <i data-lucide="user-round" aria-hidden="true"></i>
+                <h3>لسه معملتش حساب</h3>
+                <p>سجّل دخولك أو اعمل حساب جديد عشان تقدر تشوف نقطك ومشاريعك وذاكرة شات زعزع بتاعتك.</p>
+                <button class="toji-auth-submit" id="accGuestBtn" type="button">سجّل دخولك</button>
+            </div>
+
+            <!-- ── محتوى الحساب ── -->
+            <div id="accDashboard" hidden>
+
+                <div class="acc-profile-card glass-card">
+                    <div class="acc-avatar-wrap">
+                        <img class="acc-avatar" id="accAvatarImg" src="" alt="" hidden>
+                        <span class="acc-avatar acc-avatar-fallback" id="accAvatarFallback"></span>
+                        <label class="acc-avatar-edit" title="غيّر الصورة">
+                            <input type="file" id="accAvatarInput" accept="image/png,image/jpeg,image/webp" hidden>
+                            <i data-lucide="camera" aria-hidden="true"></i>
+                        </label>
+                    </div>
+                    <div class="acc-profile-info">
+                        <h3 id="accName">—</h3>
+                        <p id="accEmail">—</p>
+                    </div>
+                    <div class="acc-points-badge">
+                        <span id="accPointsTotal">0</span>
+                        <small>نقطة</small>
+                    </div>
+                </div>
+
+                <div class="acc-grid">
+                    <!-- تعديل الاسم -->
+                    <div class="glass-card acc-panel">
+                        <h4><i data-lucide="pencil" aria-hidden="true"></i> تعديل الاسم</h4>
+                        <form id="accNameForm" class="toji-auth-form">
+                            <input type="text" id="accNameInput" maxlength="60" required>
+                            <button type="submit" class="toji-auth-submit">حفظ</button>
+                        </form>
+                        <p class="form-status" id="accNameStatus"></p>
+                    </div>
+
+                    <!-- تغيير كلمة المرور -->
+                    <div class="glass-card acc-panel">
+                        <h4><i data-lucide="lock" aria-hidden="true"></i> كلمة المرور</h4>
+                        <form id="accPassForm" class="toji-auth-form">
+                            <input type="password" id="accCurrentPass" placeholder="كلمة المرور الحالية (لو عندك)" maxlength="100" autocomplete="current-password">
+                            <input type="password" id="accNewPass" placeholder="كلمة المرور الجديدة" minlength="8" maxlength="100" required autocomplete="new-password">
+                            <button type="submit" class="toji-auth-submit">تحديث</button>
+                        </form>
+                        <p class="form-status" id="accPassStatus"></p>
+                    </div>
+
+                    <!-- النقط والخصومات -->
+                    <div class="glass-card acc-panel acc-panel-wide">
+                        <h4><i data-lucide="sparkles" aria-hidden="true"></i> النقط والخصومات</h4>
+                        <p class="acc-points-hint" id="accRedeemHint">اجمع نقط وحوّلها لكود خصم على مشروعك الجاي.</p>
+                        <button class="toji-auth-submit acc-redeem-btn" id="accRedeemBtn" type="button">استبدل النقط بكود خصم</button>
+                        <p class="form-status" id="accRedeemStatus"></p>
+                        <div class="acc-codes-list" id="accCodesList"></div>
+                    </div>
+
+                    <!-- مشاريعي -->
+                    <div class="glass-card acc-panel acc-panel-wide">
+                        <h4><i data-lucide="briefcase" aria-hidden="true"></i> مشاريعي</h4>
+                        <div class="acc-empty" id="accProjectsEmpty" hidden>لسه مبعتش أي طلب عرض سعر أو حجز.</div>
+                        <div class="acc-list" id="accProjectsList"></div>
+                    </div>
+
+                    <!-- شاتاتي مع زعزع -->
+                    <div class="glass-card acc-panel acc-panel-wide">
+                        <h4><i data-lucide="message-circle" aria-hidden="true"></i> دردشتي مع زعزع</h4>
+                        <div class="acc-empty" id="accChatEmpty" hidden>لسه مدردشتش مع زعزع. <a href="zaza.html">ابدأ دلوقتي</a></div>
+                        <div class="acc-chat-log" id="accChatLog"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="owner-credit" data-owner-credit=""><span>Website created by:</span><a href="https://www.instagram.com/mouhamedmostafffa" target="_blank" rel="noopener noreferrer">@mouhamedmostafffa</a><span class="owner-copyright">© 2026 Mohamed Mostafa. All rights reserved.</span></footer>
+    <script src="vendor/lucide.min.js?v=18"></script>
+    <script src="api.js?v=22"></script>
+    <script src="pages-shell.js?v=1"></script>
+    <script src="account.js?v=1"></script>
+    <script src="dashboard.js?v=1"></script>
+</body>
+</html>

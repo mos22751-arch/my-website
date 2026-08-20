@@ -26,7 +26,10 @@ const TokenManager = {
 // Base Fetch Helper
 // ============================================================
 async function apiFetch(endpoint, options = {}) {
-    const token = TokenManager.get();
+    // توكن الأدمن ليه الأولوية. لو مش موجود ولكن الزائر مسجل دخول بحساب
+    // اختياري (ميزة الحسابات)، بنبعت توكن الحساب بدل منه — عشان طلبات
+    // زي الشات وعروض الأسعار تتربط بحسابه تلقائيًا
+    const token = TokenManager.get() || (window.TojiAccount?.getToken?.() || null);
 
     const defaultHeaders = {
         'Content-Type': 'application/json',

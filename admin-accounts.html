@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; frame-src 'self'; connect-src 'self' https://portfolio-backend-production-e01e.up.railway.app http://localhost:5000; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <title>الحسابات | TOJI Admin</title>
+    <link rel="stylesheet" href="admin.css?v=22">
+    <link rel="stylesheet" href="admin-accounts.css?v=1">
+</head>
+<body>
+    <main class="admin-shell">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <p class="kicker">TOJI Studio</p>
+                <h1>إدارة الحسابات</h1>
+                <div class="server-status" id="serverStatus">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">جارٍ التحقق...</span>
+                </div>
+            </div>
+            <div class="actions">
+                <div class="action-group secondary-actions">
+                    <a href="admin.html" class="btn-ghost">
+                        <span class="btn-icon">↩</span> رجوع للوحة
+                    </a>
+                    <button id="logoutBtn" type="button" class="btn-danger">
+                        <span class="btn-icon">🚪</span> خروج
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- شاشة لو مفيش توكن أدمن صالح -->
+        <section id="lockScreen" class="acc-lock-screen" hidden>
+            <div class="acc-lock-card">
+                <h2>لازم تسجل دخول كأدمن الأول</h2>
+                <p>ارجع للوحة التحكم الرئيسية وسجّل دخولك، بعدين افتح صفحة الحسابات تاني.</p>
+                <a href="admin.html" class="btn-primary">لوحة التحكم</a>
+            </div>
+        </section>
+
+        <div id="accWorkspace" class="acc-admin-workspace" hidden>
+
+            <!-- ── إعدادات ميزة الحسابات ── -->
+            <details class="panel" id="settingsPanel">
+                <summary>⚙️ إعدادات ميزة الحسابات</summary>
+                <div class="panel-body">
+                    <form id="settingsForm" class="acc-settings-form">
+                        <div class="acc-toggle-grid">
+                            <label class="acc-toggle"><input type="checkbox" name="enableAccounts"> إظهار "إنشاء حساب" في الموقع</label>
+                            <label class="acc-toggle"><input type="checkbox" name="enableRegistration"> السماح بحسابات جديدة</label>
+                            <label class="acc-toggle"><input type="checkbox" name="enableGoogleLogin"> الدخول بجوجل</label>
+                            <label class="acc-toggle"><input type="checkbox" name="enableChatMemory"> ذاكرة شات زعزع</label>
+                            <label class="acc-toggle"><input type="checkbox" name="enableSavedProjects"> حفظ المشاريع</label>
+                            <label class="acc-toggle"><input type="checkbox" name="enablePoints"> نظام النقط</label>
+                        </div>
+                        <div class="acc-field-grid">
+                            <label>Google Client ID
+                                <input type="text" name="googleClientId" placeholder="xxxxxxxx.apps.googleusercontent.com">
+                            </label>
+                            <label>نقط اليوم الواحد
+                                <input type="number" name="pointsPerDay" min="0">
+                            </label>
+                            <label>نقط الاستبدال (لكود الخصم)
+                                <input type="number" name="redeemThreshold" min="1">
+                            </label>
+                            <label>نسبة الخصم %
+                                <input type="number" name="discountPercent" min="1" max="100">
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-primary">حفظ الإعدادات</button>
+                        <span class="acc-form-msg" id="settingsMsg"></span>
+                    </form>
+                </div>
+            </details>
+
+            <!-- ── البحث والقائمة ── -->
+            <section class="panel-body acc-list-section">
+                <div class="acc-toolbar">
+                    <input type="search" id="searchInput" placeholder="دوّر بالاسم أو الإيميل...">
+                    <span class="acc-count" id="resultCount"></span>
+                </div>
+                <div class="acc-table-wrap">
+                    <table class="acc-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>الاسم</th>
+                                <th>الإيميل</th>
+                                <th>النقط</th>
+                                <th>تاريخ الإنشاء</th>
+                                <th>الحالة</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="acc-pagination" id="pagination"></div>
+            </section>
+        </div>
+
+        <!-- ── مودال تفاصيل الحساب ── -->
+        <div class="acc-modal-overlay" id="detailOverlay" hidden>
+            <div class="acc-modal">
+                <button class="acc-modal-close" id="detailClose" type="button">✕</button>
+                <h3 id="detailName">—</h3>
+                <p class="acc-modal-email" id="detailEmail">—</p>
+
+                <div class="acc-modal-stats" id="detailStats"></div>
+
+                <label class="acc-modal-toggle">
+                    <input type="checkbox" id="detailActive"> الحساب مفعّل
+                </label>
+
+                <label class="acc-modal-field">النقط
+                    <input type="number" id="detailPoints" min="0">
+                </label>
+
+                <label class="acc-modal-field">ملاحظات الأدمن (مش بتظهر للمستخدم)
+                    <textarea id="detailNotes" rows="3"></textarea>
+                </label>
+
+                <button class="btn-primary" id="detailSaveBtn" type="button">حفظ التعديلات</button>
+                <span class="acc-form-msg" id="detailSaveMsg"></span>
+
+                <hr>
+
+                <label class="acc-modal-field">تغيير كلمة المرور
+                    <input type="password" id="detailNewPassword" placeholder="كلمة مرور جديدة (8 حروف على الأقل)">
+                </label>
+                <button class="btn-secondary" id="detailPasswordBtn" type="button">تغيير كلمة المرور</button>
+                <span class="acc-form-msg" id="detailPasswordMsg"></span>
+
+                <hr>
+                <button class="btn-danger" id="detailDeleteBtn" type="button">حذف الحساب نهائيًا</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="api.js?v=22"></script>
+    <script src="admin-accounts.js?v=1"></script>
+</body>
+</html>

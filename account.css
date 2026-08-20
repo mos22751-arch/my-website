@@ -1,0 +1,435 @@
+/* ============================================================
+   TOJI — Account System Styles
+   نفس متغيرات الموقع (--primary, --glass-bg, ...) عشان يبان جزء
+   طبيعي من التصميم مش حاجة زايدة عليه.
+============================================================ */
+
+.toji-account-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* ── زرار "دخول" ── */
+.toji-account-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color .2s ease, transform .2s ease, background .2s ease;
+}
+.toji-account-btn:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    background: var(--glass-strong);
+}
+.toji-account-btn svg { width: 15px; height: 15px; }
+
+/* ── pill لما يكون مسجل دخول ── */
+.toji-account-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 6px;
+    border-radius: 999px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    cursor: pointer;
+    outline: none;
+    transition: border-color .2s ease, background .2s ease;
+}
+.toji-account-pill:hover, .toji-account-pill:focus-visible {
+    border-color: var(--primary);
+    background: var(--glass-strong);
+}
+.toji-account-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.toji-account-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary), var(--mint));
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.toji-account-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-main);
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.toji-account-points {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--primary);
+    background: var(--glow-color);
+    padding: 2px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+/* ── قائمة منسدلة ── */
+.toji-account-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    inset-inline-end: 0;
+    min-width: 180px;
+    background: var(--glass-strong);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 6px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+    z-index: 200;
+}
+.toji-account-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 10px;
+    border: none;
+    background: transparent;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.85rem;
+    text-align: start;
+    border-radius: 9px;
+    cursor: pointer;
+    text-decoration: none;
+}
+.toji-account-menu-item:hover { background: var(--glass-bg); color: var(--primary); }
+.toji-account-menu-item svg { width: 15px; height: 15px; }
+
+/* ── Auth modal overlay ── */
+.toji-auth-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(5, 5, 6, 0.6);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity .2s ease;
+}
+.toji-auth-overlay.open { opacity: 1; }
+.toji-auth-modal {
+    width: 100%;
+    max-width: 400px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 28px 26px 26px;
+    border-radius: 22px;
+    position: relative;
+    transform: translateY(14px) scale(.98);
+    transition: transform .25s ease;
+    background: var(--glass-strong);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow);
+}
+.toji-auth-overlay.open .toji-auth-modal { transform: translateY(0) scale(1); }
+
+.toji-auth-close {
+    position: absolute;
+    top: 16px;
+    inset-inline-end: 16px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    color: var(--text-main);
+    cursor: pointer;
+}
+.toji-auth-close:hover { border-color: var(--primary); color: var(--primary); }
+.toji-auth-close svg { width: 16px; height: 16px; }
+
+.toji-auth-head { margin-bottom: 18px; }
+.toji-auth-head .eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--primary);
+    font-weight: 700;
+    margin: 0 0 6px;
+}
+.toji-auth-head h3 { margin: 0 0 6px; font-size: 1.25rem; color: var(--text-main); }
+.toji-auth-sub { margin: 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+
+.toji-auth-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    border-radius: 12px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    margin-bottom: 16px;
+}
+.toji-auth-tab {
+    flex: 1;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s ease, color .2s ease;
+}
+.toji-auth-tab.active { background: var(--primary); color: #fff; }
+
+.toji-auth-error {
+    min-height: 18px;
+    font-size: 0.8rem;
+    color: #ff6b6b;
+    margin: 0 0 8px;
+}
+
+.toji-auth-form { display: flex; flex-direction: column; gap: 12px; }
+.toji-auth-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+.toji-auth-form input {
+    padding: 11px 13px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color .2s ease;
+}
+.toji-auth-form input:focus { border-color: var(--primary); }
+.toji-auth-hint { margin: -6px 0 0; font-size: 0.72rem; color: var(--text-muted); }
+
+.toji-auth-submit {
+    margin-top: 4px;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    background: var(--primary);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter .2s ease, transform .2s ease;
+}
+.toji-auth-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+.toji-auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 12px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+.toji-auth-divider::before, .toji-auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--glass-border);
+}
+
+.toji-google-btn-slot { display: flex; justify-content: center; min-height: 44px; }
+
+/* ── toast ── */
+.toji-toast {
+    position: fixed;
+    bottom: 24px;
+    inset-inline-start: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--glass-strong);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    padding: 11px 18px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity .25s ease, transform .25s ease;
+    pointer-events: none;
+    white-space: nowrap;
+}
+[dir="rtl"] .toji-toast, html[dir="rtl"] .toji-toast { transform: translateX(50%) translateY(10px); }
+.toji-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+[dir="rtl"] .toji-toast.show { transform: translateX(50%) translateY(0); }
+
+@media (max-width: 640px) {
+    .toji-account-name { max-width: 60px; }
+    .toji-auth-modal { padding: 24px 18px 20px; }
+}
+
+/* ============================================================
+   Dashboard page (account.html)
+============================================================ */
+.acc-guest-card {
+    max-width: 460px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 40px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.acc-guest-card svg { width: 40px; height: 40px; color: var(--primary); }
+.acc-guest-card h3 { margin: 0; color: var(--text-main); }
+.acc-guest-card p { margin: 0 0 8px; color: var(--text-muted); font-size: 0.9rem; }
+.acc-guest-card .toji-auth-submit { width: auto; padding: 12px 28px; }
+
+.acc-profile-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 24px;
+    max-width: 780px;
+    margin: 0 auto 24px;
+}
+.acc-avatar-wrap { position: relative; flex-shrink: 0; }
+.acc-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, var(--primary), var(--mint));
+}
+.acc-avatar-edit {
+    position: absolute;
+    bottom: -2px;
+    inset-inline-end: -2px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    border: 2px solid var(--bg-base);
+}
+.acc-avatar-edit svg { width: 13px; height: 13px; }
+.acc-profile-info { flex: 1; min-width: 0; }
+.acc-profile-info h3 { margin: 0 0 2px; color: var(--text-main); }
+.acc-profile-info p { margin: 0; color: var(--text-muted); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; }
+.acc-points-badge {
+    text-align: center;
+    padding: 10px 18px;
+    border-radius: 14px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+}
+.acc-points-badge span { display: block; font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+.acc-points-badge small { color: var(--text-muted); font-size: 0.72rem; }
+
+.acc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+.acc-panel { padding: 22px; }
+.acc-panel-wide { grid-column: 1 / -1; }
+.acc-panel h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+.acc-panel h4 svg { width: 16px; height: 16px; color: var(--primary); }
+.acc-panel .toji-auth-form { gap: 10px; }
+.acc-panel .toji-auth-submit { padding: 10px; font-size: 0.85rem; }
+
+.acc-points-hint { font-size: 0.85rem; color: var(--text-muted); margin: 0 0 14px; }
+.acc-redeem-btn { width: auto; padding: 10px 22px; }
+
+.acc-codes-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.acc-code-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    font-size: 0.8rem;
+}
+.acc-code-item code { color: var(--primary); font-weight: 700; }
+.acc-code-item.is-used { opacity: 0.5; }
+.acc-code-item small { color: var(--text-muted); }
+
+.acc-empty { color: var(--text-muted); font-size: 0.85rem; padding: 10px 0; }
+.acc-empty a { color: var(--primary); }
+
+.acc-list { display: flex; flex-direction: column; gap: 8px; }
+.acc-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+}
+.acc-list-item > div:first-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.acc-list-item strong { color: var(--text-main); font-size: 0.85rem; }
+.acc-list-item span { color: var(--text-muted); font-size: 0.78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acc-list-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+.acc-status { font-size: 0.7rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: var(--glass-strong); color: var(--text-main); text-transform: capitalize; }
+.acc-list-meta small { color: var(--text-muted); font-size: 0.7rem; }
+
+.acc-chat-log { display: flex; flex-direction: column; gap: 10px; max-height: 340px; overflow-y: auto; }
+.acc-chat-pair { padding: 10px 12px; border-radius: 10px; background: var(--glass-bg); border: 1px solid var(--glass-border); }
+.acc-chat-q { margin: 0 0 6px; color: var(--text-main); font-size: 0.85rem; font-weight: 600; }
+.acc-chat-a { margin: 0; color: var(--text-muted); font-size: 0.82rem; line-height: 1.5; }
+
+@media (max-width: 720px) {
+    .acc-grid { grid-template-columns: 1fr; }
+    .acc-profile-card { flex-wrap: wrap; }
+}
