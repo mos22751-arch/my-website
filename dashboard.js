@@ -99,22 +99,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // ── ملخص بس هنا — الأرشيف الكامل في صفحة زعزع نفسها (مش الحساب) ──
     async function loadChatHistory() {
-        const logEl = document.getElementById('accChatLog');
-        const emptyEl = document.getElementById('accChatEmpty');
+        const summaryEl = document.getElementById('accChatSummary');
+        const emptyEl   = document.getElementById('accChatEmpty');
         try {
-            const res = await AccountAPI.chatHistory();
+            const res   = await AccountAPI.chatHistory();
             const items = res.data || [];
-            if (!items.length) { emptyEl.hidden = false; logEl.innerHTML = ''; return; }
+            if (!items.length) {
+                emptyEl.hidden = false;
+                summaryEl.hidden = true;
+                return;
+            }
             emptyEl.hidden = true;
-            logEl.innerHTML = items.slice(-40).map((m) => `
-                <div class="acc-chat-pair">
-                    <p class="acc-chat-q">${escapeHtml(m.question)}</p>
-                    ${m.answer ? `<p class="acc-chat-a">${escapeHtml(m.answer)}</p>` : ''}
-                </div>`).join('');
+            summaryEl.hidden = false;
+            document.getElementById('accChatCount').textContent = items.length;
+            const last = items[items.length - 1];
+            document.getElementById('accChatLast').textContent = last?.answer
+                ? `آخر رد من زعزع: "${String(last.answer).slice(0, 90)}${last.answer.length > 90 ? '…' : ''}"`
+                : 'كمل من هنا.';
         } catch {
             emptyEl.hidden = false;
-            emptyEl.textContent = 'تعذر تحميل دردشتك دلوقتي.';
+            emptyEl.textContent = 'تعذر تحميل ملخص دردشتك دلوقتي.';
         }
     }
 

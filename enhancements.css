@@ -1791,6 +1791,58 @@ body.ai-chat-open .floating-dock {
     .ai-chat-overlay { padding: 0; align-items: flex-end; }
 }
 
+/* ✅ Light theme — الشات كان مصمم بألوان بيضا ثابتة (وضع غامق بس)،
+   فكانت نصوصه وأزراره بتختفي فوق خلفية فاتحة. الكتلة دي بتقلبهم
+   لألوان غامقة متباينة بنفس منطق باقي الموقع في الوضع الفاتح. */
+.light-theme .ai-chat-header { background: rgba(58,52,40,0.04); border-bottom-color: rgba(28,28,30,0.12); }
+.light-theme .ai-chat-header::after { background: linear-gradient(90deg, transparent, rgba(28,28,30,0.14), transparent); }
+.light-theme .ai-chat-avatar { border-color: rgba(28,28,30,0.14); box-shadow: 0 0 0 4px rgba(28,28,30,0.04), 0 4px 14px rgba(20,24,32,0.12); }
+.light-theme .ai-chat-title { color: var(--text-main); }
+.light-theme .ai-chat-sub { color: var(--text-muted); }
+.light-theme .ai-chat-close,
+.light-theme .ai-chat-edit-name-btn,
+.light-theme .ai-chat-human-link {
+    border-color: rgba(28,28,30,0.14);
+    background: rgba(58,52,40,0.05);
+    color: var(--text-muted);
+}
+.light-theme .ai-chat-edit-name-btn:hover,
+.light-theme .ai-chat-close:hover { background: rgba(58,52,40,0.1); color: var(--text-main); }
+.light-theme .ai-chat-messages {
+    scrollbar-color: rgba(28,28,30,0.18) transparent;
+    background:
+        radial-gradient(circle at 15% 0%, rgba(28,28,30,0.025), transparent 45%),
+        radial-gradient(circle at 85% 100%, rgba(28,28,30,0.02), transparent 45%);
+}
+.light-theme .ai-chat-messages::-webkit-scrollbar-thumb { background: rgba(28,28,30,0.18); }
+.light-theme .ai-msg-avatar { border-color: rgba(28,28,30,0.14); }
+.light-theme .ai-msg-action { color: rgba(28,28,30,0.4); }
+.light-theme .ai-msg-action:hover { background: rgba(28,28,30,0.08); color: rgba(28,28,30,0.8); }
+.light-theme .ai-msg.ai p {
+    background: rgba(58,52,40,0.06);
+    color: var(--text-main);
+    border-color: rgba(28,28,30,0.12);
+    box-shadow: none;
+}
+.light-theme .ai-msg.typing p span { background: rgba(28,28,30,0.35); }
+.light-theme .bot-choice-btn {
+    border-color: rgba(28,28,30,0.14);
+    background: rgba(58,52,40,0.05);
+    color: var(--text-main);
+}
+.light-theme .bot-choice-btn:hover { background: rgba(58,52,40,0.09); }
+.light-theme .bot-input-row { border-top-color: rgba(28,28,30,0.12); }
+.light-theme .ai-chat-input {
+    background: rgba(58,52,40,0.05);
+    border-color: rgba(28,28,30,0.15);
+    color: var(--text-main);
+}
+.light-theme .ai-chat-input:focus { background: rgba(58,52,40,0.08); }
+.light-theme .ai-chat-input::placeholder { color: rgba(28,28,30,0.4); }
+.light-theme .links-grid-loading,
+.light-theme .links-grid-empty { color: var(--text-muted); }
+
+
 /* ============================================================
    ✦ Links Grid — قسم "Connect" الجديد (كل لينك بصورته)
    ============================================================ */

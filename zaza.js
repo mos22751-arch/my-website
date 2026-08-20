@@ -418,6 +418,39 @@ document.addEventListener('DOMContentLoaded', () => {
         scroll();
     }
 
+    // ── دردشة سابقة من الحساب (لو الزائر مسجل دخول) — بتتحمل هنا بس،
+    //    مش في صفحة الحساب، زي ما اتطلب ──────────────────────────
+    async function loadAccountHistory() {
+        if (!window.TojiAccount?.isLoggedIn()) return null;
+        try {
+            const res = await window.TojiAccount.AccountAPI.chatHistory();
+            return Array.isArray(res.data) ? res.data : [];
+        } catch { return []; }
+    }
+
+    function renderPastHistory(logs) {
+        if (!logs || !logs.length) return;
+
+        const openDivider = document.createElement('div');
+        openDivider.className = 'ai-history-divider';
+        openDivider.innerHTML = '<span>محادثتك السابقة مع زعزع</span>';
+        msgEl.appendChild(openDivider);
+
+        logs.slice(-20).forEach(m => {
+            if (m.question) addMsg(m.question, 'user', { noActions: true, imageUrl: m.imageUrl || '' });
+            if (m.answer)   addMsg(m.answer, 'ai', { noActions: true });
+            history.push({ role: 'user', content: m.question || '(صورة)' });
+            if (m.answer) history.push({ role: 'assistant', content: m.answer });
+        });
+        history = history.slice(-8); // نفس الحد اللي الباك إند بيقصه بيه على أي حال
+
+        const closeDivider = document.createElement('div');
+        closeDivider.className = 'ai-history-divider';
+        closeDivider.innerHTML = '<span>دلوقتي</span>';
+        msgEl.appendChild(closeDivider);
+        scroll();
+    }
+
     // ── init الصفحة ─────────────────────────────────────────────
     async function init() {
         await loadMoods();
@@ -430,10 +463,17 @@ document.addEventListener('DOMContentLoaded', () => {
         inputEl.value    = '';
         if (window.lucide) window.lucide.createIcons();
 
-        userName = getSavedName();
+        // ── لو الزائر مسجل دخول، زعزع بياخد اسمه من الحساب مباشرة ──
+        const accountUser = window.TojiAccount?.isLoggedIn() ? window.TojiAccount.getUser() : null;
+        userName = accountUser?.name ? accountUser.name : getSavedName();
+        if (accountUser?.name) saveName(accountUser.name);
         mode     = null;
         moodKey  = '';
         clearChoices();
+        updateHumanContactLink();
+
+        const pastLogs = await loadAccountHistory();
+        if (pastLogs && pastLogs.length) renderPastHistory(pastLogs);
 
         if (userName) {
             stage = 'mode';

@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap">
     <link rel="stylesheet" href="style.css?v=22">
-    <link rel="stylesheet" href="enhancements.css?v=7">
-    <link rel="stylesheet" href="pages.css?v=4">
-    <link rel="stylesheet" href="account.css?v=1">
+    <link rel="stylesheet" href="enhancements.css?v=8">
+    <link rel="stylesheet" href="pages.css?v=5">
+    <link rel="stylesheet" href="account.css?v=2">
 </head>
 <body class="dark-theme is-loading preset-graphite">
     <div class="mesh-bg" aria-hidden="true"></div>
@@ -110,11 +110,18 @@
                         <div class="acc-list" id="accProjectsList"></div>
                     </div>
 
-                    <!-- شاتاتي مع زعزع -->
+                    <!-- دردشتي مع زعزع — ملخص بس، الأرشيف الكامل موجود في صفحة زعزع نفسها -->
                     <div class="glass-card acc-panel acc-panel-wide">
                         <h4><i data-lucide="message-circle" aria-hidden="true"></i> دردشتي مع زعزع</h4>
                         <div class="acc-empty" id="accChatEmpty" hidden>لسه مدردشتش مع زعزع. <a href="zaza.html">ابدأ دلوقتي</a></div>
-                        <div class="acc-chat-log" id="accChatLog"></div>
+                        <div class="acc-chat-summary" id="accChatSummary" hidden>
+                            <div class="acc-chat-summary-stat">
+                                <span id="accChatCount">0</span>
+                                <small>رسالة متبادلة</small>
+                            </div>
+                            <p class="acc-chat-last" id="accChatLast"></p>
+                            <a class="toji-auth-submit acc-chat-continue" href="zaza.html">اكمل الدردشة مع زعزع</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -124,7 +131,7 @@
     <script src="vendor/lucide.min.js?v=18"></script>
     <script src="api.js?v=23"></script>
     <script src="pages-shell.js?v=1"></script>
-    <script src="account.js?v=1"></script>
-    <script src="dashboard.js?v=1"></script>
+    <script src="account.js?v=2"></script>
+    <script src="dashboard.js?v=2"></script>
 </body>
 </html>

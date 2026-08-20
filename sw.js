@@ -3,7 +3,7 @@
 // ✅ Network-First for HTML/JS (يجيب من الشبكة أول)
 //    Cache-First for assets only (صور، icons)
 // ============================================================
-const CACHE_NAME = 'toji-site-v32';
+const CACHE_NAME = 'toji-site-v33';
 
 // فقط الأصول الثابتة اللي بتتكاش (مش HTML أو JS)
 const STATIC_ASSETS = [

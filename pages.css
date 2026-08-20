@@ -393,7 +393,7 @@
     margin-inline-start: auto;
     background: none;
     border: none;
-    color: var(--text-dim);
+    color: var(--text-muted);
     cursor: pointer;
     font-size: 0.8rem;
     padding: 4px 8px;
@@ -463,6 +463,24 @@
 }
 .ai-chat-human-link:hover { background: rgba(37,211,102,0.18); color: #25d366; transform: scale(1.08); }
 .ai-chat-human-link svg { width: 14px; height: 14px; }
+
+/* history divider — بين محادثة سابقة (من الحساب) وبداية الجلسة دي */
+.ai-history-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0;
+    color: var(--text-muted, rgba(255,255,255,0.4));
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.ai-history-divider::before,
+.ai-history-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--glass-border, rgba(255,255,255,0.14));
+}
 
 @media (max-width: 640px) {
 
