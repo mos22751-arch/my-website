@@ -48,6 +48,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         renderCodes(user.discountCodes || []);
+        renderPointsHistory(user.pointsHistory || []);
+        renderMoodPref(user.preferredMode || '');
         loadProjects();
         loadChatHistory();
 
@@ -75,6 +77,41 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <small>${c.used ? 'مُستخدم' : 'متاح'}</small>
             </div>`).join('');
     }
+
+    function renderPointsHistory(history) {
+        const el = document.getElementById('accPointsHistory');
+        if (!el) return;
+        if (!history.length) { el.innerHTML = '<p class="acc-empty">لسه مفيش حركة نقط.</p>'; return; }
+        el.innerHTML = history.slice().reverse().slice(0, 30).map((h) => `
+            <div class="acc-history-row">
+                <span class="acc-history-amount ${h.amount >= 0 ? 'is-positive' : 'is-negative'}">${h.amount >= 0 ? '+' : ''}${h.amount}</span>
+                <span class="acc-history-reason">${escapeHtml(h.reason)}</span>
+                <small class="acc-history-date">${new Date(h.createdAt).toLocaleDateString('ar-EG')}</small>
+            </div>`).join('');
+    }
+
+    function renderMoodPref(mode) {
+        document.querySelectorAll('#accMoodPick .acc-mood-btn').forEach((btn) => {
+            btn.classList.toggle('active', btn.dataset.mode === mode);
+        });
+    }
+
+    document.querySelectorAll('#accMoodPick .acc-mood-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const status = document.getElementById('accMoodStatus');
+            status.textContent = '...';
+            status.className = 'form-status';
+            try {
+                await AccountAPI.updatePreferences(btn.dataset.mode, '');
+                renderMoodPref(btn.dataset.mode);
+                status.textContent = 'اتحفظ ✅';
+                status.className = 'form-status is-success';
+            } catch (err) {
+                status.textContent = err.message;
+                status.className = 'form-status is-error';
+            }
+        });
+    });
 
     async function loadProjects() {
         const listEl = document.getElementById('accProjectsList');
@@ -187,6 +224,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             status.className = 'form-status is-success';
             document.getElementById('accPointsTotal').textContent = res.remainingPoints;
             render();
+        } catch (err) {
+            status.textContent = err.message;
+            status.className = 'form-status is-error';
+        }
+    });
+
+    document.getElementById('accDeleteBtn')?.addEventListener('click', () => {
+        document.getElementById('accDeleteConfirm').hidden = false;
+    });
+    document.getElementById('accDeleteCancelBtn')?.addEventListener('click', () => {
+        document.getElementById('accDeleteConfirm').hidden = true;
+    });
+    document.getElementById('accDeleteConfirmBtn')?.addEventListener('click', async () => {
+        const status = document.getElementById('accDeleteStatus');
+        status.textContent = 'جارٍ الحذف...';
+        status.className = 'form-status';
+        try {
+            await AccountAPI.deleteAccount();
+            window.TojiAccount.logout();
+            window.location.href = 'index.html';
         } catch (err) {
             status.textContent = err.message;
             status.className = 'form-status is-error';

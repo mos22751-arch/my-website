@@ -7,7 +7,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; frame-src 'self'; connect-src 'self' https://portfolio-backend-production-604c.up.railway.app http://localhost:5000; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
     <title>الحسابات | TOJI Admin</title>
     <link rel="stylesheet" href="admin.css?v=22">
-    <link rel="stylesheet" href="admin-accounts.css?v=1">
+    <link rel="stylesheet" href="admin-accounts.css?v=2">
 </head>
 <body>
     <main class="admin-shell">
@@ -80,6 +80,17 @@
             <section class="panel-body acc-list-section">
                 <div class="acc-toolbar">
                     <input type="search" id="searchInput" placeholder="دوّر بالاسم أو الإيميل...">
+                    <select id="statusFilter" class="acc-filter-select">
+                        <option value="all">كل الحالات</option>
+                        <option value="active">مفعّل بس</option>
+                        <option value="inactive">موقوف بس</option>
+                    </select>
+                    <select id="sortSelect" class="acc-filter-select">
+                        <option value="newest">الأحدث أولًا</option>
+                        <option value="oldest">الأقدم أولًا</option>
+                        <option value="points_desc">أكتر نقط</option>
+                        <option value="points_asc">أقل نقط</option>
+                    </select>
                     <span class="acc-count" id="resultCount"></span>
                 </div>
                 <div class="acc-table-wrap">
@@ -128,6 +139,14 @@
 
                 <hr>
 
+                <label class="acc-modal-field">هدية كود خصم يدوي
+                    <input type="number" id="detailGiftPercent" min="1" max="100" placeholder="نسبة الخصم %">
+                </label>
+                <button class="btn-secondary" id="detailGiftBtn" type="button">🎁 ابعت كود خصم</button>
+                <span class="acc-form-msg" id="detailGiftMsg"></span>
+
+                <hr>
+
                 <label class="acc-modal-field">تغيير كلمة المرور
                     <input type="password" id="detailNewPassword" placeholder="كلمة مرور جديدة (8 حروف على الأقل)">
                 </label>
@@ -141,6 +160,6 @@
     </main>
 
     <script src="api.js?v=23"></script>
-    <script src="admin-accounts.js?v=1"></script>
+    <script src="admin-accounts.js?v=2"></script>
 </body>
 </html>

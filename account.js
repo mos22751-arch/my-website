@@ -56,6 +56,8 @@
         changePassword: (currentPassword, newPassword) => accountFetch('/account/password', { method: 'PUT', body: JSON.stringify({ currentPassword, newPassword }) }),
         claimDaily: () => accountFetch('/account/claim-daily-points', { method: 'POST' }),
         redeemPoints: () => accountFetch('/account/redeem-points', { method: 'POST' }),
+        updatePreferences: (mode, moodKey) => accountFetch('/account/preferences', { method: 'PUT', body: JSON.stringify({ mode, moodKey }) }),
+        deleteAccount: () => accountFetch('/account/me', { method: 'DELETE' }),
         chatHistory: () => accountFetch('/account/chat-history'),
         claimChat:   (clientId) => accountFetch('/account/claim-chat', { method: 'POST', body: JSON.stringify({ clientId }) }),
         myProjects:  () => accountFetch('/account/my-projects'),

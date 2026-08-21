@@ -166,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addMsg('أسألني أي حاجة عن شغل Toji، أو دردش معايا في أي موضوع تاني 😊', 'ai', { noActions: true });
         showSuggestions();
         inputEl.focus();
+        saveModePreferenceQuietly(mode);
     }
 
     function chooseCustomMood(key) {
@@ -180,6 +181,13 @@ document.addEventListener('DOMContentLoaded', () => {
         addMsg('أسألني أي حاجة عن شغل Toji، أو دردش معايا في أي موضوع تاني 😊', 'ai', { noActions: true });
         showSuggestions();
         inputEl.focus();
+    }
+
+    // ── لو الزائر مسجل دخول، بنحفظله المود المفضل عشان زعزع
+    //    مايسألوش تاني كل مرة يفتح فيها الشات ──────────────────
+    function saveModePreferenceQuietly(m) {
+        if (!window.TojiAccount?.isLoggedIn()) return;
+        window.TojiAccount.AccountAPI.updatePreferences(m, '').catch(() => {});
     }
 
     const FALLBACK_ERROR = 'معلش 🙏 في مشكلة بسيطة في الاتصال، جرب تاني كمان شوية.';
@@ -478,8 +486,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (userName) {
             stage = 'mode';
             inputRow.hidden = true;
-            addMsg('يا هلا بيك تاني يا ' + userName + ' 👋 أنا زعزع.. عايزنا نهزر ولا نتكلم جد النهارده؟', 'ai', { noActions: true });
-            showModeChoices();
+            // ── لو الحساب عنده مود محفوظ، كمل على طول من غير ما تسأل تاني ──
+            if (accountUser?.preferredMode === 'joke' || accountUser?.preferredMode === 'serious') {
+                addMsg('يا هلا بيك تاني يا ' + userName + ' 👋', 'ai', { noActions: true });
+                chooseMode(accountUser.preferredMode);
+            } else {
+                addMsg('يا هلا بيك تاني يا ' + userName + ' 👋 أنا زعزع.. عايزنا نهزر ولا نتكلم جد النهارده؟', 'ai', { noActions: true });
+                showModeChoices();
+            }
         } else {
             stage = 'name';
             inputRow.hidden = false;

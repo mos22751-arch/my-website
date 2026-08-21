@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="style.css?v=22">
     <link rel="stylesheet" href="enhancements.css?v=8">
     <link rel="stylesheet" href="pages.css?v=5">
-    <link rel="stylesheet" href="account.css?v=2">
+    <link rel="stylesheet" href="account.css?v=3">
 </head>
 <body class="dark-theme is-loading preset-graphite">
     <div class="mesh-bg" aria-hidden="true"></div>
@@ -101,6 +101,22 @@
                         <button class="toji-auth-submit acc-redeem-btn" id="accRedeemBtn" type="button">استبدل النقط بكود خصم</button>
                         <p class="form-status" id="accRedeemStatus"></p>
                         <div class="acc-codes-list" id="accCodesList"></div>
+                        <details class="acc-history-toggle">
+                            <summary>سجل حركة النقط</summary>
+                            <div class="acc-points-history" id="accPointsHistory"></div>
+                        </details>
+                    </div>
+
+                    <!-- مود زعزع المفضل -->
+                    <div class="glass-card acc-panel">
+                        <h4><i data-lucide="smile" aria-hidden="true"></i> مود زعزع المفضل</h4>
+                        <p class="acc-points-hint">زعزع هيفتكر المود ده وميسألكش عنه تاني كل مرة.</p>
+                        <div class="acc-mood-pick" id="accMoodPick">
+                            <button type="button" class="acc-mood-btn" data-mode="">مفيش (يسأل زي الأول)</button>
+                            <button type="button" class="acc-mood-btn" data-mode="joke">😄 هزار</button>
+                            <button type="button" class="acc-mood-btn" data-mode="serious">🧐 جد</button>
+                        </div>
+                        <p class="form-status" id="accMoodStatus"></p>
                     </div>
 
                     <!-- مشاريعي -->
@@ -123,6 +139,21 @@
                             <a class="toji-auth-submit acc-chat-continue" href="zaza.html">اكمل الدردشة مع زعزع</a>
                         </div>
                     </div>
+
+                    <!-- منطقة خطر -->
+                    <div class="glass-card acc-panel acc-panel-wide acc-danger-zone">
+                        <h4><i data-lucide="triangle-alert" aria-hidden="true"></i> منطقة خطر</h4>
+                        <p class="acc-points-hint">حذف حسابك هيمسح كل بياناتك (نقط، أكواد خصم، صورتك) نهائيًا ومش هترجع تاني.</p>
+                        <button class="acc-delete-btn" id="accDeleteBtn" type="button">احذف حسابي نهائيًا</button>
+                        <div class="acc-delete-confirm" id="accDeleteConfirm" hidden>
+                            <p>متأكد؟ الخطوة دي نهائية.</p>
+                            <div class="acc-delete-actions">
+                                <button class="acc-delete-btn acc-delete-btn-confirm" id="accDeleteConfirmBtn" type="button">أيوة، امسح حسابي</button>
+                                <button class="btn-secondary" id="accDeleteCancelBtn" type="button">إلغاء</button>
+                            </div>
+                        </div>
+                        <p class="form-status" id="accDeleteStatus"></p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -131,7 +162,7 @@
     <script src="vendor/lucide.min.js?v=18"></script>
     <script src="api.js?v=23"></script>
     <script src="pages-shell.js?v=1"></script>
-    <script src="account.js?v=2"></script>
-    <script src="dashboard.js?v=2"></script>
+    <script src="account.js?v=3"></script>
+    <script src="dashboard.js?v=3"></script>
 </body>
 </html>

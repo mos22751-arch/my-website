@@ -89,7 +89,9 @@
     async function loadUsers(page = 1) {
         currentPage = page;
         const search = $('searchInput').value.trim();
-        const qs = new URLSearchParams({ page, limit: 20, ...(search && { search }) });
+        const status = $('statusFilter')?.value || 'all';
+        const sort   = $('sortSelect')?.value || 'newest';
+        const qs = new URLSearchParams({ page, limit: 20, status, sort, ...(search && { search }) });
         const res = await adminFetch(`/admin/users?${qs.toString()}`);
         renderTable(res.data);
         renderPagination(res.pagination);
@@ -135,6 +137,8 @@
         clearTimeout(searchTimer);
         searchTimer = setTimeout(() => loadUsers(1), 350);
     });
+    $('statusFilter')?.addEventListener('change', () => loadUsers(1));
+    $('sortSelect')?.addEventListener('change', () => loadUsers(1));
 
     // ============================================================
     // Detail modal
@@ -154,6 +158,8 @@
         $('detailSaveMsg').textContent = '';
         $('detailPasswordMsg').textContent = '';
         $('detailNewPassword').value = '';
+        $('detailGiftMsg').textContent = '';
+        $('detailGiftPercent').value = '';
         $('detailOverlay').hidden = false;
     }
 
@@ -200,6 +206,30 @@
             msg.textContent = 'اتغيّرت كلمة المرور ✅';
             msg.className = 'acc-form-msg is-success';
             $('detailNewPassword').value = '';
+        } catch (err) {
+            msg.textContent = err.message;
+            msg.className = 'acc-form-msg is-error';
+        }
+    });
+
+    $('detailGiftBtn').addEventListener('click', async () => {
+        const msg = $('detailGiftMsg');
+        const percent = Number($('detailGiftPercent').value);
+        if (!percent || percent < 1 || percent > 100) {
+            msg.textContent = 'اكتب نسبة خصم صحيحة (1-100).';
+            msg.className = 'acc-form-msg is-error';
+            return;
+        }
+        msg.textContent = 'جارٍ الإرسال...';
+        msg.className = 'acc-form-msg';
+        try {
+            const res = await adminFetch(`/admin/users/${detailUser._id}/grant-discount`, {
+                method: 'POST',
+                body: JSON.stringify({ percent })
+            });
+            msg.textContent = `اتبعت الكود: ${res.code} ✅`;
+            msg.className = 'acc-form-msg is-success';
+            $('detailGiftPercent').value = '';
         } catch (err) {
             msg.textContent = err.message;
             msg.className = 'acc-form-msg is-error';

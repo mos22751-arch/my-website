@@ -130,9 +130,11 @@
     background: rgba(5, 5, 6, 0.6);
     backdrop-filter: blur(6px);
     opacity: 0;
+    pointer-events: none;
     transition: opacity .2s ease;
 }
-.toji-auth-overlay.open { opacity: 1; }
+.toji-auth-overlay.open { opacity: 1; pointer-events: auto; }
+.toji-auth-overlay[hidden] { display: none; }
 .toji-auth-modal {
     width: 100%;
     max-width: 400px;
@@ -405,6 +407,70 @@
 
 .acc-empty { color: var(--text-muted); font-size: 0.85rem; padding: 10px 0; }
 .acc-empty a { color: var(--primary); }
+
+/* سجل حركة النقط */
+.acc-history-toggle { margin-top: 14px; }
+.acc-history-toggle summary {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 6px 0;
+}
+.acc-history-toggle summary:hover { color: var(--text-main); }
+.acc-points-history { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; max-height: 220px; overflow-y: auto; }
+.acc-history-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    font-size: 0.8rem;
+}
+.acc-history-amount { font-weight: 800; min-width: 40px; }
+.acc-history-amount.is-positive { color: #4caf7d; }
+.acc-history-amount.is-negative { color: #ff6b6b; }
+.acc-history-reason { flex: 1; color: var(--text-main); }
+.acc-history-date { color: var(--text-muted); white-space: nowrap; }
+
+/* مود زعزع المفضل */
+.acc-mood-pick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.acc-mood-btn {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    color: var(--text-main);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+.acc-mood-btn:hover { background: var(--glass-strong); }
+.acc-mood-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* منطقة خطر — حذف الحساب */
+.acc-danger-zone { border-color: rgba(255, 107, 107, 0.3); }
+.acc-danger-zone h4 { color: #ff6b6b; }
+.acc-danger-zone h4 svg { color: #ff6b6b; }
+.acc-delete-btn {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 107, 107, 0.4);
+    background: rgba(255, 107, 107, 0.08);
+    color: #ff6b6b;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.acc-delete-btn:hover { background: rgba(255, 107, 107, 0.18); }
+.acc-delete-confirm { margin-top: 12px; padding: 12px; border-radius: 10px; background: rgba(255, 107, 107, 0.06); }
+.acc-delete-confirm p { margin: 0 0 10px; color: var(--text-main); font-size: 0.85rem; font-weight: 600; }
+.acc-delete-actions { display: flex; gap: 10px; }
+.acc-delete-btn-confirm { margin-top: 0; }
 
 .acc-list { display: flex; flex-direction: column; gap: 8px; }
 .acc-list-item {
