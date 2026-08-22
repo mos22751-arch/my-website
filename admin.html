@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; frame-src 'self'; connect-src 'self' https://portfolio-backend-production-604c.up.railway.app http://localhost:5000; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
     <title>TOJI Admin Studio</title>
-    <link rel="stylesheet" href="admin.css?v=22">
+    <link rel="stylesheet" href="admin.css?v=23">
 </head>
 <body>
     <main class="admin-shell">
@@ -607,21 +607,40 @@
                             <span class="panel-summary-sub">إدارة صفحة /blog</span>
                         </summary>
                         <div class="panel-body">
-                            <div class="projects-toolbar">
-                                <button id="blogLoadBtn" type="button" class="btn-secondary"><span>🔄</span> تحميل</button>
-                                <button id="blogAddBtn" type="button" class="btn-primary"><span>+</span> إضافة جديد</button>
-                            </div>
-                            <div class="project-form" id="blogForm" hidden>
-                                <h3 id="blogFormTitle">عنصر جديد</h3>
-                                <input type="hidden" id="blogFormId">
-                                <div class="project-form-grid" id="blogFields"></div>
-                                <div class="project-form-actions">
-                                    <button id="blogSaveBtn" type="button" class="btn-primary">💾 حفظ</button>
-                                    <button id="blogCancelBtn" type="button" class="btn-ghost">إلغاء</button>
+                            <div class="fb-composer" id="fbComposer">
+                                <div class="fb-composer-head">
+                                    <span class="fb-composer-avatar">T</span>
+                                    <input type="text" id="fbPostTitle" class="fb-composer-title" placeholder="عنوان البوست..." maxlength="120">
                                 </div>
-                                <p id="blogFormMsg" class="form-msg"></p>
+                                <textarea id="fbPostContent" class="fb-composer-textarea" placeholder="اكتب اللي في بالك..." rows="4"></textarea>
+
+                                <div class="fb-composer-image-preview" id="fbImagePreview" hidden>
+                                    <img id="fbImagePreviewImg" src="" alt="">
+                                    <button type="button" class="fb-image-remove" id="fbImageRemoveBtn" title="شيل الصورة">✕</button>
+                                </div>
+
+                                <input type="text" id="fbPostTags" class="fb-composer-tags" placeholder="تاجز (مفصولة بفاصلة، اختياري)">
+
+                                <div class="fb-composer-actions">
+                                    <label class="fb-composer-photo-btn" id="fbPhotoBtn">
+                                        <input type="file" id="fbImageInput" accept="image/png,image/jpeg,image/webp" hidden>
+                                        🖼️ صورة
+                                    </label>
+                                    <div class="fb-composer-publish-group">
+                                        <label class="fb-composer-draft-toggle">
+                                            <input type="checkbox" id="fbPublishToggle" checked> منشور مباشرة
+                                        </label>
+                                        <button type="button" class="btn-ghost" id="fbCancelEditBtn" hidden>إلغاء التعديل</button>
+                                        <button type="button" class="btn-primary" id="fbPublishBtn">نشر</button>
+                                    </div>
+                                </div>
+                                <p class="form-msg" id="fbComposerMsg"></p>
                             </div>
-                            <div id="blogList"><p class="projects-hint">اضغط "تحميل" لعرض العناصر.</p></div>
+
+                            <div class="projects-toolbar">
+                                <button id="blogLoadBtn" type="button" class="btn-secondary"><span>🔄</span> تحديث القايمة</button>
+                            </div>
+                            <div id="blogFeed" class="fb-feed"><p class="projects-hint">اضغط "تحديث القايمة" لعرض البوستات.</p></div>
                         </div>
                     </details>
 
@@ -802,7 +821,8 @@
 
     <script src="content.js?v=18"></script>
     <script src="api.js?v=23"></script>
-    <script src="admin.js?v=26"></script>
+    <script src="admin.js?v=27"></script>
     <script src="admin-content.js?v=2"></script>
+    <script src="admin-blog.js?v=2"></script>
 </body>
 </html>

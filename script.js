@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'home',         label: t('nav.home'),  icon: 'home',              enabled: true },
             { id: 'expertise',    label: t('nav.about'), icon: 'user-round',         enabled: sectionConfig.about },
             { id: 'work',         label: t('nav.work'),  icon: 'briefcase-business', enabled: sectionConfig.work },
-            { id: 'services',     label: localized(contentOverrides.marketing?.services?.eyebrow)     || 'Services', icon: 'sparkles',         enabled: sectionConfig.services },
+            { id: 'services',     label: localized(contentOverrides.marketing?.services?.eyebrow)     || 'Services', icon: 'zap',         enabled: sectionConfig.services },
             { id: 'pricing',      label: localized(contentOverrides.marketing?.pricing?.eyebrow)      || 'Pricing',  icon: 'badge-dollar-sign', enabled: sectionConfig.pricing },
             { id: 'testimonials', label: localized(contentOverrides.marketing?.testimonials?.eyebrow) || 'Reviews',  icon: 'quote',            enabled: sectionConfig.testimonials },
             { id: 'gallery',      label: localized(contentOverrides.marketing?.gallery?.eyebrow)      || 'Gallery',  icon: 'images',           enabled: sectionConfig.gallery },
@@ -1329,6 +1329,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button type="button" class="reaction-btn ${heartActive}" data-reaction="heart" aria-label="Love">
                             ❤️ <span class="reaction-count">${reactionCountFor(projectKey, 'heart')}</span>
                         </button>
+                        ${card._id ? `<button type="button" class="bookmark-btn" data-project-id="${card._id}" aria-label="Save project" title="احفظ المشروع في حسابك">
+                            <i data-lucide="bookmark" aria-hidden="true"></i>
+                        </button>` : ''}
                     </div>
                     ${link}
                     ${detailLink}
@@ -1338,7 +1341,34 @@ document.addEventListener('DOMContentLoaded', () => {
         refreshDomCollections();
         setTimeout(() => { if (typeof syncObservedElements === 'function') syncObservedElements(); }, 50);
         if (window.lucide) window.lucide.createIcons();
+        markSavedProjectButtons();
     }
+
+    // ── علّم أزرار الحفظ اللي المشروع بتاعها محفوظ فعلًا في حساب الزائر ──
+    function markSavedProjectButtons() {
+        if (!window.TojiAccount?.isLoggedIn()) return;
+        const user = window.TojiAccount.getUser();
+        const saved = user?.savedProjectIds || [];
+        document.querySelectorAll('.bookmark-btn').forEach((btn) => {
+            btn.classList.toggle('active', saved.includes(btn.dataset.projectId));
+        });
+    }
+
+    document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.bookmark-btn');
+        if (!btn) return;
+        if (!window.TojiAccount?.isLoggedIn()) {
+            window.TojiAccount?.openAuthModal?.();
+            return;
+        }
+        btn.disabled = true;
+        try {
+            const res = await window.TojiAccount.AccountAPI.toggleSavedProject(btn.dataset.projectId);
+            btn.classList.toggle('active', res.saved);
+        } catch {} finally {
+            btn.disabled = false;
+        }
+    });
 
     // ============================================================
     // ✦ LINKS GRID — قسم "Connect" الجديد
@@ -1636,7 +1666,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="marketing-grid">
                 ${(section?.items || []).map((item) => `
                     <article class="marketing-card glass-card reveal-up tilt-effect">
-                        ${iconMarkup('sparkles')}
+                        ${iconMarkup('zap')}
                         <h3>${localized(item.title)}</h3>
                         <p>${localized(item.copy)}</p>
                     </article>

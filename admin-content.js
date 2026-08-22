@@ -50,21 +50,6 @@
             ],
             renderItem: (it) => ({ title: it.title, sub: it.duration || '', visible: it.isVisible })
         },
-        blog: {
-            api: () => window.TojiAPI.BlogAPI,
-            title: 'مقال جديد',
-            fields: [
-                { id: 'title', label: 'العنوان', type: 'text' },
-                { id: 'slug', label: 'Slug (إنجليزي، بدون مسافات)', type: 'text', placeholder: 'my-post-title' },
-                { id: 'excerpt', label: 'ملخص قصير', type: 'textarea' },
-                { id: 'content', label: 'المحتوى الكامل', type: 'textarea-lg' },
-                { id: 'coverImage', label: 'رابط صورة الغلاف', type: 'text' },
-                { id: 'tags', label: 'تاجز (مفصولة بفاصلة)', type: 'tags' },
-                { id: 'order', label: 'الترتيب', type: 'number', default: 0 },
-                { id: 'isPublished', label: 'منشور', type: 'checkbox' }
-            ],
-            renderItem: (it) => ({ title: it.title, sub: it.slug, visible: it.isPublished })
-        },
         changelog: {
             api: () => window.TojiAPI.ChangelogAPI,
             title: 'تحديث جديد',

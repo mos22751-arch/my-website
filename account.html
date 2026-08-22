@@ -11,9 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap">
     <link rel="stylesheet" href="style.css?v=22">
-    <link rel="stylesheet" href="enhancements.css?v=8">
-    <link rel="stylesheet" href="pages.css?v=5">
-    <link rel="stylesheet" href="account.css?v=3">
+    <link rel="stylesheet" href="enhancements.css?v=9">
+    <link rel="stylesheet" href="pages.css?v=6">
+    <link rel="stylesheet" href="account.css?v=4">
 </head>
 <body class="dark-theme is-loading preset-graphite">
     <div class="mesh-bg" aria-hidden="true"></div>
@@ -66,6 +66,10 @@
                         <h3 id="accName">—</h3>
                         <p id="accEmail">—</p>
                     </div>
+                    <div class="acc-streak-badge" id="accStreakBadge" hidden>
+                        <span id="accStreakCurrent">0</span>
+                        <small>يوم متتالي 🔥</small>
+                    </div>
                     <div class="acc-points-badge">
                         <span id="accPointsTotal">0</span>
                         <small>نقطة</small>
@@ -96,7 +100,7 @@
 
                     <!-- النقط والخصومات -->
                     <div class="glass-card acc-panel acc-panel-wide">
-                        <h4><i data-lucide="sparkles" aria-hidden="true"></i> النقط والخصومات</h4>
+                        <h4><i data-lucide="zap" aria-hidden="true"></i> النقط والخصومات</h4>
                         <p class="acc-points-hint" id="accRedeemHint">اجمع نقط وحوّلها لكود خصم على مشروعك الجاي.</p>
                         <button class="toji-auth-submit acc-redeem-btn" id="accRedeemBtn" type="button">استبدل النقط بكود خصم</button>
                         <p class="form-status" id="accRedeemStatus"></p>
@@ -117,6 +121,33 @@
                             <button type="button" class="acc-mood-btn" data-mode="serious">🧐 جد</button>
                         </div>
                         <p class="form-status" id="accMoodStatus"></p>
+                    </div>
+
+                    <!-- نوتة شخصية -->
+                    <div class="glass-card acc-panel acc-panel-wide">
+                        <h4><i data-lucide="notebook-pen" aria-hidden="true"></i> نوتتي الشخصية</h4>
+                        <p class="acc-points-hint">اكتب هنا أي حاجة عايز تفتكرها — أفكار، تفاصيل مشروع، أي حاجة.</p>
+                        <textarea id="accNotesInput" class="acc-notes-textarea" maxlength="5000" placeholder="اكتب هنا..." rows="5"></textarea>
+                        <button class="toji-auth-submit acc-notes-save" id="accNotesSaveBtn" type="button">حفظ النوتة</button>
+                        <p class="form-status" id="accNotesStatus"></p>
+                    </div>
+
+                    <!-- الدعوة -->
+                    <div class="glass-card acc-panel acc-panel-wide">
+                        <h4><i data-lucide="gift" aria-hidden="true"></i> ادعُ صحابك</h4>
+                        <p class="acc-points-hint">كل صاحب يعمل حساب بكود الدعوة بتاعك، الاتنين تاخدوا 15 نقطة هدية.</p>
+                        <div class="acc-referral-box">
+                            <code id="accReferralCode">—</code>
+                            <button class="btn-secondary" id="accReferralCopyBtn" type="button">نسخ الرابط</button>
+                        </div>
+                        <p class="acc-points-hint" id="accReferralCount">دعيت 0 صاحب لحد دلوقتي.</p>
+                    </div>
+
+                    <!-- مشاريعي المحفوظة -->
+                    <div class="glass-card acc-panel acc-panel-wide">
+                        <h4><i data-lucide="bookmark" aria-hidden="true"></i> مشاريع محفوظة</h4>
+                        <div class="acc-empty" id="accSavedEmpty" hidden>لسه محفظتش أي مشروع. تقدر تحفظ من <a href="index.html#projects">صفحة الأعمال</a>.</div>
+                        <div class="acc-list" id="accSavedList"></div>
                     </div>
 
                     <!-- مشاريعي -->
@@ -143,6 +174,9 @@
                     <!-- منطقة خطر -->
                     <div class="glass-card acc-panel acc-panel-wide acc-danger-zone">
                         <h4><i data-lucide="triangle-alert" aria-hidden="true"></i> منطقة خطر</h4>
+                        <p class="acc-points-hint">تقدر تنزّل نسخة من كل بياناتك قبل ما تحذف حسابك لو حبيت.</p>
+                        <button class="btn-secondary" id="accExportBtn" type="button">⬇️ نزّل نسخة من بياناتي</button>
+                        <hr>
                         <p class="acc-points-hint">حذف حسابك هيمسح كل بياناتك (نقط، أكواد خصم، صورتك) نهائيًا ومش هترجع تاني.</p>
                         <button class="acc-delete-btn" id="accDeleteBtn" type="button">احذف حسابي نهائيًا</button>
                         <div class="acc-delete-confirm" id="accDeleteConfirm" hidden>
@@ -162,7 +196,7 @@
     <script src="vendor/lucide.min.js?v=18"></script>
     <script src="api.js?v=23"></script>
     <script src="pages-shell.js?v=1"></script>
-    <script src="account.js?v=3"></script>
-    <script src="dashboard.js?v=3"></script>
+    <script src="account.js?v=4"></script>
+    <script src="dashboard.js?v=4"></script>
 </body>
 </html>

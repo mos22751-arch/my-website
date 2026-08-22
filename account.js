@@ -32,6 +32,16 @@
         localStorage.removeItem(USER_KEY);
     }
 
+    // ── لو الرابط فيه ?ref=CODE، نحفظه محليًا عشان نستخدمه لو الزائر عمل حساب ──
+    function getStoredRefCode() {
+        try {
+            const fromUrl = new URLSearchParams(window.location.search).get('ref');
+            if (fromUrl) localStorage.setItem('toji_ref_code', fromUrl.trim().toUpperCase());
+            return localStorage.getItem('toji_ref_code') || '';
+        } catch { return ''; }
+    }
+    getStoredRefCode(); // نسجّل الكود لو موجود من أول تحميل للصفحة
+
     async function accountFetch(endpoint, options = {}) {
         const token = UserToken.get();
         const headers = {
@@ -48,15 +58,18 @@
 
     const AccountAPI = {
         settings:   () => accountFetch('/account/settings'),
-        register:   (name, email, password) => accountFetch('/account/register', { method: 'POST', body: JSON.stringify({ name, email, password }) }),
+        register:   (name, email, password) => accountFetch('/account/register', { method: 'POST', body: JSON.stringify({ name, email, password, refCode: getStoredRefCode() }) }),
         login:      (email, password) => accountFetch('/account/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
-        google:     (credential) => accountFetch('/account/google', { method: 'POST', body: JSON.stringify({ credential }) }),
+        google:     (credential) => accountFetch('/account/google', { method: 'POST', body: JSON.stringify({ credential, refCode: getStoredRefCode() }) }),
         me:         () => accountFetch('/account/me'),
         updateName: (name) => accountFetch('/account/me', { method: 'PUT', body: JSON.stringify({ name }) }),
         changePassword: (currentPassword, newPassword) => accountFetch('/account/password', { method: 'PUT', body: JSON.stringify({ currentPassword, newPassword }) }),
         claimDaily: () => accountFetch('/account/claim-daily-points', { method: 'POST' }),
         redeemPoints: () => accountFetch('/account/redeem-points', { method: 'POST' }),
         updatePreferences: (mode, moodKey) => accountFetch('/account/preferences', { method: 'PUT', body: JSON.stringify({ mode, moodKey }) }),
+        updateNotes: (notes) => accountFetch('/account/notes', { method: 'PUT', body: JSON.stringify({ notes }) }),
+        toggleSavedProject: (projectId) => accountFetch('/account/saved-projects/toggle', { method: 'POST', body: JSON.stringify({ projectId }) }),
+        exportData: () => accountFetch('/account/export-data'),
         deleteAccount: () => accountFetch('/account/me', { method: 'DELETE' }),
         chatHistory: () => accountFetch('/account/chat-history'),
         claimChat:   (clientId) => accountFetch('/account/claim-chat', { method: 'POST', body: JSON.stringify({ clientId }) }),
@@ -226,6 +239,16 @@
         modalEl.querySelectorAll('.toji-auth-tab').forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === tab));
         modalEl.querySelectorAll('.toji-auth-form').forEach((f) => f.hidden = f.dataset.form !== tab);
         modalEl.querySelector('.toji-auth-error').textContent = '';
+        const switchEl = modalEl.querySelector('#tojiAuthSwitch');
+        if (switchEl) {
+            switchEl.innerHTML = (tab === 'login')
+                ? 'لسه معملتش حساب؟ <a data-switch-to="register">اعمل واحد دلوقتي</a>'
+                : 'عندك حساب بالفعل؟ <a data-switch-to="login">سجّل دخولك</a>';
+            switchEl.querySelector('[data-switch-to]').addEventListener('click', (e) => {
+                e.preventDefault();
+                setTab(e.target.dataset.switchTo);
+            });
+        }
     }
 
     function buildModal() {
@@ -233,43 +256,93 @@
         modalEl.className = 'toji-auth-overlay';
         modalEl.hidden = true;
         modalEl.innerHTML = `
-        <div class="toji-auth-modal glass-panel" role="dialog" aria-modal="true" aria-label="تسجيل الدخول أو إنشاء حساب">
-            <button class="toji-auth-close" type="button" aria-label="إغلاق">
-                <i data-lucide="x" aria-hidden="true"></i>
-            </button>
-            <div class="toji-auth-head">
-                <p class="eyebrow">حساب اختياري</p>
-                <h3>سجّل دخولك عشان تاخد أكتر</h3>
-                <p class="toji-auth-sub">ذاكرة لشات زعزع، حفظ مشاريعك، نقط يومية بتتحول لخصم — كله اختياري تمامًا.</p>
+        <div class="toji-auth-card" role="dialog" aria-modal="true" aria-label="تسجيل الدخول أو إنشاء حساب">
+            <div class="toji-auth-visual">
+                <span class="toji-auth-visual-orb toji-auth-visual-orb-1"></span>
+                <span class="toji-auth-visual-orb toji-auth-visual-orb-2"></span>
+                <span class="toji-auth-visual-orb toji-auth-visual-orb-3"></span>
+                <div class="toji-auth-brand">TOJI<span class="dot">.</span></div>
+                <p class="toji-auth-visual-eyebrow">أهلًا بيك 👋</p>
+                <h2 class="toji-auth-visual-title">يلا نبدأ سوا</h2>
+                <p class="toji-auth-visual-text">اعمل حساب مجاني وخد ذاكرة شات مع زعزع، نقط يومية بتتحول لخصومات، وحفظ مشاريعك — كله اختياري تمامًا.</p>
             </div>
-            <div class="toji-auth-tabs">
-                <button class="toji-auth-tab active" data-tab="login" type="button">تسجيل دخول</button>
-                <button class="toji-auth-tab" data-tab="register" type="button">حساب جديد</button>
+
+            <div class="toji-auth-panel">
+                <button class="toji-auth-close" type="button" aria-label="إغلاق">
+                    <i data-lucide="x" aria-hidden="true"></i>
+                </button>
+
+                <div class="toji-auth-tabs">
+                    <button class="toji-auth-tab active" data-tab="login" type="button">تسجيل دخول</button>
+                    <button class="toji-auth-tab" data-tab="register" type="button">حساب جديد</button>
+                </div>
+                <p class="toji-auth-error" role="alert"></p>
+
+                <form class="toji-auth-form" data-form="login">
+                    <label class="toji-auth-field">
+                        <span>الإيميل</span>
+                        <span class="toji-auth-input-wrap">
+                            <input type="email" name="email" required autocomplete="email" maxlength="120" placeholder="you@example.com">
+                            <span class="toji-auth-check" aria-hidden="true"><i data-lucide="check" aria-hidden="true"></i></span>
+                        </span>
+                    </label>
+                    <label class="toji-auth-field">
+                        <span>كلمة المرور</span>
+                        <span class="toji-auth-input-wrap">
+                            <input type="password" name="password" required autocomplete="current-password" maxlength="100" placeholder="••••••••">
+                            <span class="toji-auth-check" aria-hidden="true"><i data-lucide="check" aria-hidden="true"></i></span>
+                        </span>
+                    </label>
+                    <button type="submit" class="toji-auth-submit">دخول</button>
+                </form>
+
+                <form class="toji-auth-form" data-form="register" hidden>
+                    <label class="toji-auth-field">
+                        <span>الاسم</span>
+                        <span class="toji-auth-input-wrap">
+                            <input type="text" name="name" required maxlength="60" placeholder="اسمك">
+                            <span class="toji-auth-check" aria-hidden="true"><i data-lucide="check" aria-hidden="true"></i></span>
+                        </span>
+                    </label>
+                    <label class="toji-auth-field">
+                        <span>الإيميل</span>
+                        <span class="toji-auth-input-wrap">
+                            <input type="email" name="email" required autocomplete="email" maxlength="120" placeholder="you@example.com">
+                            <span class="toji-auth-check" aria-hidden="true"><i data-lucide="check" aria-hidden="true"></i></span>
+                        </span>
+                    </label>
+                    <label class="toji-auth-field">
+                        <span>كلمة المرور</span>
+                        <span class="toji-auth-input-wrap">
+                            <input type="password" name="password" required autocomplete="new-password" minlength="8" maxlength="100" placeholder="8 حروف على الأقل">
+                            <span class="toji-auth-check" aria-hidden="true"><i data-lucide="check" aria-hidden="true"></i></span>
+                        </span>
+                    </label>
+                    <button type="submit" class="toji-auth-submit">إنشاء حساب</button>
+                </form>
+
+                <div class="toji-auth-divider toji-google-slot"><span>أو</span></div>
+                <div class="toji-google-btn-slot toji-google-slot" id="tojiGoogleBtnSlot"></div>
+
+                <p class="toji-auth-switch" id="tojiAuthSwitch">لسه معملتش حساب؟ <a data-switch-to="register">اعمل واحد دلوقتي</a></p>
             </div>
-            <p class="toji-auth-error" role="alert"></p>
-
-            <form class="toji-auth-form" data-form="login">
-                <label>الإيميل<input type="email" name="email" required autocomplete="email" maxlength="120"></label>
-                <label>كلمة المرور<input type="password" name="password" required autocomplete="current-password" maxlength="100"></label>
-                <button type="submit" class="toji-auth-submit">دخول</button>
-            </form>
-
-            <form class="toji-auth-form" data-form="register" hidden>
-                <label>الاسم<input type="text" name="name" required maxlength="60"></label>
-                <label>الإيميل<input type="email" name="email" required autocomplete="email" maxlength="120"></label>
-                <label>كلمة المرور<input type="password" name="password" required autocomplete="new-password" minlength="8" maxlength="100"></label>
-                <p class="toji-auth-hint">8 حروف على الأقل</p>
-                <button type="submit" class="toji-auth-submit">إنشاء حساب</button>
-            </form>
-
-            <div class="toji-auth-divider toji-google-slot"><span>أو</span></div>
-            <div class="toji-google-btn-slot toji-google-slot" id="tojiGoogleBtnSlot"></div>
         </div>`;
         document.body.appendChild(modalEl);
 
         modalEl.addEventListener('click', (e) => { if (e.target === modalEl) closeAuthModal(); });
         modalEl.querySelector('.toji-auth-close').addEventListener('click', closeAuthModal);
         modalEl.querySelectorAll('.toji-auth-tab').forEach((btn) => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+        modalEl.querySelector('[data-switch-to]')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            setTab(e.target.dataset.switchTo);
+        });
+
+        // ── علامة الصح جنب كل حقل اتملى ──
+        modalEl.querySelectorAll('.toji-auth-field input').forEach((input) => {
+            input.addEventListener('input', () => {
+                input.closest('.toji-auth-input-wrap').classList.toggle('has-value', input.value.trim().length > 0);
+            });
+        });
 
         modalEl.querySelector('[data-form="login"]').addEventListener('submit', async (e) => {
             e.preventDefault();

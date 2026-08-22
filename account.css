@@ -127,7 +127,7 @@
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: rgba(5, 5, 6, 0.6);
+    background: rgba(5, 5, 6, 0.7);
     backdrop-filter: blur(6px);
     opacity: 0;
     pointer-events: none;
@@ -135,21 +135,70 @@
 }
 .toji-auth-overlay.open { opacity: 1; pointer-events: auto; }
 .toji-auth-overlay[hidden] { display: none; }
-.toji-auth-modal {
+
+/* ── الكارت مقسّم نصين: بانل بصري + بانل الفورم — دايمًا داكن بغض النظر عن ثيم الموقع ── */
+.toji-auth-card {
     width: 100%;
-    max-width: 400px;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 28px 26px 26px;
-    border-radius: 22px;
-    position: relative;
+    max-width: 780px;
+    max-height: 92vh;
+    display: grid;
+    grid-template-columns: 0.85fr 1fr;
+    border-radius: 26px;
+    overflow: hidden;
+    background: #101113;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55);
     transform: translateY(14px) scale(.98);
     transition: transform .25s ease;
-    background: var(--glass-strong);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow);
 }
-.toji-auth-overlay.open .toji-auth-modal { transform: translateY(0) scale(1); }
+.toji-auth-overlay.open .toji-auth-card { transform: translateY(0) scale(1); }
+
+/* البانل البصري — يمين/شمال حسب RTL، غامق دايمًا مع توهجات ديكور */
+.toji-auth-visual {
+    position: relative;
+    overflow: hidden;
+    padding: 34px 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background:
+        radial-gradient(circle at 20% 15%, rgba(99,38,38,0.45), transparent 55%),
+        radial-gradient(circle at 85% 85%, rgba(156,115,115,0.28), transparent 50%),
+        #0a0a0c;
+}
+.toji-auth-visual-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(2px);
+    opacity: 0.85;
+}
+.toji-auth-visual-orb-1 { width: 26px; height: 26px; top: 14%; inset-inline-start: 18%; background: radial-gradient(circle at 35% 30%, #cbb98a, #8a6d3a); }
+.toji-auth-visual-orb-2 { width: 46px; height: 46px; bottom: 20%; inset-inline-end: 12%; background: radial-gradient(circle at 35% 30%, #9c7373, #4a2626); opacity: 0.6; }
+.toji-auth-visual-orb-3 { width: 16px; height: 16px; top: 42%; inset-inline-end: 22%; background: radial-gradient(circle at 35% 30%, #eeece7, #632626); }
+
+.toji-auth-brand {
+    position: absolute;
+    top: 26px;
+    inset-inline-start: 30px;
+    font-family: 'Caveat', cursive;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #eeece7;
+    letter-spacing: 0.02em;
+}
+.toji-auth-brand .dot { color: #9c7373; }
+
+.toji-auth-visual-eyebrow { position: relative; margin: 0 0 6px; font-size: 0.82rem; color: #cfcac2; font-weight: 600; }
+.toji-auth-visual-title { position: relative; margin: 0 0 10px; font-size: 1.6rem; font-weight: 800; color: #f4f2ec; line-height: 1.25; }
+.toji-auth-visual-text { position: relative; margin: 0; font-size: 0.84rem; line-height: 1.6; color: rgba(238,236,231,0.65); }
+
+/* بانل الفورم — نفس التصميم الغامق، مش متأثر بثيم الموقع الفاتح/الغامق عشان يفضل متسق */
+.toji-auth-panel {
+    position: relative;
+    padding: 30px 28px 26px;
+    overflow-y: auto;
+    background: #131417;
+}
 
 .toji-auth-close {
     position: absolute;
@@ -161,67 +210,49 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-bg);
-    color: var(--text-main);
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: rgba(238,236,231,0.7);
     cursor: pointer;
 }
-.toji-auth-close:hover { border-color: var(--primary); color: var(--primary); }
+.toji-auth-close:hover { border-color: #9c7373; color: #eeece7; }
 .toji-auth-close svg { width: 16px; height: 16px; }
-
-.toji-auth-head { margin-bottom: 18px; }
-.toji-auth-head .eyebrow {
-    font-size: 0.7rem;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--primary);
-    font-weight: 700;
-    margin: 0 0 6px;
-}
-.toji-auth-head h3 { margin: 0 0 6px; font-size: 1.25rem; color: var(--text-main); }
-.toji-auth-sub { margin: 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
 
 .toji-auth-tabs {
     display: flex;
     gap: 6px;
     padding: 4px;
-    border-radius: 12px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    margin-bottom: 16px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    margin: 4px 0 20px;
+    max-width: fit-content;
 }
 .toji-auth-tab {
-    flex: 1;
-    padding: 8px 10px;
+    padding: 8px 18px;
     border: none;
-    border-radius: 9px;
+    border-radius: 999px;
     background: transparent;
-    color: var(--text-muted);
+    color: rgba(238,236,231,0.55);
     font-family: inherit;
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
     transition: background .2s ease, color .2s ease;
 }
-.toji-auth-tab.active { background: var(--primary); color: #fff; }
+.toji-auth-tab.active { background: #632626; color: #f4f2ec; }
 
 .toji-auth-error {
     min-height: 18px;
     font-size: 0.8rem;
-    color: #ff6b6b;
+    color: #ff8080;
     margin: 0 0 8px;
 }
 
-.toji-auth-form { display: flex; flex-direction: column; gap: 12px; }
-.toji-auth-form label {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    font-weight: 600;
-}
-.toji-auth-form input {
+.toji-auth-form { display: flex; flex-direction: column; gap: 14px; }
+
+/* الفورمات دي بتتكرر في صفحة الحساب نفسها (مش بس المودال) — لازم تتبع ثيم الموقع */
+.acc-panel .toji-auth-form input {
     padding: 11px 13px;
     border-radius: 10px;
     border: 1px solid var(--glass-border);
@@ -232,40 +263,99 @@
     outline: none;
     transition: border-color .2s ease;
 }
-.toji-auth-form input:focus { border-color: var(--primary); }
-.toji-auth-hint { margin: -6px 0 0; font-size: 0.72rem; color: var(--text-muted); }
+.acc-panel .toji-auth-form input:focus { border-color: var(--primary); }
+.acc-panel .toji-auth-submit {
+    background: var(--primary);
+    color: #000;
+}
+.toji-auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.76rem;
+    color: rgba(238,236,231,0.55);
+    font-weight: 600;
+}
+.toji-auth-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.toji-auth-input-wrap input {
+    width: 100%;
+    padding: 13px 42px 13px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.09);
+    background: rgba(255,255,255,0.045);
+    color: #f4f2ec;
+    font-family: inherit;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color .2s ease, background .2s ease;
+}
+[dir="rtl"] .toji-auth-input-wrap input { padding: 13px 16px 13px 42px; }
+.toji-auth-input-wrap input:focus { border-color: #9c7373; background: rgba(255,255,255,0.07); }
+.toji-auth-input-wrap input::placeholder { color: rgba(238,236,231,0.28); }
+
+.toji-auth-check {
+    position: absolute;
+    inset-inline-end: 14px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #2e7d5b;
+    color: #fff;
+    opacity: 0;
+    transform: scale(.6);
+    transition: opacity .18s ease, transform .18s ease;
+    pointer-events: none;
+}
+.toji-auth-check svg { width: 11px; height: 11px; stroke-width: 3; }
+.toji-auth-input-wrap.has-value .toji-auth-check { opacity: 1; transform: scale(1); }
 
 .toji-auth-submit {
-    margin-top: 4px;
-    padding: 12px;
+    margin-top: 6px;
+    padding: 13px;
     border: none;
-    border-radius: 12px;
-    background: var(--primary);
-    color: #fff;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #632626, #4a1c1c);
+    color: #f4f2ec;
     font-family: inherit;
     font-size: 0.9rem;
     font-weight: 700;
     cursor: pointer;
     transition: filter .2s ease, transform .2s ease;
 }
-.toji-auth-submit:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.toji-auth-submit:hover { filter: brightness(1.15); transform: translateY(-1px); }
 
 .toji-auth-divider {
     display: flex;
     align-items: center;
     gap: 10px;
     margin: 18px 0 12px;
-    color: var(--text-muted);
+    color: rgba(238,236,231,0.4);
     font-size: 0.75rem;
 }
 .toji-auth-divider::before, .toji-auth-divider::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: var(--glass-border);
+    background: rgba(255,255,255,0.08);
 }
 
 .toji-google-btn-slot { display: flex; justify-content: center; min-height: 44px; }
+
+.toji-auth-switch {
+    margin: 16px 0 0;
+    text-align: center;
+    font-size: 0.8rem;
+    color: rgba(238,236,231,0.5);
+}
+.toji-auth-switch a { color: #cbb98a; font-weight: 700; text-decoration: none; cursor: pointer; }
+.toji-auth-switch a:hover { text-decoration: underline; }
 
 /* ── toast ── */
 .toji-toast {
@@ -292,9 +382,12 @@
 .toji-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 [dir="rtl"] .toji-toast.show { transform: translateX(50%) translateY(0); }
 
-@media (max-width: 640px) {
+@media (max-width: 720px) {
     .toji-account-name { max-width: 60px; }
-    .toji-auth-modal { padding: 24px 18px 20px; }
+    .toji-auth-card { grid-template-columns: 1fr; max-height: 94vh; overflow-y: auto; }
+    .toji-auth-visual { padding: 60px 24px 24px; min-height: 130px; justify-content: center; }
+    .toji-auth-visual-text { display: none; }
+    .toji-auth-panel { padding: 24px 20px 20px; }
 }
 
 /* ============================================================
@@ -348,7 +441,7 @@
     justify-content: center;
     border-radius: 50%;
     background: var(--primary);
-    color: #fff;
+    color: #000;
     cursor: pointer;
     border: 2px solid var(--bg-base);
 }
@@ -448,7 +541,7 @@
     transition: background 0.15s ease, border-color 0.15s ease;
 }
 .acc-mood-btn:hover { background: var(--glass-strong); }
-.acc-mood-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.acc-mood-btn.active { background: var(--primary); border-color: var(--primary); color: #000; }
 
 /* منطقة خطر — حذف الحساب */
 .acc-danger-zone { border-color: rgba(255, 107, 107, 0.3); }

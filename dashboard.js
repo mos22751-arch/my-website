@@ -50,8 +50,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderCodes(user.discountCodes || []);
         renderPointsHistory(user.pointsHistory || []);
         renderMoodPref(user.preferredMode || '');
+        renderStreak(user.streak);
+        renderReferral(user);
+        document.getElementById('accNotesInput').value = user.personalNotes || '';
         loadProjects();
         loadChatHistory();
+        loadSavedProjects();
 
         const settings = await window.TojiAccount.getSettings();
         const hint = document.getElementById('accRedeemHint');
@@ -95,6 +99,80 @@ document.addEventListener('DOMContentLoaded', async () => {
             btn.classList.toggle('active', btn.dataset.mode === mode);
         });
     }
+
+    function renderStreak(streak) {
+        const badge = document.getElementById('accStreakBadge');
+        if (!streak || !streak.current) { badge.hidden = true; return; }
+        badge.hidden = false;
+        document.getElementById('accStreakCurrent').textContent = streak.current;
+    }
+
+    function renderReferral(user) {
+        document.getElementById('accReferralCode').textContent = user.referralCode || '—';
+        document.getElementById('accReferralCount').textContent =
+            `دعيت ${user.referralCount || 0} صاحب لحد دلوقتي.`;
+    }
+
+    document.getElementById('accReferralCopyBtn')?.addEventListener('click', () => {
+        const code = document.getElementById('accReferralCode').textContent;
+        if (!code || code === '—') return;
+        const url = `${window.location.origin}/index.html?ref=${code}`;
+        navigator.clipboard?.writeText(url).then(() => {
+            window.TojiAccount.toast('اتنسخ الرابط! 🎉');
+        }).catch(() => {
+            window.TojiAccount.toast(url);
+        });
+    });
+
+    document.getElementById('accNotesSaveBtn')?.addEventListener('click', async () => {
+        const status = document.getElementById('accNotesStatus');
+        status.textContent = 'جارٍ الحفظ...';
+        status.className = 'form-status';
+        try {
+            await AccountAPI.updateNotes(document.getElementById('accNotesInput').value);
+            status.textContent = 'اتحفظت ✅';
+            status.className = 'form-status is-success';
+        } catch (err) {
+            status.textContent = err.message;
+            status.className = 'form-status is-error';
+        }
+    });
+
+    async function loadSavedProjects() {
+        const listEl = document.getElementById('accSavedList');
+        const emptyEl = document.getElementById('accSavedEmpty');
+        try {
+            const res = await AccountAPI.me();
+            const ids = res.user.savedProjectIds || [];
+            if (!ids.length) { emptyEl.hidden = false; listEl.innerHTML = ''; return; }
+            emptyEl.hidden = true;
+            const all = await window.TojiAPI.ProjectsAPI.getPublic();
+            const projects = (all.data || []).filter((p) => ids.includes(String(p._id)));
+            listEl.innerHTML = projects.map((p) => `
+                <div class="acc-list-item">
+                    <div><strong>${escapeHtml(p.title || 'مشروع')}</strong><span>${escapeHtml((p.description || '').slice(0, 80))}</span></div>
+                    <div class="acc-list-meta"><a class="btn-secondary" href="index.html#projects">شوفه</a></div>
+                </div>`).join('') || '<p class="acc-empty">المشاريع دي مش موجودة دلوقتي.</p>';
+        } catch {
+            emptyEl.hidden = false;
+            emptyEl.textContent = 'تعذر تحميل مشاريعك المحفوظة.';
+        }
+    }
+
+    document.getElementById('accExportBtn')?.addEventListener('click', async () => {
+        try {
+            const data = await AccountAPI.exportData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'toji-my-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            window.TojiAccount.toast(err.message || 'تعذر تصدير بياناتك');
+        }
+    });
 
     document.querySelectorAll('#accMoodPick .acc-mood-btn').forEach((btn) => {
         btn.addEventListener('click', async () => {
