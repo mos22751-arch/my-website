@@ -122,3 +122,51 @@
 .acc-modal-toggle { display: flex; align-items: center; gap: 8px; color: var(--text); font-size: 0.85rem; }
 .acc-modal-toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
 .acc-modal hr { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+/* ── إعلانات لكل الحسابات ── */
+.acc-broadcast-composer { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+.acc-broadcast-composer textarea {
+    flex: 1; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--panel-solid);
+    color: var(--text); font-family: inherit; font-size: 0.88rem; resize: vertical;
+}
+.acc-broadcast-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.acc-broadcast-item {
+    padding: 12px 14px; border-radius: 10px;
+    background: var(--panel); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.acc-broadcast-item.is-inactive { opacity: 0.5; }
+.acc-broadcast-item p { margin: 0; color: var(--text); font-size: 0.85rem; flex: 1; min-width: 200px; }
+.acc-broadcast-item-actions { display: flex; gap: 12px; }
+.acc-broadcast-item-actions button {
+    background: none; border: none; color: var(--muted); font-size: 0.8rem; cursor: pointer; font-family: inherit;
+}
+.acc-broadcast-item-actions button:hover { color: var(--text); }
+
+/* ── صندوق رسائل الزوار ── */
+.acc-inbox-layout { display: grid; grid-template-columns: 260px 1fr; gap: 16px; min-height: 320px; }
+.acc-inbox-list { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 420px; }
+.acc-inbox-thread-btn {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text); cursor: pointer; text-align: start; font-family: inherit;
+}
+.acc-inbox-thread-btn:hover { background: var(--panel-soft); }
+.acc-inbox-thread-btn.active { border-color: var(--accent); }
+.acc-inbox-thread-btn.has-unread strong::after { content: ' •'; color: var(--warn); }
+.acc-inbox-thread-btn span { font-size: 0.76rem; color: var(--muted); }
+.acc-inbox-thread { display: flex; flex-direction: column; }
+.acc-inbox-msgs { flex: 1; display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; padding: 4px; }
+.acc-inbox-msg { max-width: 75%; padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; line-height: 1.5; }
+.acc-inbox-msg.from-user { align-self: flex-start; background: var(--panel); border: 1px solid var(--border); color: var(--text); }
+.acc-inbox-msg.from-admin { align-self: flex-end; background: var(--accent); color: #000; }
+.acc-inbox-reply-row { display: flex; gap: 8px; margin-top: 10px; }
+.acc-inbox-reply-row input {
+    flex: 1; padding: 9px 12px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--panel-solid); color: var(--text); font-family: inherit;
+}
+@media (max-width: 720px) {
+    .acc-inbox-layout { grid-template-columns: 1fr; }
+    .acc-inbox-list { max-height: 200px; }
+}

@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="style.css?v=22">
     <link rel="stylesheet" href="enhancements.css?v=9">
     <link rel="stylesheet" href="pages.css?v=6">
-    <link rel="stylesheet" href="account.css?v=4">
+    <link rel="stylesheet" href="account.css?v=5">
 </head>
 <body class="dark-theme is-loading preset-graphite">
     <div class="mesh-bg" aria-hidden="true"></div>
@@ -65,6 +65,16 @@
                     <div class="acc-profile-info">
                         <h3 id="accName">—</h3>
                         <p id="accEmail">—</p>
+                        <a class="acc-username-link" id="accUsernameLink" href="#" target="_blank">@—</a>
+                        <p class="acc-bio" id="accBioDisplay"></p>
+                        <div class="acc-follow-counts">
+                            <span><strong id="accFollowersCount">0</strong> متابِع</span>
+                            <span><strong id="accFollowingCount">0</strong> بيتابع</span>
+                        </div>
+                    </div>
+                    <div class="acc-level-badge" id="accLevelBadge">
+                        <span id="accLevelEmoji">🥉</span>
+                        <small id="accLevelLabel">برونزي</small>
                     </div>
                     <div class="acc-streak-badge" id="accStreakBadge" hidden>
                         <span id="accStreakCurrent">0</span>
@@ -76,24 +86,55 @@
                     </div>
                 </div>
 
+                <!-- 📩 رسالة ترحيب مخصصة من الأدمن -->
+                <div class="acc-welcome-banner" id="accWelcomeBanner" hidden>
+                    <span id="accWelcomeText"></span>
+                    <button type="button" id="accWelcomeDismiss">✕</button>
+                </div>
+
+                <!-- 📢 إعلانات الأدمن -->
+                <div class="acc-broadcast-banner" id="accBroadcastBanner" hidden></div>
+
                 <div class="acc-grid">
-                    <!-- تعديل الاسم -->
-                    <div class="glass-card acc-panel">
-                        <h4><i data-lucide="pencil" aria-hidden="true"></i> تعديل الاسم</h4>
-                        <form id="accNameForm" class="toji-auth-form">
-                            <input type="text" id="accNameInput" maxlength="60" required>
-                            <button type="submit" class="toji-auth-submit">حفظ</button>
+                    <!-- مركز الحساب -->
+                    <div class="glass-card acc-panel acc-panel-wide">
+                        <h4><i data-lucide="settings" aria-hidden="true"></i> مركز الحساب</h4>
+                        <form id="accProfileForm" class="acc-center-form">
+                            <div class="acc-center-row">
+                                <label>الاسم
+                                    <input type="text" id="accNameInput" maxlength="60" required>
+                                </label>
+                                <label>اليوزرنيم
+                                    <input type="text" id="accUsernameInput" maxlength="24" placeholder="username" pattern="[a-z0-9_]{3,24}">
+                                </label>
+                            </div>
+                            <label>البايو
+                                <textarea id="accBioInput" maxlength="300" rows="2" placeholder="اكتب حاجة قصيرة عن نفسك..."></textarea>
+                            </label>
+                            <div class="acc-center-row">
+                                <label>رقم الموبايل
+                                    <input type="tel" id="accPhoneInput" maxlength="30" placeholder="01xxxxxxxxx">
+                                </label>
+                                <label>خصوصية البروفايل
+                                    <select id="accVisibilitySelect">
+                                        <option value="public">عام — أي حد يشوفه</option>
+                                        <option value="private">خاص</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <button type="submit" class="toji-auth-submit">حفظ بيانات الحساب</button>
                         </form>
                         <p class="form-status" id="accNameStatus"></p>
-                    </div>
 
-                    <!-- تغيير كلمة المرور -->
-                    <div class="glass-card acc-panel">
-                        <h4><i data-lucide="lock" aria-hidden="true"></i> كلمة المرور</h4>
-                        <form id="accPassForm" class="toji-auth-form">
-                            <input type="password" id="accCurrentPass" placeholder="كلمة المرور الحالية (لو عندك)" maxlength="100" autocomplete="current-password">
-                            <input type="password" id="accNewPass" placeholder="كلمة المرور الجديدة" minlength="8" maxlength="100" required autocomplete="new-password">
-                            <button type="submit" class="toji-auth-submit">تحديث</button>
+                        <hr class="acc-divider">
+
+                        <form id="accPassForm" class="acc-center-form">
+                            <label class="acc-center-subtitle">تغيير كلمة المرور</label>
+                            <div class="acc-center-row">
+                                <input type="password" id="accCurrentPass" placeholder="كلمة المرور الحالية (لو عندك)" maxlength="100" autocomplete="current-password">
+                                <input type="password" id="accNewPass" placeholder="كلمة المرور الجديدة" minlength="8" maxlength="100" required autocomplete="new-password">
+                            </div>
+                            <button type="submit" class="toji-auth-submit">تحديث كلمة المرور</button>
                         </form>
                         <p class="form-status" id="accPassStatus"></p>
                     </div>
@@ -109,6 +150,48 @@
                             <summary>سجل حركة النقط</summary>
                             <div class="acc-points-history" id="accPointsHistory"></div>
                         </details>
+                        <details class="acc-history-toggle">
+                            <summary>🎁 إهدي نقط لصاحبك</summary>
+                            <div class="acc-gift-box">
+                                <input type="text" id="accGiftUsername" placeholder="يوزرنيم صاحبك">
+                                <input type="number" id="accGiftAmount" min="1" placeholder="عدد النقط">
+                                <button type="button" class="btn-secondary" id="accGiftBtn">ابعت</button>
+                            </div>
+                            <p class="form-status" id="accGiftStatus"></p>
+                        </details>
+                    </div>
+
+                    <!-- المتابعة والرسايل -->
+                    <div class="glass-card acc-panel">
+                        <h4><i data-lucide="users" aria-hidden="true"></i> المتابعة والرسايل</h4>
+                        <div class="acc-follow-tabs">
+                            <button type="button" class="acc-follow-tab active" data-tab="followers">المتابِعين</button>
+                            <button type="button" class="acc-follow-tab" data-tab="following">بتتابع</button>
+                            <button type="button" class="acc-follow-tab" data-tab="chats">الرسايل</button>
+                        </div>
+                        <div id="accFollowersList" class="acc-list"></div>
+                        <div id="accFollowingList" class="acc-list" hidden></div>
+                        <div id="accChatsList" class="acc-list" hidden></div>
+                    </div>
+
+                    <!-- تحدي الأسبوع + صندوق المفاجآت -->
+                    <div class="glass-card acc-panel acc-panel-wide acc-quests-panel">
+                        <h4><i data-lucide="target" aria-hidden="true"></i> تحديات ومكافآت</h4>
+                        <div class="acc-quest-row">
+                            <div class="acc-quest-info">
+                                <p class="acc-quest-title">🎯 تحدي الأسبوع: ادخل 3 أيام</p>
+                                <div class="acc-quest-progress-bar"><div class="acc-quest-progress-fill" id="accChallengeFill"></div></div>
+                                <p class="acc-quest-sub" id="accChallengeSub">0 / 3 أيام</p>
+                            </div>
+                            <button class="btn-secondary" id="accChallengeBtn" type="button" disabled>خد 20 نقطة</button>
+                        </div>
+                        <div class="acc-quest-row">
+                            <div class="acc-quest-info">
+                                <p class="acc-quest-title">🎁 صندوق مفاجآت الشهر</p>
+                                <p class="acc-quest-sub">نقط عشوائية (5-50) مرة كل شهر</p>
+                            </div>
+                            <button class="btn-secondary" id="accSurpriseBtn" type="button">افتح الصندوق</button>
+                        </div>
                     </div>
 
                     <!-- مود زعزع المفضل -->
@@ -124,12 +207,21 @@
                     </div>
 
                     <!-- نوتة شخصية -->
-                    <div class="glass-card acc-panel acc-panel-wide">
-                        <h4><i data-lucide="notebook-pen" aria-hidden="true"></i> نوتتي الشخصية</h4>
+                    <div class="glass-card acc-panel acc-panel-wide acc-notes-card">
+                        <div class="acc-notes-head">
+                            <h4><i data-lucide="notebook-pen" aria-hidden="true"></i> نوتتي الشخصية</h4>
+                            <span class="acc-notes-counter"><span id="accNotesCount">0</span>/5000</span>
+                        </div>
                         <p class="acc-points-hint">اكتب هنا أي حاجة عايز تفتكرها — أفكار، تفاصيل مشروع، أي حاجة.</p>
-                        <textarea id="accNotesInput" class="acc-notes-textarea" maxlength="5000" placeholder="اكتب هنا..." rows="5"></textarea>
-                        <button class="toji-auth-submit acc-notes-save" id="accNotesSaveBtn" type="button">حفظ النوتة</button>
-                        <p class="form-status" id="accNotesStatus"></p>
+                        <div class="acc-notes-paper">
+                            <textarea id="accNotesInput" class="acc-notes-textarea" maxlength="5000" placeholder="اكتب هنا... ✍️" rows="7"></textarea>
+                        </div>
+                        <div class="acc-notes-footer">
+                            <span class="form-status" id="accNotesStatus"></span>
+                            <button class="toji-auth-submit acc-notes-save" id="accNotesSaveBtn" type="button">
+                                <i data-lucide="save" aria-hidden="true"></i> حفظ النوتة
+                            </button>
+                        </div>
                     </div>
 
                     <!-- الدعوة -->
@@ -191,12 +283,27 @@
                 </div>
             </div>
         </section>
+
+        <!-- نافذة الرسايل -->
+        <div class="acc-dm-overlay" id="accDmOverlay" hidden>
+            <div class="acc-dm-panel">
+                <div class="acc-dm-header">
+                    <span id="accDmTitle">رسايل</span>
+                    <button type="button" id="accDmClose">✕</button>
+                </div>
+                <div class="acc-dm-messages" id="accDmMessages"></div>
+                <div class="acc-dm-input-row">
+                    <input type="text" id="accDmInput" maxlength="1000" placeholder="اكتب رسالتك...">
+                    <button type="button" id="accDmSend">إرسال</button>
+                </div>
+            </div>
+        </div>
     </main>
     <footer class="owner-credit" data-owner-credit=""><span>Website created by:</span><a href="https://www.instagram.com/mouhamedmostafffa" target="_blank" rel="noopener noreferrer">@mouhamedmostafffa</a><span class="owner-copyright">© 2026 Mohamed Mostafa. All rights reserved.</span></footer>
     <script src="vendor/lucide.min.js?v=18"></script>
     <script src="api.js?v=23"></script>
     <script src="pages-shell.js?v=1"></script>
-    <script src="account.js?v=4"></script>
-    <script src="dashboard.js?v=4"></script>
+    <script src="account.js?v=5"></script>
+    <script src="dashboard.js?v=5"></script>
 </body>
 </html>

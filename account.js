@@ -63,8 +63,11 @@
         google:     (credential) => accountFetch('/account/google', { method: 'POST', body: JSON.stringify({ credential, refCode: getStoredRefCode() }) }),
         me:         () => accountFetch('/account/me'),
         updateName: (name) => accountFetch('/account/me', { method: 'PUT', body: JSON.stringify({ name }) }),
+        updateProfile: (data) => accountFetch('/account/me', { method: 'PUT', body: JSON.stringify(data) }),
         changePassword: (currentPassword, newPassword) => accountFetch('/account/password', { method: 'PUT', body: JSON.stringify({ currentPassword, newPassword }) }),
         claimDaily: () => accountFetch('/account/claim-daily-points', { method: 'POST' }),
+        claimWeeklyChallenge: () => accountFetch('/account/claim-weekly-challenge', { method: 'POST' }),
+        claimSurpriseBox: () => accountFetch('/account/claim-surprise-box', { method: 'POST' }),
         redeemPoints: () => accountFetch('/account/redeem-points', { method: 'POST' }),
         updatePreferences: (mode, moodKey) => accountFetch('/account/preferences', { method: 'PUT', body: JSON.stringify({ mode, moodKey }) }),
         updateNotes: (notes) => accountFetch('/account/notes', { method: 'PUT', body: JSON.stringify({ notes }) }),
@@ -74,6 +77,23 @@
         chatHistory: () => accountFetch('/account/chat-history'),
         claimChat:   (clientId) => accountFetch('/account/claim-chat', { method: 'POST', body: JSON.stringify({ clientId }) }),
         myProjects:  () => accountFetch('/account/my-projects'),
+
+        // بروفايل عام + متابعة
+        getPublicProfile: (username) => accountFetch(`/account/public/${encodeURIComponent(username)}`),
+        follow:   (username) => accountFetch(`/account/follow/${encodeURIComponent(username)}`, { method: 'POST' }),
+        unfollow: (username) => accountFetch(`/account/follow/${encodeURIComponent(username)}`, { method: 'DELETE' }),
+        followers: () => accountFetch('/account/followers'),
+        following: () => accountFetch('/account/following'),
+        giftPoints: (username, amount) => accountFetch('/account/gift-points', { method: 'POST', body: JSON.stringify({ username, amount }) }),
+
+        // رسايل
+        getConversations: () => accountFetch('/account/messages'),
+        getThread: (username) => accountFetch(`/account/messages/${encodeURIComponent(username)}`),
+        sendMessage: (username, text) => accountFetch(`/account/messages/${encodeURIComponent(username)}`, { method: 'POST', body: JSON.stringify({ text }) }),
+
+        // إعلانات + رسالة ترحيب
+        getBroadcasts: () => accountFetch('/account/broadcasts'),
+        markWelcomeSeen: () => accountFetch('/account/welcome-message/seen', { method: 'PATCH' }),
         uploadAvatar: async (file) => {
             const token = UserToken.get();
             const fd = new FormData();

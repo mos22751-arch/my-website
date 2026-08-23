@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://portfolio-backend-production-604c.up.railway.app http://localhost:5000 https://accounts.google.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <title>بروفايل | TOJI</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#050506">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap">
+    <link rel="stylesheet" href="style.css?v=22">
+    <link rel="stylesheet" href="enhancements.css?v=9">
+    <link rel="stylesheet" href="pages.css?v=6">
+    <link rel="stylesheet" href="account.css?v=5">
+</head>
+<body class="dark-theme is-loading preset-graphite">
+    <div class="mesh-bg" aria-hidden="true"></div>
+    <nav class="modern-nav glass-panel" aria-label="Primary navigation">
+        <a class="brand" href="index.html" aria-label="TOJI home"><span>TOJI</span><span class="dot">.</span></a>
+        <div class="nav-links" aria-label="Section links">
+            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link" href="pricing.html">Pricing</a>
+            <a class="nav-link" href="process.html">Process</a>
+            <a class="nav-link" href="blog.html">Blog</a>
+            <a class="nav-link" href="changelog.html">Changelog</a>
+            <a class="nav-link" href="stack.html">Stack</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-switch" id="themeToggle" type="button" aria-label="Switch theme">
+                <i data-lucide="sun" class="icon-sun" aria-hidden="true"></i>
+                <i data-lucide="moon" class="icon-moon" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+    <main class="smooth-scroll">
+        <section class="page-body" style="padding-top: 60px;">
+
+            <!-- ── حالة تحميل ── -->
+            <div id="profileLoading" class="acc-empty" style="text-align:center; padding: 60px 0;">⏳ جارٍ التحميل...</div>
+
+            <!-- ── مش موجود / خاص ── -->
+            <div id="profileError" class="acc-guest-card glass-card" hidden>
+                <i data-lucide="user-x" aria-hidden="true"></i>
+                <h3 id="profileErrorTitle">الحساب مش موجود</h3>
+                <p id="profileErrorText">تأكد من الرابط وجرب تاني.</p>
+                <a class="toji-auth-submit" href="index.html">الرجوع للرئيسية</a>
+            </div>
+
+            <!-- ── البروفايل ── -->
+            <div id="profileContent" hidden>
+                <div class="acc-profile-card glass-card">
+                    <div class="acc-avatar-wrap">
+                        <img class="acc-avatar" id="pAvatarImg" src="" alt="" hidden>
+                        <span class="acc-avatar acc-avatar-fallback" id="pAvatarFallback"></span>
+                    </div>
+                    <div class="acc-profile-info">
+                        <h3 id="pName">—</h3>
+                        <p id="pUsername">@—</p>
+                        <p class="acc-bio" id="pBio"></p>
+                        <div class="acc-follow-counts">
+                            <span><strong id="pFollowersCount">0</strong> متابِع</span>
+                            <span><strong id="pFollowingCount">0</strong> بيتابع</span>
+                            <span id="pMemberSince"></span>
+                        </div>
+                    </div>
+                    <div class="acc-level-badge" id="pLevelBadge">
+                        <span id="pLevelEmoji">🥉</span>
+                        <small id="pLevelLabel">برونزي</small>
+                    </div>
+                </div>
+
+                <div class="acc-profile-actions">
+                    <button type="button" class="toji-auth-submit" id="pFollowBtn">تابعه</button>
+                    <button type="button" class="btn-secondary" id="pMessageBtn">✉️ ابعتله رسالة</button>
+                </div>
+            </div>
+
+            <!-- نافذة الرسايل -->
+            <div class="acc-dm-overlay" id="accDmOverlay" hidden>
+                <div class="acc-dm-panel">
+                    <div class="acc-dm-header">
+                        <span id="accDmTitle">رسايل</span>
+                        <button type="button" id="accDmClose">✕</button>
+                    </div>
+                    <div class="acc-dm-messages" id="accDmMessages"></div>
+                    <div class="acc-dm-input-row">
+                        <input type="text" id="accDmInput" maxlength="1000" placeholder="اكتب رسالتك...">
+                        <button type="button" id="accDmSend">إرسال</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="owner-credit" data-owner-credit=""><span>Website created by:</span><a href="https://www.instagram.com/mouhamedmostafffa" target="_blank" rel="noopener noreferrer">@mouhamedmostafffa</a><span class="owner-copyright">© 2026 Mohamed Mostafa. All rights reserved.</span></footer>
+    <script src="vendor/lucide.min.js?v=18"></script>
+    <script src="api.js?v=23"></script>
+    <script src="pages-shell.js?v=1"></script>
+    <script src="account.js?v=5"></script>
+    <script src="profile.js?v=1"></script>
+</body>
+</html>

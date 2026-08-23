@@ -34,6 +34,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('accEmail').textContent = user.email;
         document.getElementById('accPointsTotal').textContent = user.points?.total ?? 0;
         document.getElementById('accNameInput').value = user.name;
+        document.getElementById('accUsernameInput').value = user.username || '';
+        document.getElementById('accBioInput').value = user.bio || '';
+        document.getElementById('accPhoneInput').value = user.phone || '';
+        document.getElementById('accVisibilitySelect').value = user.profileVisibility || 'public';
+
+        const unameLink = document.getElementById('accUsernameLink');
+        unameLink.textContent = user.username ? '@' + user.username : '@—';
+        unameLink.href = user.username ? `profile.html?u=${encodeURIComponent(user.username)}` : '#';
+        document.getElementById('accBioDisplay').textContent = user.bio || '';
+        document.getElementById('accFollowersCount').textContent = user.followersCount || 0;
+        document.getElementById('accFollowingCount').textContent = user.followingCount || 0;
+
+        if (user.level) {
+            document.getElementById('accLevelEmoji').textContent = user.level.emoji;
+            document.getElementById('accLevelLabel').textContent = user.level.label;
+        }
+
+        renderWelcomeBanner(user.adminWelcomeMessage);
+        loadBroadcasts();
 
         const img = document.getElementById('accAvatarImg');
         const fallback = document.getElementById('accAvatarFallback');
@@ -52,10 +71,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderMoodPref(user.preferredMode || '');
         renderStreak(user.streak);
         renderReferral(user);
+        renderQuests(user);
         document.getElementById('accNotesInput').value = user.personalNotes || '';
+        updateNotesCounter();
         loadProjects();
         loadChatHistory();
         loadSavedProjects();
+        loadFollowLists();
 
         const settings = await window.TojiAccount.getSettings();
         const hint = document.getElementById('accRedeemHint');
@@ -113,6 +135,64 @@ document.addEventListener('DOMContentLoaded', async () => {
             `دعيت ${user.referralCount || 0} صاحب لحد دلوقتي.`;
     }
 
+    const WEEKLY_CHALLENGE_TARGET = 3;
+
+    function renderQuests(user) {
+        const wc = user.weeklyChallenge || { daysCount: 0, claimed: false };
+        const fillEl = document.getElementById('accChallengeFill');
+        const subEl  = document.getElementById('accChallengeSub');
+        const btn    = document.getElementById('accChallengeBtn');
+        const pct = Math.min(100, (wc.daysCount / WEEKLY_CHALLENGE_TARGET) * 100);
+        fillEl.style.width = pct + '%';
+
+        if (wc.claimed) {
+            subEl.textContent = 'خدت المكافأة الأسبوع ده ✅';
+            btn.disabled = true;
+            btn.textContent = 'اتاخدت';
+        } else if (wc.daysCount >= WEEKLY_CHALLENGE_TARGET) {
+            subEl.textContent = `${wc.daysCount} / ${WEEKLY_CHALLENGE_TARGET} أيام — جاهز!`;
+            btn.disabled = false;
+            btn.textContent = 'خد 20 نقطة';
+        } else {
+            subEl.textContent = `${wc.daysCount} / ${WEEKLY_CHALLENGE_TARGET} أيام`;
+            btn.disabled = true;
+            btn.textContent = 'خد 20 نقطة';
+        }
+
+        const surpriseBtn = document.getElementById('accSurpriseBtn');
+        if (user.canClaimSurpriseBox === false) {
+            surpriseBtn.disabled = true;
+            surpriseBtn.textContent = 'اتفتح الشهر ده ✅';
+        } else {
+            surpriseBtn.disabled = false;
+            surpriseBtn.textContent = 'افتح الصندوق';
+        }
+    }
+
+    document.getElementById('accChallengeBtn')?.addEventListener('click', async function () {
+        this.disabled = true;
+        try {
+            const res = await AccountAPI.claimWeeklyChallenge();
+            window.TojiAccount.toast(`أخدت ${res.awarded} نقطة 🎯`);
+            render();
+        } catch (err) {
+            window.TojiAccount.toast(err.message);
+            this.disabled = false;
+        }
+    });
+
+    document.getElementById('accSurpriseBtn')?.addEventListener('click', async function () {
+        this.disabled = true;
+        try {
+            const res = await AccountAPI.claimSurpriseBox();
+            window.TojiAccount.toast(`مبروك! لقيت ${res.awarded} نقطة في الصندوق 🎁`);
+            render();
+        } catch (err) {
+            window.TojiAccount.toast(err.message);
+            this.disabled = false;
+        }
+    });
+
     document.getElementById('accReferralCopyBtn')?.addEventListener('click', () => {
         const code = document.getElementById('accReferralCode').textContent;
         if (!code || code === '—') return;
@@ -123,6 +203,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.TojiAccount.toast(url);
         });
     });
+
+    function updateNotesCounter() {
+        const el = document.getElementById('accNotesCount');
+        const input = document.getElementById('accNotesInput');
+        if (el && input) el.textContent = input.value.length;
+    }
+    document.getElementById('accNotesInput')?.addEventListener('input', updateNotesCounter);
 
     document.getElementById('accNotesSaveBtn')?.addEventListener('click', async () => {
         const status = document.getElementById('accNotesStatus');
@@ -243,17 +330,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         return String(str || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
 
-    document.getElementById('accNameForm')?.addEventListener('submit', async (e) => {
+    document.getElementById('accProfileForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const status = document.getElementById('accNameStatus');
-        const name = document.getElementById('accNameInput').value.trim();
         status.textContent = '...';
         status.className = 'form-status';
         try {
-            await AccountAPI.updateName(name);
-            status.textContent = 'اتحفظ!';
+            const res = await AccountAPI.updateProfile({
+                name: document.getElementById('accNameInput').value.trim(),
+                username: document.getElementById('accUsernameInput').value.trim(),
+                bio: document.getElementById('accBioInput').value,
+                phone: document.getElementById('accPhoneInput').value,
+                profileVisibility: document.getElementById('accVisibilitySelect').value
+            });
+            status.textContent = 'اتحفظ! ✅';
             status.className = 'form-status is-success';
-            document.getElementById('accName').textContent = name;
+            document.getElementById('accName').textContent = res.user.name;
+            document.getElementById('accUsernameLink').textContent = '@' + (res.user.username || '—');
+            document.getElementById('accBioDisplay').textContent = res.user.bio || '';
         } catch (err) {
             status.textContent = err.message;
             status.className = 'form-status is-error';
@@ -322,6 +416,154 @@ document.addEventListener('DOMContentLoaded', async () => {
             await AccountAPI.deleteAccount();
             window.TojiAccount.logout();
             window.location.href = 'index.html';
+        } catch (err) {
+            status.textContent = err.message;
+            status.className = 'form-status is-error';
+        }
+    });
+
+    // ── رسالة ترحيب مخصصة من الأدمن ──
+    function renderWelcomeBanner(msg) {
+        const banner = document.getElementById('accWelcomeBanner');
+        if (!msg || !msg.text || msg.seen) { banner.hidden = true; return; }
+        document.getElementById('accWelcomeText').textContent = msg.text;
+        banner.hidden = false;
+    }
+    document.getElementById('accWelcomeDismiss')?.addEventListener('click', async () => {
+        document.getElementById('accWelcomeBanner').hidden = true;
+        try { await AccountAPI.markWelcomeSeen(); } catch {}
+    });
+
+    // ── إعلانات الأدمن ──
+    async function loadBroadcasts() {
+        const banner = document.getElementById('accBroadcastBanner');
+        try {
+            const res = await AccountAPI.getBroadcasts();
+            const items = res.data || [];
+            if (!items.length) { banner.hidden = true; return; }
+            const seenId = localStorage.getItem('toji_last_seen_broadcast');
+            if (String(items[0]._id) === seenId) { banner.hidden = true; return; }
+            banner.innerHTML = `<span>📢 ${escapeHtml(items[0].text)}</span><button type="button" id="accBroadcastDismiss">✕</button>`;
+            banner.hidden = false;
+            document.getElementById('accBroadcastDismiss')?.addEventListener('click', () => {
+                localStorage.setItem('toji_last_seen_broadcast', String(items[0]._id));
+                banner.hidden = true;
+            });
+        } catch { banner.hidden = true; }
+    }
+
+    // ── المتابعين / بيتابع / الرسايل ──
+    document.querySelectorAll('.acc-follow-tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.acc-follow-tab').forEach((t) => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('accFollowersList').hidden = tab.dataset.tab !== 'followers';
+            document.getElementById('accFollowingList').hidden = tab.dataset.tab !== 'following';
+            document.getElementById('accChatsList').hidden = tab.dataset.tab !== 'chats';
+            if (tab.dataset.tab === 'chats') loadConversations();
+        });
+    });
+
+    function renderUserList(el, users, emptyText) {
+        if (!users.length) { el.innerHTML = `<p class="acc-empty">${emptyText}</p>`; return; }
+        el.innerHTML = users.map((u) => `
+            <a class="acc-list-item" href="profile.html?u=${encodeURIComponent(u.username)}">
+                <div><strong>${escapeHtml(u.name)}</strong><span>@${escapeHtml(u.username)}</span></div>
+            </a>`).join('');
+    }
+
+    async function loadFollowLists() {
+        try {
+            const [followers, following] = await Promise.all([AccountAPI.followers(), AccountAPI.following()]);
+            renderUserList(document.getElementById('accFollowersList'), followers.data || [], 'لسه مفيش حد بيتابعك.');
+            renderUserList(document.getElementById('accFollowingList'), following.data || [], 'لسه مبتتابعش حد.');
+        } catch {}
+    }
+
+    async function loadConversations() {
+        const el = document.getElementById('accChatsList');
+        try {
+            const res = await AccountAPI.getConversations();
+            const items = res.data || [];
+            const adminItem = `<a class="acc-list-item acc-admin-chat-link" href="#" data-username="admin">
+                <div><strong>💬 كلم Toji مباشرة</strong><span>ابعت رسالة للأدمن</span></div>
+            </a>`;
+            const userItems = items.filter((t) => !t.isAdmin).map((t) => `
+                <a class="acc-list-item" href="#" data-username="${escapeHtml(t.other?.username || '')}">
+                    <div><strong>${escapeHtml(t.other?.name || '')}</strong><span>${escapeHtml((t.lastText || '').slice(0, 60))}</span></div>
+                    ${t.unread ? '<span class="acc-unread-dot"></span>' : ''}
+                </a>`).join('');
+            el.innerHTML = adminItem + userItems;
+        } catch {
+            el.innerHTML = '<p class="acc-empty">تعذر تحميل الرسايل.</p>';
+        }
+    }
+
+    document.getElementById('accChatsList')?.addEventListener('click', (e) => {
+        const link = e.target.closest('[data-username]');
+        if (!link) return;
+        e.preventDefault();
+        openDmThread(link.dataset.username, link.querySelector('strong')?.textContent || 'Toji');
+    });
+
+    // ── نافذة الرسايل (DM) ──
+    let currentDmUsername = '';
+    function openDmThread(username, displayName) {
+        currentDmUsername = username;
+        document.getElementById('accDmTitle').textContent = displayName || username;
+        document.getElementById('accDmOverlay').hidden = false;
+        loadDmMessages();
+    }
+    document.getElementById('accDmClose')?.addEventListener('click', () => {
+        document.getElementById('accDmOverlay').hidden = true;
+    });
+    async function loadDmMessages() {
+        const el = document.getElementById('accDmMessages');
+        el.innerHTML = '<p class="acc-empty">⏳ جارٍ التحميل...</p>';
+        try {
+            const res = await AccountAPI.getThread(currentDmUsername);
+            const msgs = res.data || [];
+            const myId = window.TojiAccount.getUser()?.id;
+            el.innerHTML = msgs.map((m) => {
+                const isMine = currentDmUsername === 'admin' ? !m.isAdminReply : String(m.fromUser) === String(myId);
+                return `<div class="acc-dm-msg ${isMine ? 'is-mine' : 'is-theirs'}">${escapeHtml(m.text)}</div>`;
+            }).join('') || '<p class="acc-empty">لسه مفيش رسايل، ابدأ الكلام 👋</p>';
+            el.scrollTop = el.scrollHeight;
+        } catch (err) {
+            el.innerHTML = `<p class="acc-empty">${escapeHtml(err.message)}</p>`;
+        }
+    }
+    async function sendDm() {
+        const input = document.getElementById('accDmInput');
+        const text = input.value.trim();
+        if (!text || !currentDmUsername) return;
+        input.value = '';
+        try {
+            await AccountAPI.sendMessage(currentDmUsername, text);
+            loadDmMessages();
+        } catch (err) {
+            window.TojiAccount.toast(err.message);
+        }
+    }
+    document.getElementById('accDmSend')?.addEventListener('click', sendDm);
+    document.getElementById('accDmInput')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendDm();
+    });
+
+    // ── إهداء نقط ──
+    document.getElementById('accGiftBtn')?.addEventListener('click', async () => {
+        const status = document.getElementById('accGiftStatus');
+        const username = document.getElementById('accGiftUsername').value.trim();
+        const amount = Number(document.getElementById('accGiftAmount').value);
+        status.textContent = '...';
+        status.className = 'form-status';
+        try {
+            const res = await AccountAPI.giftPoints(username, amount);
+            status.textContent = res.message;
+            status.className = 'form-status is-success';
+            document.getElementById('accGiftUsername').value = '';
+            document.getElementById('accGiftAmount').value = '';
+            render();
         } catch (err) {
             status.textContent = err.message;
             status.className = 'form-status is-error';

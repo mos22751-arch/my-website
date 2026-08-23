@@ -150,7 +150,12 @@
         $('detailEmail').textContent = detailUser.email;
         $('detailActive').checked = detailUser.isActive;
         $('detailPoints').value = detailUser.points?.total ?? 0;
+        $('detailUsername').value = detailUser.username || '';
+        $('detailBio').value = detailUser.bio || '';
+        $('detailPhone').value = detailUser.phone || '';
         $('detailNotes').value = detailUser.adminNotes || '';
+        $('detailWelcomeMsg').value = detailUser.adminWelcomeMessage?.text || '';
+        $('detailWelcomeMsgStatus').textContent = '';
         $('detailStats').innerHTML = `
             <span>💬 ${res.stats.chatCount} رسالة شات</span>
             <span>📋 ${res.stats.quoteCount} طلب عرض سعر</span>
@@ -176,6 +181,9 @@
                 body: JSON.stringify({
                     isActive: $('detailActive').checked,
                     pointsTotal: Number($('detailPoints').value),
+                    username: $('detailUsername').value.trim(),
+                    bio: $('detailBio').value,
+                    phone: $('detailPhone').value,
                     adminNotes: $('detailNotes').value
                 })
             });
@@ -234,6 +242,171 @@
             msg.textContent = err.message;
             msg.className = 'acc-form-msg is-error';
         }
+    });
+
+    $('detailWelcomeSendBtn').addEventListener('click', async () => {
+        const msg = $('detailWelcomeMsgStatus');
+        msg.textContent = 'جارٍ الإرسال...';
+        msg.className = 'acc-form-msg';
+        try {
+            const res = await adminFetch(`/admin/users/${detailUser._id}/welcome-message`, {
+                method: 'PUT',
+                body: JSON.stringify({ text: $('detailWelcomeMsg').value.trim() })
+            });
+            msg.textContent = res.message;
+            msg.className = 'acc-form-msg is-success';
+        } catch (err) {
+            msg.textContent = err.message;
+            msg.className = 'acc-form-msg is-error';
+        }
+    });
+
+    // ============================================================
+    // إعلانات لكل الحسابات
+    // ============================================================
+    async function loadBroadcasts() {
+        const listEl = $('broadcastList');
+        listEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+        try {
+            const res = await adminFetch('/admin/broadcast');
+            const items = res.data || [];
+            if (!items.length) { listEl.innerHTML = '<p class="projects-hint">لسه مفيش إعلانات.</p>'; return; }
+            listEl.innerHTML = items.map((b) => `
+                <div class="acc-broadcast-item ${b.active ? '' : 'is-inactive'}" data-id="${b._id}">
+                    <p>${escapeAttr(b.text)}</p>
+                    <div class="acc-broadcast-item-actions">
+                        <button type="button" data-act="toggle">${b.active ? '⏸ إيقاف' : '▶️ تفعيل'}</button>
+                        <button type="button" data-act="delete">🗑 حذف</button>
+                    </div>
+                </div>`).join('');
+        } catch (err) {
+            listEl.innerHTML = `<p class="projects-hint is-error">${err.message}</p>`;
+        }
+    }
+
+    function escapeAttr(str) {
+        const div = document.createElement('div');
+        div.textContent = str ?? '';
+        return div.innerHTML;
+    }
+
+    $('broadcastSendBtn')?.addEventListener('click', async () => {
+        const text = $('broadcastText').value.trim();
+        const msg = $('broadcastMsg');
+        if (!text) { msg.textContent = 'اكتب نص الإعلان.'; msg.className = 'acc-form-msg is-error'; return; }
+        msg.textContent = 'جارٍ النشر...';
+        msg.className = 'acc-form-msg';
+        try {
+            await adminFetch('/admin/broadcast', { method: 'POST', body: JSON.stringify({ text }) });
+            $('broadcastText').value = '';
+            msg.textContent = 'اتنشر ✅';
+            msg.className = 'acc-form-msg is-success';
+            loadBroadcasts();
+        } catch (err) {
+            msg.textContent = err.message;
+            msg.className = 'acc-form-msg is-error';
+        }
+    });
+
+    $('broadcastList')?.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-act]');
+        if (!btn) return;
+        const item = btn.closest('.acc-broadcast-item');
+        const id = item.dataset.id;
+        try {
+            if (btn.dataset.act === 'toggle') {
+                const isActive = !item.classList.contains('is-inactive');
+                await adminFetch(`/admin/broadcast/${id}`, { method: 'PATCH', body: JSON.stringify({ active: !isActive }) });
+            } else if (btn.dataset.act === 'delete') {
+                if (!confirm('متأكد؟')) return;
+                await adminFetch(`/admin/broadcast/${id}`, { method: 'DELETE' });
+            }
+            loadBroadcasts();
+        } catch (err) { alert(err.message); }
+    });
+
+    $('broadcastPanel')?.addEventListener('toggle', function () {
+        if (this.open && !this.dataset.loaded) { this.dataset.loaded = '1'; loadBroadcasts(); }
+    });
+
+    // ============================================================
+    // صندوق رسائل الزوار
+    // ============================================================
+    let inboxActiveUserId = null;
+
+    async function loadInboxList() {
+        const listEl = $('inboxList');
+        listEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+        try {
+            const res = await adminFetch('/admin/inbox');
+            const msgs = res.data || [];
+            if (!msgs.length) { listEl.innerHTML = '<p class="projects-hint">لسه مفيش رسايل من الزوار.</p>'; return; }
+
+            // ── تجميع الرسايل المسطحة لثريدات لكل زائر (آخر رسالة + حالة قراءة) ──
+            const threads = new Map();
+            for (const m of msgs) {
+                const uid = m.fromUser?._id;
+                if (!uid || threads.has(uid)) continue;
+                threads.set(uid, {
+                    user: m.fromUser,
+                    lastText: m.text,
+                    unread: !m.isAdminReply && !m.readByRecipient
+                });
+            }
+            listEl.innerHTML = Array.from(threads.values()).map((t) => `
+                <button type="button" class="acc-inbox-thread-btn ${t.unread ? 'has-unread' : ''}" data-id="${t.user?._id}">
+                    <strong>${escapeAttr(t.user?.name || 'زائر')}</strong>
+                    <span>${escapeAttr((t.lastText || '').slice(0, 40))}</span>
+                </button>`).join('');
+        } catch (err) {
+            listEl.innerHTML = `<p class="projects-hint is-error">${err.message}</p>`;
+        }
+    }
+
+    async function openInboxThread(userId) {
+        inboxActiveUserId = userId;
+        document.querySelectorAll('.acc-inbox-thread-btn').forEach((b) => b.classList.toggle('active', b.dataset.id === userId));
+        const el = $('inboxThread');
+        el.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
+        try {
+            const res = await adminFetch(`/admin/inbox/${userId}`);
+            const msgs = res.data || [];
+            el.innerHTML = `
+                <div class="acc-inbox-msgs">${msgs.map((m) => `
+                    <div class="acc-inbox-msg ${m.isAdminReply ? 'from-admin' : 'from-user'}">${escapeAttr(m.text)}</div>
+                `).join('')}</div>
+                <div class="acc-inbox-reply-row">
+                    <input type="text" id="inboxReplyInput" placeholder="اكتب رد...">
+                    <button type="button" id="inboxReplyBtn" class="btn-primary">إرسال</button>
+                </div>`;
+            $('inboxReplyBtn').addEventListener('click', () => sendInboxReply(userId));
+            $('inboxReplyInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') sendInboxReply(userId); });
+            el.querySelector('.acc-inbox-msgs')?.scrollTo(0, 99999);
+        } catch (err) {
+            el.innerHTML = `<p class="projects-hint is-error">${err.message}</p>`;
+        }
+    }
+
+    async function sendInboxReply(userId) {
+        const input = $('inboxReplyInput');
+        const text = input.value.trim();
+        if (!text) return;
+        input.disabled = true;
+        try {
+            await adminFetch(`/admin/inbox/${userId}/reply`, { method: 'POST', body: JSON.stringify({ text }) });
+            openInboxThread(userId);
+            loadInboxList();
+        } catch (err) { alert(err.message); }
+        finally { input.disabled = false; }
+    }
+
+    $('inboxList')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.acc-inbox-thread-btn');
+        if (btn) openInboxThread(btn.dataset.id);
+    });
+
+    $('inboxPanel')?.addEventListener('toggle', function () {
+        if (this.open && !this.dataset.loaded) { this.dataset.loaded = '1'; loadInboxList(); }
     });
 
     $('detailDeleteBtn').addEventListener('click', async () => {
