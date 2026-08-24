@@ -33,11 +33,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('accName').textContent = user.name;
         document.getElementById('accEmail').textContent = user.email;
         document.getElementById('accPointsTotal').textContent = user.points?.total ?? 0;
-        document.getElementById('accNameInput').value = user.name;
-        document.getElementById('accUsernameInput').value = user.username || '';
-        document.getElementById('accBioInput').value = user.bio || '';
-        document.getElementById('accPhoneInput').value = user.phone || '';
-        document.getElementById('accVisibilitySelect').value = user.profileVisibility || 'public';
 
         const unameLink = document.getElementById('accUsernameLink');
         unameLink.textContent = user.username ? '@' + user.username : '@—';
@@ -53,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         renderWelcomeBanner(user.adminWelcomeMessage);
         loadBroadcasts();
+        renderBadges(user.badgeKeys || []);
 
         const img = document.getElementById('accAvatarImg');
         const fallback = document.getElementById('accAvatarFallback');
@@ -246,21 +242,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    document.getElementById('accExportBtn')?.addEventListener('click', async () => {
-        try {
-            const data = await AccountAPI.exportData();
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'toji-my-data.json';
-            a.click();
-            URL.revokeObjectURL(url);
-        } catch (err) {
-            window.TojiAccount.toast(err.message || 'تعذر تصدير بياناتك');
-        }
-    });
-
     document.querySelectorAll('#accMoodPick .acc-mood-btn').forEach((btn) => {
         btn.addEventListener('click', async () => {
             const status = document.getElementById('accMoodStatus');
@@ -330,48 +311,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return String(str || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
 
-    document.getElementById('accProfileForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const status = document.getElementById('accNameStatus');
-        status.textContent = '...';
-        status.className = 'form-status';
-        try {
-            const res = await AccountAPI.updateProfile({
-                name: document.getElementById('accNameInput').value.trim(),
-                username: document.getElementById('accUsernameInput').value.trim(),
-                bio: document.getElementById('accBioInput').value,
-                phone: document.getElementById('accPhoneInput').value,
-                profileVisibility: document.getElementById('accVisibilitySelect').value
-            });
-            status.textContent = 'اتحفظ! ✅';
-            status.className = 'form-status is-success';
-            document.getElementById('accName').textContent = res.user.name;
-            document.getElementById('accUsernameLink').textContent = '@' + (res.user.username || '—');
-            document.getElementById('accBioDisplay').textContent = res.user.bio || '';
-        } catch (err) {
-            status.textContent = err.message;
-            status.className = 'form-status is-error';
-        }
-    });
-
-    document.getElementById('accPassForm')?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const status = document.getElementById('accPassStatus');
-        const current = document.getElementById('accCurrentPass').value;
-        const next = document.getElementById('accNewPass').value;
-        status.textContent = '...';
-        status.className = 'form-status';
-        try {
-            await AccountAPI.changePassword(current, next);
-            status.textContent = 'اتغيّرت كلمة المرور!';
-            status.className = 'form-status is-success';
-            e.target.reset();
-        } catch (err) {
-            status.textContent = err.message;
-            status.className = 'form-status is-error';
-        }
-    });
-
     document.getElementById('accAvatarInput')?.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -402,25 +341,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    document.getElementById('accDeleteBtn')?.addEventListener('click', () => {
-        document.getElementById('accDeleteConfirm').hidden = false;
-    });
-    document.getElementById('accDeleteCancelBtn')?.addEventListener('click', () => {
-        document.getElementById('accDeleteConfirm').hidden = true;
-    });
-    document.getElementById('accDeleteConfirmBtn')?.addEventListener('click', async () => {
-        const status = document.getElementById('accDeleteStatus');
-        status.textContent = 'جارٍ الحذف...';
-        status.className = 'form-status';
+    // ── الإنجازات (Badges) ──
+    let badgeDefsCache = null;
+    async function renderBadges(myKeys) {
+        const row = document.getElementById('accBadgesRow');
+        if (!row) return;
+        if (!myKeys.length) { row.innerHTML = ''; return; }
         try {
-            await AccountAPI.deleteAccount();
-            window.TojiAccount.logout();
-            window.location.href = 'index.html';
-        } catch (err) {
-            status.textContent = err.message;
-            status.className = 'form-status is-error';
-        }
-    });
+            if (!badgeDefsCache) {
+                const res = await AccountAPI.getBadges();
+                badgeDefsCache = res.data || [];
+            }
+            row.innerHTML = badgeDefsCache
+                .filter((b) => myKeys.includes(b.key))
+                .map((b) => `<span class="acc-badge-chip" title="${b.description ? b.description.replace(/"/g, '&quot;') : b.label}">${
+                    b.imageUrl ? `<img src="${b.imageUrl}" alt="">` : b.emoji
+                } ${b.label}</span>`).join('');
+        } catch { row.innerHTML = ''; }
+    }
 
     // ── رسالة ترحيب مخصصة من الأدمن ──
     function renderWelcomeBanner(msg) {
@@ -452,15 +390,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch { banner.hidden = true; }
     }
 
-    // ── المتابعين / بيتابع / الرسايل ──
+    // ── المتابعين / بيتابع ──
     document.querySelectorAll('.acc-follow-tab').forEach((tab) => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.acc-follow-tab').forEach((t) => t.classList.remove('active'));
             tab.classList.add('active');
             document.getElementById('accFollowersList').hidden = tab.dataset.tab !== 'followers';
             document.getElementById('accFollowingList').hidden = tab.dataset.tab !== 'following';
-            document.getElementById('accChatsList').hidden = tab.dataset.tab !== 'chats';
-            if (tab.dataset.tab === 'chats') loadConversations();
         });
     });
 
@@ -480,74 +416,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch {}
     }
 
-    async function loadConversations() {
-        const el = document.getElementById('accChatsList');
-        try {
-            const res = await AccountAPI.getConversations();
-            const items = res.data || [];
-            const adminItem = `<a class="acc-list-item acc-admin-chat-link" href="#" data-username="admin">
-                <div><strong>💬 كلم Toji مباشرة</strong><span>ابعت رسالة للأدمن</span></div>
-            </a>`;
-            const userItems = items.filter((t) => !t.isAdmin).map((t) => `
-                <a class="acc-list-item" href="#" data-username="${escapeHtml(t.other?.username || '')}">
-                    <div><strong>${escapeHtml(t.other?.name || '')}</strong><span>${escapeHtml((t.lastText || '').slice(0, 60))}</span></div>
-                    ${t.unread ? '<span class="acc-unread-dot"></span>' : ''}
-                </a>`).join('');
-            el.innerHTML = adminItem + userItems;
-        } catch {
-            el.innerHTML = '<p class="acc-empty">تعذر تحميل الرسايل.</p>';
-        }
-    }
-
-    document.getElementById('accChatsList')?.addEventListener('click', (e) => {
-        const link = e.target.closest('[data-username]');
-        if (!link) return;
+    // ── لينكات الإحصائيات فوق (متابِعين/بيتابع) بتودّي لتاب المتابعة تحت ──
+    document.getElementById('accFollowersLink')?.addEventListener('click', (e) => {
         e.preventDefault();
-        openDmThread(link.dataset.username, link.querySelector('strong')?.textContent || 'Toji');
+        document.querySelector('.acc-follow-tab[data-tab="followers"]')?.click();
+        document.getElementById('accFollowPanel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
-
-    // ── نافذة الرسايل (DM) ──
-    let currentDmUsername = '';
-    function openDmThread(username, displayName) {
-        currentDmUsername = username;
-        document.getElementById('accDmTitle').textContent = displayName || username;
-        document.getElementById('accDmOverlay').hidden = false;
-        loadDmMessages();
-    }
-    document.getElementById('accDmClose')?.addEventListener('click', () => {
-        document.getElementById('accDmOverlay').hidden = true;
-    });
-    async function loadDmMessages() {
-        const el = document.getElementById('accDmMessages');
-        el.innerHTML = '<p class="acc-empty">⏳ جارٍ التحميل...</p>';
-        try {
-            const res = await AccountAPI.getThread(currentDmUsername);
-            const msgs = res.data || [];
-            const myId = window.TojiAccount.getUser()?.id;
-            el.innerHTML = msgs.map((m) => {
-                const isMine = currentDmUsername === 'admin' ? !m.isAdminReply : String(m.fromUser) === String(myId);
-                return `<div class="acc-dm-msg ${isMine ? 'is-mine' : 'is-theirs'}">${escapeHtml(m.text)}</div>`;
-            }).join('') || '<p class="acc-empty">لسه مفيش رسايل، ابدأ الكلام 👋</p>';
-            el.scrollTop = el.scrollHeight;
-        } catch (err) {
-            el.innerHTML = `<p class="acc-empty">${escapeHtml(err.message)}</p>`;
-        }
-    }
-    async function sendDm() {
-        const input = document.getElementById('accDmInput');
-        const text = input.value.trim();
-        if (!text || !currentDmUsername) return;
-        input.value = '';
-        try {
-            await AccountAPI.sendMessage(currentDmUsername, text);
-            loadDmMessages();
-        } catch (err) {
-            window.TojiAccount.toast(err.message);
-        }
-    }
-    document.getElementById('accDmSend')?.addEventListener('click', sendDm);
-    document.getElementById('accDmInput')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') sendDm();
+    document.getElementById('accFollowingLink')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelector('.acc-follow-tab[data-tab="following"]')?.click();
+        document.getElementById('accFollowPanel')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
     // ── إهداء نقط ──

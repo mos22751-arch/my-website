@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com https://accounts.google.com/gsi/client; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://portfolio-backend-production-604c.up.railway.app http://localhost:5000 https://accounts.google.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
+    <title>الرسايل | TOJI</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#050506">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&display=swap">
+    <link rel="stylesheet" href="style.css?v=22">
+    <link rel="stylesheet" href="enhancements.css?v=9">
+    <link rel="stylesheet" href="pages.css?v=6">
+    <link rel="stylesheet" href="account.css?v=6">
+    <link rel="stylesheet" href="messages.css?v=1">
+</head>
+<body class="dark-theme is-loading preset-graphite">
+    <div class="mesh-bg" aria-hidden="true"></div>
+    <nav class="modern-nav glass-panel" aria-label="Primary navigation">
+        <a class="brand" href="index.html" aria-label="TOJI home"><span>TOJI</span><span class="dot">.</span></a>
+        <div class="nav-links" aria-label="Section links">
+            <a class="nav-link" href="account.html">حسابي</a>
+            <a class="nav-link" href="settings.html">الإعدادات</a>
+            <a class="nav-link" href="index.html">Home</a>
+        </div>
+        <div class="nav-actions">
+            <button class="theme-switch" id="themeToggle" type="button" aria-label="Switch theme">
+                <i data-lucide="sun" class="icon-sun" aria-hidden="true"></i>
+                <i data-lucide="moon" class="icon-moon" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+    <main class="smooth-scroll">
+        <section class="page-hero msg-hero">
+            <p class="eyebrow">الرسايل</p>
+            <h1>دردشاتك</h1>
+        </section>
+
+        <section class="page-body msg-page-body">
+            <div class="acc-guest-card glass-card" id="msgGuestCard" hidden>
+                <i data-lucide="lock" aria-hidden="true"></i>
+                <h3>محتاج تسجل دخولك الأول</h3>
+                <a class="toji-auth-submit" href="account.html">الرجوع لحسابي</a>
+            </div>
+
+            <div id="msgApp" hidden class="msg-app">
+                <!-- ── قائمة المحادثات ── -->
+                <aside class="msg-sidebar">
+                    <div class="msg-search">
+                        <i data-lucide="search" aria-hidden="true"></i>
+                        <input type="text" id="msgSearchInput" placeholder="دوّر بيوزرنيم عشان تبدأ دردشة...">
+                    </div>
+                    <div id="msgSearchResults" class="msg-search-results" hidden></div>
+
+                    <div id="msgThreadsList" class="msg-threads-list"></div>
+                </aside>
+
+                <!-- ── نافذة المحادثة ── -->
+                <section class="msg-thread" id="msgThreadPanel">
+                    <div class="msg-thread-empty" id="msgThreadEmpty">
+                        <i data-lucide="message-circle" aria-hidden="true"></i>
+                        <p>اختار حد من القائمة عشان تبدأ الدردشة، أو دور على يوزرنيم فوق.</p>
+                    </div>
+
+                    <div class="msg-thread-active" id="msgThreadActive" hidden>
+                        <div class="msg-thread-header">
+                            <img class="msg-thread-avatar" id="msgThreadAvatar" src="" alt="" hidden>
+                            <span class="msg-thread-avatar-fallback" id="msgThreadAvatarFallback" hidden></span>
+                            <div>
+                                <strong id="msgThreadName">—</strong>
+                                <a id="msgThreadUsernameLink" href="#" target="_blank"></a>
+                            </div>
+                        </div>
+                        <div class="msg-thread-messages" id="msgThreadMessages"></div>
+                        <form class="msg-thread-input-row" id="msgThreadForm">
+                            <input type="text" id="msgThreadInput" maxlength="1000" placeholder="اكتب رسالة..." autocomplete="off">
+                            <button type="submit" class="msg-send-btn" aria-label="إرسال">
+                                <i data-lucide="send" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+    <footer class="owner-credit" data-owner-credit=""><span>Website created by:</span><a href="https://www.instagram.com/mouhamedmostafffa" target="_blank" rel="noopener noreferrer">@mouhamedmostafffa</a><span class="owner-copyright">© 2026 Mohamed Mostafa. All rights reserved.</span></footer>
+    <script src="vendor/lucide.min.js?v=18"></script>
+    <script src="api.js?v=23"></script>
+    <script src="pages-shell.js?v=1"></script>
+    <script src="account.js?v=6"></script>
+    <script src="messages.js?v=1"></script>
+</body>
+</html>

@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="style.css?v=22">
     <link rel="stylesheet" href="enhancements.css?v=9">
     <link rel="stylesheet" href="pages.css?v=6">
-    <link rel="stylesheet" href="account.css?v=5">
+    <link rel="stylesheet" href="account.css?v=6">
 </head>
 <body class="dark-theme is-loading preset-graphite">
     <div class="mesh-bg" aria-hidden="true"></div>
@@ -53,7 +53,7 @@
             <!-- ── محتوى الحساب ── -->
             <div id="accDashboard" hidden>
 
-                <div class="acc-profile-card glass-card">
+                <div class="acc-profile-card glass-card ig-style">
                     <div class="acc-avatar-wrap">
                         <img class="acc-avatar" id="accAvatarImg" src="" alt="" hidden>
                         <span class="acc-avatar acc-avatar-fallback" id="accAvatarFallback"></span>
@@ -63,13 +63,21 @@
                         </label>
                     </div>
                     <div class="acc-profile-info">
-                        <h3 id="accName">—</h3>
-                        <p id="accEmail">—</p>
+                        <div class="acc-ig-top-row">
+                            <h3 id="accName">—</h3>
+                            <div class="acc-ig-stats">
+                                <div class="acc-ig-stat"><strong id="accPointsTotal">0</strong><span>نقطة</span></div>
+                                <a class="acc-ig-stat" href="#" id="accFollowersLink"><strong id="accFollowersCount">0</strong><span>متابِع</span></a>
+                                <a class="acc-ig-stat" href="#" id="accFollowingLink"><strong id="accFollowingCount">0</strong><span>بيتابع</span></a>
+                            </div>
+                        </div>
                         <a class="acc-username-link" id="accUsernameLink" href="#" target="_blank">@—</a>
+                        <p id="accEmail">—</p>
                         <p class="acc-bio" id="accBioDisplay"></p>
-                        <div class="acc-follow-counts">
-                            <span><strong id="accFollowersCount">0</strong> متابِع</span>
-                            <span><strong id="accFollowingCount">0</strong> بيتابع</span>
+                        <div class="acc-badges-row" id="accBadgesRow"></div>
+                        <div class="acc-ig-actions">
+                            <a class="btn-secondary" href="settings.html"><i data-lucide="settings" aria-hidden="true"></i> إعدادات الحساب</a>
+                            <a class="btn-secondary" href="messages.html"><i data-lucide="message-circle" aria-hidden="true"></i> الرسايل</a>
                         </div>
                     </div>
                     <div class="acc-level-badge" id="accLevelBadge">
@@ -79,10 +87,6 @@
                     <div class="acc-streak-badge" id="accStreakBadge" hidden>
                         <span id="accStreakCurrent">0</span>
                         <small>يوم متتالي 🔥</small>
-                    </div>
-                    <div class="acc-points-badge">
-                        <span id="accPointsTotal">0</span>
-                        <small>نقطة</small>
                     </div>
                 </div>
 
@@ -96,49 +100,6 @@
                 <div class="acc-broadcast-banner" id="accBroadcastBanner" hidden></div>
 
                 <div class="acc-grid">
-                    <!-- مركز الحساب -->
-                    <div class="glass-card acc-panel acc-panel-wide">
-                        <h4><i data-lucide="settings" aria-hidden="true"></i> مركز الحساب</h4>
-                        <form id="accProfileForm" class="acc-center-form">
-                            <div class="acc-center-row">
-                                <label>الاسم
-                                    <input type="text" id="accNameInput" maxlength="60" required>
-                                </label>
-                                <label>اليوزرنيم
-                                    <input type="text" id="accUsernameInput" maxlength="24" placeholder="username" pattern="[a-z0-9_]{3,24}">
-                                </label>
-                            </div>
-                            <label>البايو
-                                <textarea id="accBioInput" maxlength="300" rows="2" placeholder="اكتب حاجة قصيرة عن نفسك..."></textarea>
-                            </label>
-                            <div class="acc-center-row">
-                                <label>رقم الموبايل
-                                    <input type="tel" id="accPhoneInput" maxlength="30" placeholder="01xxxxxxxxx">
-                                </label>
-                                <label>خصوصية البروفايل
-                                    <select id="accVisibilitySelect">
-                                        <option value="public">عام — أي حد يشوفه</option>
-                                        <option value="private">خاص</option>
-                                    </select>
-                                </label>
-                            </div>
-                            <button type="submit" class="toji-auth-submit">حفظ بيانات الحساب</button>
-                        </form>
-                        <p class="form-status" id="accNameStatus"></p>
-
-                        <hr class="acc-divider">
-
-                        <form id="accPassForm" class="acc-center-form">
-                            <label class="acc-center-subtitle">تغيير كلمة المرور</label>
-                            <div class="acc-center-row">
-                                <input type="password" id="accCurrentPass" placeholder="كلمة المرور الحالية (لو عندك)" maxlength="100" autocomplete="current-password">
-                                <input type="password" id="accNewPass" placeholder="كلمة المرور الجديدة" minlength="8" maxlength="100" required autocomplete="new-password">
-                            </div>
-                            <button type="submit" class="toji-auth-submit">تحديث كلمة المرور</button>
-                        </form>
-                        <p class="form-status" id="accPassStatus"></p>
-                    </div>
-
                     <!-- النقط والخصومات -->
                     <div class="glass-card acc-panel acc-panel-wide">
                         <h4><i data-lucide="zap" aria-hidden="true"></i> النقط والخصومات</h4>
@@ -161,17 +122,15 @@
                         </details>
                     </div>
 
-                    <!-- المتابعة والرسايل -->
-                    <div class="glass-card acc-panel">
-                        <h4><i data-lucide="users" aria-hidden="true"></i> المتابعة والرسايل</h4>
+                    <!-- المتابعة -->
+                    <div class="glass-card acc-panel" id="accFollowPanel">
+                        <h4><i data-lucide="users" aria-hidden="true"></i> المتابعة</h4>
                         <div class="acc-follow-tabs">
                             <button type="button" class="acc-follow-tab active" data-tab="followers">المتابِعين</button>
                             <button type="button" class="acc-follow-tab" data-tab="following">بتتابع</button>
-                            <button type="button" class="acc-follow-tab" data-tab="chats">الرسايل</button>
                         </div>
                         <div id="accFollowersList" class="acc-list"></div>
                         <div id="accFollowingList" class="acc-list" hidden></div>
-                        <div id="accChatsList" class="acc-list" hidden></div>
                     </div>
 
                     <!-- تحدي الأسبوع + صندوق المفاجآت -->
@@ -262,48 +221,15 @@
                             <a class="toji-auth-submit acc-chat-continue" href="zaza.html">اكمل الدردشة مع زعزع</a>
                         </div>
                     </div>
-
-                    <!-- منطقة خطر -->
-                    <div class="glass-card acc-panel acc-panel-wide acc-danger-zone">
-                        <h4><i data-lucide="triangle-alert" aria-hidden="true"></i> منطقة خطر</h4>
-                        <p class="acc-points-hint">تقدر تنزّل نسخة من كل بياناتك قبل ما تحذف حسابك لو حبيت.</p>
-                        <button class="btn-secondary" id="accExportBtn" type="button">⬇️ نزّل نسخة من بياناتي</button>
-                        <hr>
-                        <p class="acc-points-hint">حذف حسابك هيمسح كل بياناتك (نقط، أكواد خصم، صورتك) نهائيًا ومش هترجع تاني.</p>
-                        <button class="acc-delete-btn" id="accDeleteBtn" type="button">احذف حسابي نهائيًا</button>
-                        <div class="acc-delete-confirm" id="accDeleteConfirm" hidden>
-                            <p>متأكد؟ الخطوة دي نهائية.</p>
-                            <div class="acc-delete-actions">
-                                <button class="acc-delete-btn acc-delete-btn-confirm" id="accDeleteConfirmBtn" type="button">أيوة، امسح حسابي</button>
-                                <button class="btn-secondary" id="accDeleteCancelBtn" type="button">إلغاء</button>
-                            </div>
-                        </div>
-                        <p class="form-status" id="accDeleteStatus"></p>
-                    </div>
                 </div>
             </div>
         </section>
-
-        <!-- نافذة الرسايل -->
-        <div class="acc-dm-overlay" id="accDmOverlay" hidden>
-            <div class="acc-dm-panel">
-                <div class="acc-dm-header">
-                    <span id="accDmTitle">رسايل</span>
-                    <button type="button" id="accDmClose">✕</button>
-                </div>
-                <div class="acc-dm-messages" id="accDmMessages"></div>
-                <div class="acc-dm-input-row">
-                    <input type="text" id="accDmInput" maxlength="1000" placeholder="اكتب رسالتك...">
-                    <button type="button" id="accDmSend">إرسال</button>
-                </div>
-            </div>
-        </div>
     </main>
     <footer class="owner-credit" data-owner-credit=""><span>Website created by:</span><a href="https://www.instagram.com/mouhamedmostafffa" target="_blank" rel="noopener noreferrer">@mouhamedmostafffa</a><span class="owner-copyright">© 2026 Mohamed Mostafa. All rights reserved.</span></footer>
     <script src="vendor/lucide.min.js?v=18"></script>
     <script src="api.js?v=23"></script>
     <script src="pages-shell.js?v=1"></script>
-    <script src="account.js?v=5"></script>
-    <script src="dashboard.js?v=5"></script>
+    <script src="account.js?v=6"></script>
+    <script src="dashboard.js?v=6"></script>
 </body>
 </html>

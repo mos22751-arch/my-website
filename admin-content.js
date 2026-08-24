@@ -107,6 +107,20 @@
                 { id: 'enabled', label: 'ظاهر للزوار', type: 'checkbox', default: true }
             ],
             renderItem: (it) => ({ title: `${it.emoji || '✨'} ${it.label}`, sub: it.key, visible: it.enabled })
+        },
+        badges: {
+            api: () => window.TojiAPI.BadgeAPI,
+            title: 'إنجاز جديد',
+            fields: [
+                { id: 'key', label: 'المفتاح (إنجليزي، بدون مسافات)', type: 'text', placeholder: 'first_project' },
+                { id: 'label', label: 'الاسم الظاهر', type: 'text', placeholder: 'أول مشروع' },
+                { id: 'emoji', label: 'إيموجي (لو مفيش صورة)', type: 'text', placeholder: '🏆' },
+                { id: 'imageUrl', label: 'رابط صورة (اختياري)', type: 'text' },
+                { id: 'description', label: 'وصف قصير', type: 'textarea' },
+                { id: 'order', label: 'الترتيب', type: 'number', default: 0 },
+                { id: 'enabled', label: 'مفعّل', type: 'checkbox', default: true }
+            ],
+            renderItem: (it) => ({ title: `${it.emoji || '🏆'} ${it.label}`, sub: it.key, visible: it.enabled })
         }
     };
 

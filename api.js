@@ -262,6 +262,19 @@ const AiMoodAPI = {
 };
 
 // ============================================================
+// Badge API — الإنجازات (Badges) المتاحة للحسابات
+// ============================================================
+const BadgeAPI = {
+    getPublic: ()      => apiFetch('/admin/users/badges'),
+    getAll:    ()      => apiFetch('/admin/users/badges/all'),
+    create:    (data)  => apiFetch('/admin/users/badges',       { method: 'POST',   body: JSON.stringify(data) }),
+    update:    (id, d) => apiFetch('/admin/users/badges/' + id, { method: 'PUT',    body: JSON.stringify(d)    }),
+    remove:    (id)    => apiFetch('/admin/users/badges/' + id, { method: 'DELETE' }),
+    award:     (userId, key) => apiFetch(`/admin/users/${userId}/badges/${encodeURIComponent(key)}`, { method: 'POST' }),
+    revoke:    (userId, key) => apiFetch(`/admin/users/${userId}/badges/${encodeURIComponent(key)}`, { method: 'DELETE' })
+};
+
+// ============================================================
 // Links API — قسم اللينكات (Connect) في الموقع
 // ============================================================
 const LinksAPI = {

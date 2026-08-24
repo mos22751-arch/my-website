@@ -123,6 +123,21 @@
 .acc-modal-toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
 .acc-modal hr { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
 
+.acc-detail-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.acc-badge-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+.acc-badge-toggle input { accent-color: var(--accent); }
+
 /* ── إعلانات لكل الحسابات ── */
 .acc-broadcast-composer { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
 .acc-broadcast-composer textarea {

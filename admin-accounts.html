@@ -7,7 +7,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; frame-src 'self'; connect-src 'self' https://portfolio-backend-production-604c.up.railway.app http://localhost:5000; object-src 'none'; base-uri 'self'; frame-ancestors 'none';">
     <title>الحسابات | TOJI Admin</title>
     <link rel="stylesheet" href="admin.css?v=22">
-    <link rel="stylesheet" href="admin-accounts.css?v=3">
+    <link rel="stylesheet" href="admin-accounts.css?v=4">
 </head>
 <body>
     <main class="admin-shell">
@@ -102,6 +102,28 @@
                 </div>
             </details>
 
+            <!-- ── الإنجازات (Badges) ── -->
+            <details class="panel" id="badgesPanel">
+                <summary>🏅 الإنجازات (Badges)</summary>
+                <div class="panel-body">
+                    <div class="projects-toolbar">
+                        <button id="badgesLoadBtn" type="button" class="btn-secondary">🔄 تحديث</button>
+                        <button id="badgesAddBtn" type="button" class="btn-primary"><span>+</span> إنجاز جديد</button>
+                    </div>
+                    <div class="project-form" id="badgesForm" hidden>
+                        <h3 id="badgesFormTitle">إنجاز جديد</h3>
+                        <input type="hidden" id="badgesFormId">
+                        <div class="project-form-grid" id="badgesFields"></div>
+                        <div class="project-form-actions">
+                            <button id="badgesSaveBtn" type="button" class="btn-primary">💾 حفظ</button>
+                            <button id="badgesCancelBtn" type="button" class="btn-ghost">إلغاء</button>
+                        </div>
+                        <p id="badgesFormMsg" class="form-msg"></p>
+                    </div>
+                    <div id="badgesList"><p class="projects-hint">اضغط "تحديث" لعرض الإنجازات.</p></div>
+                </div>
+            </details>
+
             <!-- ── البحث والقائمة ── -->
             <section class="panel-body acc-list-section">
                 <div class="acc-toolbar">
@@ -177,6 +199,11 @@
 
                 <hr>
 
+                <label class="acc-modal-field">الإنجازات (Badges)</label>
+                <div id="detailBadges" class="acc-detail-badges"></div>
+
+                <hr>
+
                 <label class="acc-modal-field">رسالة ترحيب مخصصة (زي إشعار VIP، هتظهر ليه بس)
                     <textarea id="detailWelcomeMsg" rows="2" maxlength="500" placeholder="اكتب رسالة شخصية للزائر ده..."></textarea>
                 </label>
@@ -206,6 +233,7 @@
     </main>
 
     <script src="api.js?v=23"></script>
-    <script src="admin-accounts.js?v=3"></script>
+    <script src="admin-accounts.js?v=4"></script>
+    <script src="admin-content.js?v=3"></script>
 </body>
 </html>

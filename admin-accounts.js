@@ -160,6 +160,7 @@
             <span>💬 ${res.stats.chatCount} رسالة شات</span>
             <span>📋 ${res.stats.quoteCount} طلب عرض سعر</span>
             <span>📅 ${res.stats.bookingCount} طلب حجز</span>`;
+        await renderDetailBadges();
         $('detailSaveMsg').textContent = '';
         $('detailPasswordMsg').textContent = '';
         $('detailNewPassword').value = '';
@@ -241,6 +242,42 @@
         } catch (err) {
             msg.textContent = err.message;
             msg.className = 'acc-form-msg is-error';
+        }
+    });
+
+    // ── الإنجازات (Badges) — منح/سحب لكل حساب ──
+    let allBadgesCache = null;
+    async function renderDetailBadges() {
+        const wrap = $('detailBadges');
+        wrap.innerHTML = '⏳ جارٍ التحميل...';
+        try {
+            if (!allBadgesCache) {
+                const res = await window.TojiAPI.BadgeAPI.getAll();
+                allBadgesCache = res.data || [];
+            }
+            const myKeys = detailUser.badgeKeys || [];
+            wrap.innerHTML = allBadgesCache.map((b) => `
+                <label class="acc-badge-toggle">
+                    <input type="checkbox" data-key="${b.key}" ${myKeys.includes(b.key) ? 'checked' : ''}>
+                    ${b.emoji || '🏆'} ${b.label}
+                </label>`).join('') || '<p class="projects-hint">لسه مفيش إنجازات متعرّفة. ضيفها من بانل الإنجازات فوق.</p>';
+        } catch {
+            wrap.innerHTML = '<p class="projects-hint is-error">تعذر تحميل الإنجازات.</p>';
+        }
+    }
+
+    $('detailBadges').addEventListener('change', async (e) => {
+        const input = e.target.closest('input[data-key]');
+        if (!input) return;
+        try {
+            if (input.checked) {
+                await window.TojiAPI.BadgeAPI.award(detailUser._id, input.dataset.key);
+            } else {
+                await window.TojiAPI.BadgeAPI.revoke(detailUser._id, input.dataset.key);
+            }
+        } catch (err) {
+            alert(err.message);
+            input.checked = !input.checked;
         }
     });
 

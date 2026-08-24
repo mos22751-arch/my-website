@@ -72,6 +72,8 @@
         updatePreferences: (mode, moodKey) => accountFetch('/account/preferences', { method: 'PUT', body: JSON.stringify({ mode, moodKey }) }),
         updateNotes: (notes) => accountFetch('/account/notes', { method: 'PUT', body: JSON.stringify({ notes }) }),
         toggleSavedProject: (projectId) => accountFetch('/account/saved-projects/toggle', { method: 'POST', body: JSON.stringify({ projectId }) }),
+        getBadges: () => accountFetch('/account/badges'),
+        searchUsers: (q) => accountFetch(`/account/search?q=${encodeURIComponent(q)}`),
         exportData: () => accountFetch('/account/export-data'),
         deleteAccount: () => accountFetch('/account/me', { method: 'DELETE' }),
         chatHistory: () => accountFetch('/account/chat-history'),
@@ -89,6 +91,7 @@
         // رسايل
         getConversations: () => accountFetch('/account/messages'),
         getThread: (username) => accountFetch(`/account/messages/${encodeURIComponent(username)}`),
+        getThreads: () => accountFetch('/account/messages'),
         sendMessage: (username, text) => accountFetch(`/account/messages/${encodeURIComponent(username)}`, { method: 'POST', body: JSON.stringify({ text }) }),
 
         // إعلانات + رسالة ترحيب

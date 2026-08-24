@@ -111,52 +111,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    document.getElementById('pMessageBtn')?.addEventListener('click', () => {
-        if (!window.TojiAccount?.isLoggedIn()) { window.TojiAccount?.openAuthModal?.(); return; }
-        openDmThread(username, profile.name);
-    });
-
-    // ── نافذة الرسايل ──
-    let currentDmUsername = '';
-    function openDmThread(uname, displayName) {
-        currentDmUsername = uname;
-        document.getElementById('accDmTitle').textContent = displayName || uname;
-        document.getElementById('accDmOverlay').hidden = false;
-        loadDmMessages();
-    }
-    document.getElementById('accDmClose')?.addEventListener('click', () => {
-        document.getElementById('accDmOverlay').hidden = true;
-    });
-    async function loadDmMessages() {
-        const el = document.getElementById('accDmMessages');
-        el.innerHTML = '<p class="acc-empty">⏳ جارٍ التحميل...</p>';
-        try {
-            const res = await AccountAPI.getThread(currentDmUsername);
-            const msgs = res.data || [];
-            const myId = window.TojiAccount.getUser()?.id;
-            el.innerHTML = msgs.map((m) => {
-                const isMine = String(m.fromUser) === String(myId);
-                return `<div class="acc-dm-msg ${isMine ? 'is-mine' : 'is-theirs'}">${escapeHtml(m.text)}</div>`;
-            }).join('') || '<p class="acc-empty">لسه مفيش رسايل، ابدأ الكلام 👋</p>';
-            el.scrollTop = el.scrollHeight;
-        } catch (err) {
-            el.innerHTML = `<p class="acc-empty">${escapeHtml(err.message)}</p>`;
+    document.getElementById('pMessageBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!window.TojiAccount?.isLoggedIn()) {
+            window.TojiAccount?.openAuthModal?.();
+            return;
         }
-    }
-    async function sendDm() {
-        const input = document.getElementById('accDmInput');
-        const text = input.value.trim();
-        if (!text || !currentDmUsername) return;
-        input.value = '';
-        try {
-            await AccountAPI.sendMessage(currentDmUsername, text);
-            loadDmMessages();
-        } catch (err) {
-            window.TojiAccount.toast(err.message);
-        }
-    }
-    document.getElementById('accDmSend')?.addEventListener('click', sendDm);
-    document.getElementById('accDmInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendDm(); });
+        window.location.href = `messages.html?u=${encodeURIComponent(username)}`;
+    });
 
     load();
 });
