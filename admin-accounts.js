@@ -305,7 +305,7 @@
         const listEl = $('broadcastList');
         listEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
         try {
-            const res = await adminFetch('/admin/broadcast');
+            const res = await adminFetch('/admin/users/broadcast');
             const items = res.data || [];
             if (!items.length) { listEl.innerHTML = '<p class="projects-hint">لسه مفيش إعلانات.</p>'; return; }
             listEl.innerHTML = items.map((b) => `
@@ -334,7 +334,7 @@
         msg.textContent = 'جارٍ النشر...';
         msg.className = 'acc-form-msg';
         try {
-            await adminFetch('/admin/broadcast', { method: 'POST', body: JSON.stringify({ text }) });
+            await adminFetch('/admin/users/broadcast', { method: 'POST', body: JSON.stringify({ text }) });
             $('broadcastText').value = '';
             msg.textContent = 'اتنشر ✅';
             msg.className = 'acc-form-msg is-success';
@@ -353,10 +353,10 @@
         try {
             if (btn.dataset.act === 'toggle') {
                 const isActive = !item.classList.contains('is-inactive');
-                await adminFetch(`/admin/broadcast/${id}`, { method: 'PATCH', body: JSON.stringify({ active: !isActive }) });
+                await adminFetch(`/admin/users/broadcast/${id}`, { method: 'PATCH', body: JSON.stringify({ active: !isActive }) });
             } else if (btn.dataset.act === 'delete') {
                 if (!confirm('متأكد؟')) return;
-                await adminFetch(`/admin/broadcast/${id}`, { method: 'DELETE' });
+                await adminFetch(`/admin/users/broadcast/${id}`, { method: 'DELETE' });
             }
             loadBroadcasts();
         } catch (err) { alert(err.message); }
@@ -375,7 +375,7 @@
         const listEl = $('inboxList');
         listEl.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
         try {
-            const res = await adminFetch('/admin/inbox');
+            const res = await adminFetch('/admin/users/inbox');
             const msgs = res.data || [];
             if (!msgs.length) { listEl.innerHTML = '<p class="projects-hint">لسه مفيش رسايل من الزوار.</p>'; return; }
 
@@ -406,7 +406,7 @@
         const el = $('inboxThread');
         el.innerHTML = '<p class="projects-hint">⏳ جارٍ التحميل...</p>';
         try {
-            const res = await adminFetch(`/admin/inbox/${userId}`);
+            const res = await adminFetch(`/admin/users/inbox/${userId}`);
             const msgs = res.data || [];
             el.innerHTML = `
                 <div class="acc-inbox-msgs">${msgs.map((m) => `
@@ -430,7 +430,7 @@
         if (!text) return;
         input.disabled = true;
         try {
-            await adminFetch(`/admin/inbox/${userId}/reply`, { method: 'POST', body: JSON.stringify({ text }) });
+            await adminFetch(`/admin/users/inbox/${userId}/reply`, { method: 'POST', body: JSON.stringify({ text }) });
             openInboxThread(userId);
             loadInboxList();
         } catch (err) { alert(err.message); }

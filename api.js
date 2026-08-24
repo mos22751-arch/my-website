@@ -380,4 +380,4 @@ const BookingAPI = {
     remove:       (id)       => apiFetch(`/booking/${id}`, { method: 'DELETE' })
 };
 
-window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, AiMoodAPI, LinksAPI, GuestbookAPI, ReactionsAPI, PricingAPI, ProcessAPI, BlogAPI, ChangelogAPI, StackAPI, QuoteAPI, BookingAPI, API_BASE_URL };
+window.TojiAPI = { TokenManager, AuthAPI, ProjectsAPI, MessagesAPI, ConfigAPI, AnalyticsAPI, SongsAPI, WipAPI, AiAPI, AiMoodAPI, BadgeAPI, LinksAPI, GuestbookAPI, ReactionsAPI, PricingAPI, ProcessAPI, BlogAPI, ChangelogAPI, StackAPI, QuoteAPI, BookingAPI, API_BASE_URL };

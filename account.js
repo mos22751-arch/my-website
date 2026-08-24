@@ -49,10 +49,26 @@
             ...(token && { Authorization: `Bearer ${token}` }),
             ...(options.headers || {})
         };
-        const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+        // حد أقصى 25 ثانية — لو السيرفر واقع/بطيء، منوقفش على اللودينج للأبد
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000);
+        let res;
+        try {
+            res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers, signal: controller.signal });
+        } catch (e) {
+            const err = new Error(e.name === 'AbortError' ? 'السيرفر مش بيرد دلوقتي، جرب تاني.' : 'مشكلة في الاتصال بالسيرفر.');
+            err.status = 0;
+            throw err;
+        } finally {
+            clearTimeout(timeoutId);
+        }
         let data;
         try { data = await res.json(); } catch { data = {}; }
-        if (!res.ok) throw new Error(data.message || 'حصل خطأ في السيرفر');
+        if (!res.ok) {
+            const err = new Error(data.message || 'حصل خطأ في السيرفر');
+            err.status = res.status;
+            throw err;
+        }
         return data;
     }
 
@@ -458,8 +474,9 @@
                 setCachedUser(res.user);
                 renderNavButton();
                 claimDailyPointsQuietly();
-            } catch {
-                logout();
+            } catch (err) {
+                // بس لو التوكن فعلاً غير صالح (401) — مش لو المشكلة شبكة/سيرفر بطيء
+                if (err.status === 401) logout();
             }
         }
     }
