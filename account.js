@@ -230,6 +230,8 @@
                 </div>
                 <div class="toji-account-menu" id="tojiAccountMenu" hidden>
                     <a href="account.html" class="toji-account-menu-item"><i data-lucide="layout-dashboard" aria-hidden="true"></i> حسابي</a>
+                    <a href="messages.html" class="toji-account-menu-item"><i data-lucide="message-circle" aria-hidden="true"></i> الرسايل</a>
+                    <a href="settings.html" class="toji-account-menu-item"><i data-lucide="settings" aria-hidden="true"></i> إعدادات الحساب</a>
                     <button type="button" class="toji-account-menu-item" id="tojiLogoutBtn"><i data-lucide="log-out" aria-hidden="true"></i> تسجيل خروج</button>
                 </div>`;
             const pill = wrap.querySelector('#tojiAccountPill');
