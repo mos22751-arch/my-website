@@ -410,6 +410,9 @@
     .toji-auth-visual { padding: 60px 24px 24px; min-height: 130px; justify-content: center; }
     .toji-auth-visual-text { display: none; }
     .toji-auth-panel { padding: 24px 20px 20px; }
+    /* ✅ blur() على شاشة كاملة تقيل جدًا على موبايلات ضعيفة — بيبان زي "تجمد" */
+    .toji-auth-overlay { backdrop-filter: none; background: rgba(5, 5, 6, 0.88); }
+    .toji-auth-visual-orb { filter: none; }
 }
 
 /* ============================================================
@@ -948,4 +951,29 @@ a.acc-ig-stat:hover strong { color: var(--primary); }
     .acc-ig-actions { justify-content: center; }
     .acc-level-badge, .acc-streak-badge { align-self: center; }
 }
+
+/* ── مركز الحساب — checkboxes، لينك اللوجن هيستوري، والحسابات المحظورة ── */
+.acc-checkbox-row { display: flex; flex-direction: column; gap: 8px; margin: 4px 0; }
+.acc-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-main);
+    font-weight: 500;
+    cursor: pointer;
+}
+.acc-checkbox input { accent-color: var(--primary); width: 16px; height: 16px; }
+.acc-list-item .acc-unblock-btn, .acc-list-item .acc-song-remove {
+    padding: 6px 12px;
+    font-size: 0.76rem;
+}
+.acc-song-remove {
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    color: #ff6b6b;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.acc-song-remove:hover { background: rgba(255,107,107,0.1); }
 

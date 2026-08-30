@@ -27,13 +27,48 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('accBioInput').value = user.bio || '';
             document.getElementById('accPhoneInput').value = user.phone || '';
             document.getElementById('accVisibilitySelect').value = user.profileVisibility || 'public';
+            document.getElementById('accHidePoints').checked = !!user.hidePoints;
+            document.getElementById('accHideBadges').checked = !!user.hideBadges;
+            document.getElementById('accRedirectSelect').value = user.postLoginRedirect || 'none';
 
             const link = user.username ? `${window.location.origin}/account/${user.username}` : '';
             document.getElementById('settingsProfileLink').textContent = link || 'اختار يوزرنيم الأول';
+
+            // إيميل: عرض القيمة الحالية كـ placeholder
+            const emailInput = document.getElementById('accNewEmail');
+            emailInput.placeholder = user.email || 'إيميلك الجديد';
+
+            // حساب جوجل
+            const googleCard = document.getElementById('googleLinkCard');
+            if (user.hasGoogle) {
+                googleCard.hidden = false;
+                document.getElementById('googleLinkStatus').textContent = user.hasPassword
+                    ? 'مربوط بحساب جوجل. تقدر تفك الربط لأن عندك كلمة مرور كمان.'
+                    : 'مربوط بحساب جوجل. لازم تحط كلمة مرور الأول قبل ما تفك الربط.';
+                document.getElementById('googleUnlinkBtn').disabled = !user.hasPassword;
+            } else {
+                googleCard.hidden = true;
+            }
+
+            // تفضيلات التنبيهات
+            const prefs = user.notifyPrefs || { broadcasts: true, welcomeMessages: true, follows: true };
+            document.querySelectorAll('#notifyPrefsRow input[data-pref]').forEach((input) => {
+                input.checked = prefs[input.dataset.pref] !== false;
+            });
+
+            renderSongs(user.songs || []);
+            renderLoginHistory(user.loginHistory || []);
+            loadBlockedList();
         } catch {}
         if (window.lucide) window.lucide.createIcons();
     }
     load();
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str ?? '';
+        return div.innerHTML;
+    }
 
     document.getElementById('settingsCopyLinkBtn')?.addEventListener('click', () => {
         const text = document.getElementById('settingsProfileLink').textContent;
@@ -54,7 +89,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 username: document.getElementById('accUsernameInput').value.trim(),
                 bio: document.getElementById('accBioInput').value,
                 phone: document.getElementById('accPhoneInput').value,
-                profileVisibility: document.getElementById('accVisibilitySelect').value
+                profileVisibility: document.getElementById('accVisibilitySelect').value,
+                hidePoints: document.getElementById('accHidePoints').checked,
+                hideBadges: document.getElementById('accHideBadges').checked,
+                postLoginRedirect: document.getElementById('accRedirectSelect').value
             });
             status.textContent = 'اتحفظ! ✅';
             status.className = 'form-status is-success';
@@ -82,6 +120,145 @@ document.addEventListener('DOMContentLoaded', async () => {
             status.textContent = err.message;
             status.className = 'form-status is-error';
         }
+    });
+
+    document.getElementById('accEmailForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const status = document.getElementById('accEmailStatus');
+        status.textContent = '...';
+        status.className = 'form-status';
+        try {
+            await AccountAPI.changeEmail(
+                document.getElementById('accNewEmail').value.trim(),
+                document.getElementById('accEmailPassword').value
+            );
+            status.textContent = 'اتغيّر الإيميل! ✅';
+            status.className = 'form-status is-success';
+            e.target.reset();
+        } catch (err) {
+            status.textContent = err.message;
+            status.className = 'form-status is-error';
+        }
+    });
+
+    document.getElementById('googleUnlinkBtn')?.addEventListener('click', async () => {
+        const status = document.getElementById('googleUnlinkStatus');
+        status.textContent = '...';
+        status.className = 'form-status';
+        try {
+            await AccountAPI.unlinkGoogle();
+            status.textContent = 'اتفك الربط ✅';
+            status.className = 'form-status is-success';
+            document.getElementById('googleLinkCard').hidden = true;
+        } catch (err) {
+            status.textContent = err.message;
+            status.className = 'form-status is-error';
+        }
+    });
+
+    document.querySelectorAll('#notifyPrefsRow input[data-pref]').forEach((input) => {
+        input.addEventListener('change', async () => {
+            const status = document.getElementById('notifyPrefsStatus');
+            try {
+                await AccountAPI.updateNotifyPrefs({ [input.dataset.pref]: input.checked });
+                status.textContent = 'اتحفظ ✅';
+                status.className = 'form-status is-success';
+            } catch (err) {
+                input.checked = !input.checked;
+                status.textContent = err.message;
+                status.className = 'form-status is-error';
+            }
+        });
+    });
+
+    // ── أغانيّ المفضلة ──
+    function renderSongs(songs) {
+        const el = document.getElementById('songsList');
+        if (!songs.length) { el.innerHTML = '<p class="acc-empty">لسه مضفتش أي أغنية.</p>'; return; }
+        el.innerHTML = songs.map((s) => `
+            <div class="acc-list-item">
+                <div><strong>${escapeHtml(s.title)}</strong><span>${escapeHtml(s.artist || '')}</span></div>
+                <div class="acc-list-meta">
+                    <a class="btn-secondary" href="${escapeHtml(s.url)}" target="_blank" rel="noopener">▶️</a>
+                    <button type="button" class="acc-song-remove" data-id="${s._id}">حذف</button>
+                </div>
+            </div>`).join('');
+    }
+    document.getElementById('accSongForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const status = document.getElementById('songFormStatus');
+        status.textContent = '...';
+        status.className = 'form-status';
+        try {
+            const res = await AccountAPI.addSong(
+                document.getElementById('songTitleInput').value.trim(),
+                document.getElementById('songArtistInput').value.trim(),
+                document.getElementById('songUrlInput').value.trim()
+            );
+            renderSongs(res.songs);
+            e.target.reset();
+            status.textContent = 'اتضافت! 🎵';
+            status.className = 'form-status is-success';
+        } catch (err) {
+            status.textContent = err.message;
+            status.className = 'form-status is-error';
+        }
+    });
+    document.getElementById('songsList')?.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.acc-song-remove');
+        if (!btn) return;
+        try {
+            const res = await AccountAPI.removeSong(btn.dataset.id);
+            renderSongs(res.songs);
+        } catch (err) { window.TojiAccount.toast(err.message); }
+    });
+
+    // ── الأمان ──
+    function renderLoginHistory(history) {
+        const el = document.getElementById('loginHistoryList');
+        if (!history.length) { el.innerHTML = '<p class="acc-empty">لسه مفيش سجل دخول.</p>'; return; }
+        el.innerHTML = history.slice().reverse().map((h) => `
+            <div class="acc-list-item">
+                <div><strong>${new Date(h.at).toLocaleString('ar-EG')}</strong><span>${escapeHtml(h.ip || '')}</span></div>
+            </div>`).join('');
+    }
+    document.getElementById('logoutAllBtn')?.addEventListener('click', async () => {
+        const status = document.getElementById('logoutAllStatus');
+        status.textContent = '...';
+        status.className = 'form-status';
+        try {
+            await AccountAPI.logoutAllDevices();
+            status.textContent = 'اتقفلت كل الجلسات التانية ✅ (الجلسة دي فضلت شغالة)';
+            status.className = 'form-status is-success';
+        } catch (err) {
+            status.textContent = err.message;
+            status.className = 'form-status is-error';
+        }
+    });
+
+    // ── الحسابات المحظورة ──
+    async function loadBlockedList() {
+        const el = document.getElementById('blockedList');
+        try {
+            const res = await AccountAPI.getBlocked();
+            const users = res.data || [];
+            if (!users.length) { el.innerHTML = '<p class="acc-empty">مفيش حسابات محظورة.</p>'; return; }
+            el.innerHTML = users.map((u) => `
+                <div class="acc-list-item">
+                    <div><strong>${escapeHtml(u.name)}</strong><span>@${escapeHtml(u.username)}</span></div>
+                    <button type="button" class="btn-secondary acc-unblock-btn" data-username="${escapeHtml(u.username)}">فك الحظر</button>
+                </div>`).join('');
+        } catch {
+            el.innerHTML = '<p class="acc-empty">تعذر التحميل.</p>';
+        }
+    }
+    document.getElementById('blockedList')?.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.acc-unblock-btn');
+        if (!btn) return;
+        try {
+            await AccountAPI.unblockUser(btn.dataset.username);
+            loadBlockedList();
+        } catch (err) { window.TojiAccount.toast(err.message); }
     });
 
     document.getElementById('accExportBtn')?.addEventListener('click', async () => {

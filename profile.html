@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="style.css?v=22">
     <link rel="stylesheet" href="enhancements.css?v=9">
     <link rel="stylesheet" href="pages.css?v=6">
-    <link rel="stylesheet" href="account.css?v=6">
+    <link rel="stylesheet" href="account.css?v=7">
 </head>
 <body class="dark-theme is-loading preset-graphite">
     <div class="mesh-bg" aria-hidden="true"></div>
@@ -54,20 +54,28 @@
             </div>
 
             <!-- ── البروفايل ── -->
-            <div id="profileContent" hidden>
-                <div class="acc-profile-card glass-card">
+            <div id="profileContent" hidden class="acc-settings-wrap">
+                <div class="acc-profile-card glass-card ig-style">
                     <div class="acc-avatar-wrap">
                         <img class="acc-avatar" id="pAvatarImg" src="" alt="" hidden>
                         <span class="acc-avatar acc-avatar-fallback" id="pAvatarFallback"></span>
                     </div>
                     <div class="acc-profile-info">
-                        <h3 id="pName">—</h3>
+                        <div class="acc-ig-top-row">
+                            <h3 id="pName">—</h3>
+                            <div class="acc-ig-stats">
+                                <div class="acc-ig-stat" id="pPointsStat" hidden><strong id="pPointsTotal">0</strong><span>نقطة</span></div>
+                                <div class="acc-ig-stat"><strong id="pFollowersCount">0</strong><span>متابِع</span></div>
+                                <div class="acc-ig-stat"><strong id="pFollowingCount">0</strong><span>بيتابع</span></div>
+                            </div>
+                        </div>
                         <p id="pUsername">@—</p>
                         <p class="acc-bio" id="pBio"></p>
-                        <div class="acc-follow-counts">
-                            <span><strong id="pFollowersCount">0</strong> متابِع</span>
-                            <span><strong id="pFollowingCount">0</strong> بيتابع</span>
-                            <span id="pMemberSince"></span>
+                        <div class="acc-badges-row" id="pBadgesRow"></div>
+                        <p class="acc-points-hint" id="pMemberSince"></p>
+                        <div class="acc-ig-actions">
+                            <button type="button" class="toji-auth-submit" id="pFollowBtn">تابعه</button>
+                            <a class="btn-secondary" id="pMessageBtn" href="#"><i data-lucide="message-circle" aria-hidden="true"></i> ابعتله رسالة</a>
                         </div>
                     </div>
                     <div class="acc-level-badge" id="pLevelBadge">
@@ -76,9 +84,16 @@
                     </div>
                 </div>
 
-                <div class="acc-profile-actions">
-                    <button type="button" class="toji-auth-submit" id="pFollowBtn">تابعه</button>
-                    <a class="btn-secondary" id="pMessageBtn" href="#">✉️ ابعتله رسالة</a>
+                <!-- المشاريع المحفوظة -->
+                <div class="glass-card acc-panel acc-panel-wide" id="pProjectsCard" hidden>
+                    <h4><i data-lucide="bookmark" aria-hidden="true"></i> مشاريع محفوظة</h4>
+                    <div id="pProjectsList" class="acc-list"></div>
+                </div>
+
+                <!-- الأغاني المفضلة -->
+                <div class="glass-card acc-panel acc-panel-wide" id="pSongsCard" hidden>
+                    <h4><i data-lucide="music" aria-hidden="true"></i> أغاني مفضلة</h4>
+                    <div id="pSongsList" class="acc-list"></div>
                 </div>
             </div>
         </section>
@@ -87,7 +102,7 @@
     <script src="vendor/lucide.min.js?v=18"></script>
     <script src="api.js?v=23"></script>
     <script src="pages-shell.js?v=1"></script>
-    <script src="account.js?v=7"></script>
-    <script src="profile.js?v=1"></script>
+    <script src="account.js?v=8"></script>
+    <script src="profile.js?v=2"></script>
 </body>
 </html>

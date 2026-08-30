@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="style.css?v=22">
     <link rel="stylesheet" href="enhancements.css?v=9">
     <link rel="stylesheet" href="pages.css?v=6">
-    <link rel="stylesheet" href="account.css?v=6">
-    <link rel="stylesheet" href="messages.css?v=1">
+    <link rel="stylesheet" href="account.css?v=7">
+    <link rel="stylesheet" href="messages.css?v=2">
 </head>
 <body class="dark-theme is-loading preset-graphite">
     <div class="mesh-bg" aria-hidden="true"></div>
@@ -74,7 +74,25 @@
                             </div>
                         </div>
                         <div class="msg-thread-messages" id="msgThreadMessages"></div>
+                        <div class="msg-image-preview" id="msgImagePreview" hidden>
+                            <img id="msgImagePreviewImg" src="" alt="">
+                            <button type="button" id="msgImageRemoveBtn">✕</button>
+                        </div>
+                        <div class="msg-recording-bar" id="msgRecordingBar" hidden>
+                            <span class="msg-recording-dot"></span>
+                            <span id="msgRecordingTime">0:00</span>
+                            <span class="msg-recording-hint">جارٍ التسجيل... (حد أقصى دقيقة)</span>
+                            <button type="button" id="msgRecordingCancel">إلغاء</button>
+                            <button type="button" id="msgRecordingSend" class="msg-recording-send">إرسال ✔</button>
+                        </div>
                         <form class="msg-thread-input-row" id="msgThreadForm">
+                            <label class="msg-attach-btn" id="msgImageBtn" title="ابعت صورة">
+                                <input type="file" id="msgImageInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+                                <i data-lucide="image" aria-hidden="true"></i>
+                            </label>
+                            <button type="button" class="msg-attach-btn" id="msgVoiceBtn" title="رسالة صوتية">
+                                <i data-lucide="mic" aria-hidden="true"></i>
+                            </button>
                             <input type="text" id="msgThreadInput" maxlength="1000" placeholder="اكتب رسالة..." autocomplete="off">
                             <button type="submit" class="msg-send-btn" aria-label="إرسال">
                                 <i data-lucide="send" aria-hidden="true"></i>
@@ -89,7 +107,7 @@
     <script src="vendor/lucide.min.js?v=18"></script>
     <script src="api.js?v=23"></script>
     <script src="pages-shell.js?v=1"></script>
-    <script src="account.js?v=6"></script>
-    <script src="messages.js?v=1"></script>
+    <script src="account.js?v=8"></script>
+    <script src="messages.js?v=2"></script>
 </body>
 </html>

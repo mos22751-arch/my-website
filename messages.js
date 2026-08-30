@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const isMine = activeUsername === 'admin'
                     ? !m.isAdminReply
                     : String(m.fromUser) === String(myId);
-                return `<div class="msg-bubble ${isMine ? 'is-mine' : 'is-theirs'}">${escapeHtml(m.text)}</div>`;
+                return `<div class="msg-bubble ${isMine ? 'is-mine' : 'is-theirs'} msg-bubble-in">${renderBubbleContent(m)}</div>`;
             }).join('') || '<p class="acc-empty">لسه مفيش رسايل، ابدأ الكلام 👋</p>';
             el.scrollTop = el.scrollHeight;
         } catch (err) {
@@ -160,15 +160,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    function renderBubbleContent(m) {
+        const parts = [];
+        if (m.imageUrl) parts.push(`<img class="msg-bubble-image" src="${escapeHtml(m.imageUrl)}" alt="" loading="lazy">`);
+        if (m.audioUrl) parts.push(`<audio class="msg-bubble-audio" src="${escapeHtml(m.audioUrl)}" controls preload="metadata"></audio>`);
+        if (m.text) parts.push(`<span class="msg-bubble-text">${escapeHtml(m.text)}</span>`);
+        return parts.join('');
+    }
+
+    // ── إرسال نص و/أو صورة مرفقة سوا ──
+    let pendingImageUrl = '';
     document.getElementById('msgThreadForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const input = document.getElementById('msgThreadInput');
         const text = input.value.trim();
-        if (!text || !activeUsername) return;
+        const imageUrl = pendingImageUrl;
+        if ((!text && !imageUrl) || !activeUsername) return;
         input.value = '';
+        pendingImageUrl = '';
+        document.getElementById('msgImagePreview').hidden = true;
         input.disabled = true;
         try {
-            await AccountAPI.sendMessage(activeUsername, text);
+            await AccountAPI.sendMessage(activeUsername, { text, imageUrl });
             await loadMessages();
             await loadThreads();
         } catch (err) {
@@ -178,6 +191,90 @@ document.addEventListener('DOMContentLoaded', async () => {
             input.focus();
         }
     });
+
+    // ── إرسال صورة ──
+    document.getElementById('msgImageInput')?.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        e.target.value = '';
+        if (!file || !activeUsername) return;
+        try {
+            const res = await AccountAPI.uploadDmMedia(file, 'image');
+            pendingImageUrl = res.url;
+            document.getElementById('msgImagePreviewImg').src = res.url;
+            document.getElementById('msgImagePreview').hidden = false;
+        } catch (err) {
+            window.TojiAccount.toast(err.message);
+        }
+    });
+    document.getElementById('msgImageRemoveBtn')?.addEventListener('click', () => {
+        pendingImageUrl = '';
+        document.getElementById('msgImagePreview').hidden = true;
+    });
+
+    // ── رسالة صوتية — تسجيل بحد أقصى دقيقة ──
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordStartAt = 0;
+    let recordTimer = null;
+    let recordSeconds = 0;
+
+    function updateRecordingTime() {
+        recordSeconds = Math.floor((Date.now() - recordStartAt) / 1000);
+        const m = Math.floor(recordSeconds / 60);
+        const s = String(recordSeconds % 60).padStart(2, '0');
+        document.getElementById('msgRecordingTime').textContent = `${m}:${s}`;
+        if (recordSeconds >= 60) stopRecording(true); // حد أقصى دقيقة — يوقف تلقائي
+    }
+
+    async function startRecording() {
+        if (!navigator.mediaDevices?.getUserMedia) {
+            window.TojiAccount.toast('المتصفح ده مش بيدعم التسجيل الصوتي.');
+            return;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            recordedChunks = [];
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.start();
+            recordStartAt = Date.now();
+            document.getElementById('msgRecordingBar').hidden = false;
+            document.getElementById('msgThreadForm').hidden = true;
+            recordTimer = setInterval(updateRecordingTime, 250);
+        } catch {
+            window.TojiAccount.toast('محتاج تسمح بالوصول للمايك.');
+        }
+    }
+
+    function stopRecording(shouldSend) {
+        clearInterval(recordTimer);
+        document.getElementById('msgRecordingBar').hidden = true;
+        document.getElementById('msgThreadForm').hidden = false;
+        if (!mediaRecorder) return;
+        const duration = recordSeconds;
+        mediaRecorder.addEventListener('stop', async () => {
+            mediaRecorder.stream.getTracks().forEach((t) => t.stop());
+            if (!shouldSend || !recordedChunks.length) return;
+            const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+            try {
+                const res = await AccountAPI.uploadDmMedia(blob, 'audio', duration);
+                await AccountAPI.sendMessage(activeUsername, { audioUrl: res.url, audioDuration: duration });
+                await loadMessages();
+                await loadThreads();
+            } catch (err) {
+                window.TojiAccount.toast(err.message);
+            }
+        }, { once: true });
+        mediaRecorder.stop();
+        mediaRecorder = null;
+    }
+
+    document.getElementById('msgVoiceBtn')?.addEventListener('click', () => {
+        if (!activeUsername) return;
+        startRecording();
+    });
+    document.getElementById('msgRecordingCancel')?.addEventListener('click', () => stopRecording(false));
+    document.getElementById('msgRecordingSend')?.addEventListener('click', () => stopRecording(true));
 
     await loadThreads();
     if (activeUsername) {

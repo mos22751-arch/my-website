@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="style.css?v=22">
     <link rel="stylesheet" href="enhancements.css?v=9">
     <link rel="stylesheet" href="pages.css?v=6">
-    <link rel="stylesheet" href="account.css?v=6">
+    <link rel="stylesheet" href="account.css?v=7">
 </head>
 <body class="dark-theme is-loading preset-graphite">
     <div class="mesh-bg" aria-hidden="true"></div>
@@ -74,9 +74,86 @@
                                 </select>
                             </label>
                         </div>
+                        <div class="acc-checkbox-row">
+                            <label class="acc-checkbox"><input type="checkbox" id="accHidePoints"> إخفاء نقطي من البروفايل العام</label>
+                            <label class="acc-checkbox"><input type="checkbox" id="accHideBadges"> إخفاء إنجازاتي من البروفايل العام</label>
+                        </div>
+                        <label>بعد ما تسجل دخولك، ودّيني على طول لـ
+                            <select id="accRedirectSelect">
+                                <option value="none">مفيش تفضيل (فضل في نفس الصفحة)</option>
+                                <option value="account">صفحة حسابي</option>
+                                <option value="messages">صفحة الرسايل</option>
+                            </select>
+                        </label>
                         <button type="submit" class="toji-auth-submit">حفظ بيانات الحساب</button>
                         <p class="form-status" id="accNameStatus"></p>
                     </form>
+                </div>
+
+                <!-- الإيميل -->
+                <div class="glass-card acc-panel acc-panel-wide">
+                    <h4><i data-lucide="mail" aria-hidden="true"></i> الإيميل</h4>
+                    <form id="accEmailForm" class="acc-center-form">
+                        <div class="acc-center-row">
+                            <input type="email" id="accNewEmail" placeholder="إيميلك الجديد" maxlength="120" required>
+                            <input type="password" id="accEmailPassword" placeholder="كلمة المرور (للتأكيد)" maxlength="100" autocomplete="current-password">
+                        </div>
+                        <button type="submit" class="btn-secondary">تحديث الإيميل</button>
+                        <p class="form-status" id="accEmailStatus"></p>
+                    </form>
+                </div>
+
+                <!-- حساب جوجل -->
+                <div class="glass-card acc-panel acc-panel-wide" id="googleLinkCard" hidden>
+                    <h4><i data-lucide="link-2" aria-hidden="true"></i> حساب جوجل</h4>
+                    <p class="acc-points-hint" id="googleLinkStatus">مربوط بحساب جوجل.</p>
+                    <button class="btn-secondary" id="googleUnlinkBtn" type="button">فك ربط جوجل</button>
+                    <p class="form-status" id="googleUnlinkStatus"></p>
+                </div>
+
+                <!-- التنبيهات -->
+                <div class="glass-card acc-panel acc-panel-wide">
+                    <h4><i data-lucide="bell" aria-hidden="true"></i> التنبيهات</h4>
+                    <div class="acc-checkbox-row" id="notifyPrefsRow">
+                        <label class="acc-checkbox"><input type="checkbox" data-pref="broadcasts"> إعلانات الموقع</label>
+                        <label class="acc-checkbox"><input type="checkbox" data-pref="welcomeMessages"> رسايل ترحيب خاصة من الأدمن</label>
+                        <label class="acc-checkbox"><input type="checkbox" data-pref="follows"> تنبيه متابعة جديدة</label>
+                    </div>
+                    <p class="form-status" id="notifyPrefsStatus"></p>
+                </div>
+
+                <!-- أغانيّ المفضلة -->
+                <div class="glass-card acc-panel acc-panel-wide">
+                    <h4><i data-lucide="music" aria-hidden="true"></i> أغانيّ المفضلة</h4>
+                    <p class="acc-points-hint">تظهر في بروفايلك العام — لينك يوتيوب/سبوتيفاي/ساوندكلاود بس.</p>
+                    <form id="accSongForm" class="acc-center-form">
+                        <div class="acc-center-row">
+                            <input type="text" id="songTitleInput" placeholder="اسم الأغنية" maxlength="80" required>
+                            <input type="text" id="songArtistInput" placeholder="المغني (اختياري)" maxlength="80">
+                        </div>
+                        <input type="url" id="songUrlInput" placeholder="لينك الأغنية (يوتيوب/سبوتيفاي...)" maxlength="500" required>
+                        <button type="submit" class="btn-secondary">إضافة أغنية</button>
+                        <p class="form-status" id="songFormStatus"></p>
+                    </form>
+                    <div id="songsList" class="acc-list"></div>
+                </div>
+
+                <!-- الأمان -->
+                <div class="glass-card acc-panel acc-panel-wide">
+                    <h4><i data-lucide="shield" aria-hidden="true"></i> الأمان</h4>
+                    <p class="acc-points-hint">لو حسيت إن حد فتح حسابك من مكان تاني، اقفل كل الجلسات غير دي.</p>
+                    <button class="btn-secondary" id="logoutAllBtn" type="button">تسجيل خروج من كل الأجهزة</button>
+                    <p class="form-status" id="logoutAllStatus"></p>
+                    <hr>
+                    <p class="acc-points-hint">آخر مرات دخلت فيها حسابك:</p>
+                    <div id="loginHistoryList" class="acc-list"></div>
+                </div>
+
+                <!-- الحسابات المحظورة -->
+                <div class="glass-card acc-panel acc-panel-wide">
+                    <h4><i data-lucide="user-x" aria-hidden="true"></i> الحسابات المحظورة</h4>
+                    <p class="acc-points-hint">الحسابات دي مش هتقدر تبعتلك رسايل.</p>
+                    <div id="blockedList" class="acc-list"></div>
                 </div>
 
                 <!-- لينك البروفايل بتاعك -->
@@ -131,7 +208,7 @@
     <script src="vendor/lucide.min.js?v=18"></script>
     <script src="api.js?v=23"></script>
     <script src="pages-shell.js?v=1"></script>
-    <script src="account.js?v=6"></script>
-    <script src="settings.js?v=1"></script>
+    <script src="account.js?v=8"></script>
+    <script src="settings.js?v=2"></script>
 </body>
 </html>

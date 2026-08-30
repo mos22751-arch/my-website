@@ -81,6 +81,16 @@
         updateName: (name) => accountFetch('/account/me', { method: 'PUT', body: JSON.stringify({ name }) }),
         updateProfile: (data) => accountFetch('/account/me', { method: 'PUT', body: JSON.stringify(data) }),
         changePassword: (currentPassword, newPassword) => accountFetch('/account/password', { method: 'PUT', body: JSON.stringify({ currentPassword, newPassword }) }),
+        changeEmail: (newEmail, currentPassword) => accountFetch('/account/email', { method: 'PUT', body: JSON.stringify({ newEmail, currentPassword }) }),
+        logoutAllDevices: () => accountFetch('/account/logout-all-devices', { method: 'POST' }),
+        unlinkGoogle: () => accountFetch('/account/google-link', { method: 'DELETE' }),
+        updateNotifyPrefs: (prefs) => accountFetch('/account/notify-prefs', { method: 'PUT', body: JSON.stringify(prefs) }),
+        updateTheme: (theme) => accountFetch('/account/theme', { method: 'PUT', body: JSON.stringify({ theme }) }),
+        getBlocked: () => accountFetch('/account/blocked'),
+        blockUser: (username) => accountFetch(`/account/block/${encodeURIComponent(username)}`, { method: 'POST' }),
+        unblockUser: (username) => accountFetch(`/account/block/${encodeURIComponent(username)}`, { method: 'DELETE' }),
+        addSong: (title, artist, url) => accountFetch('/account/songs', { method: 'POST', body: JSON.stringify({ title, artist, url }) }),
+        removeSong: (songId) => accountFetch(`/account/songs/${songId}`, { method: 'DELETE' }),
         claimDaily: () => accountFetch('/account/claim-daily-points', { method: 'POST' }),
         claimWeeklyChallenge: () => accountFetch('/account/claim-weekly-challenge', { method: 'POST' }),
         claimSurpriseBox: () => accountFetch('/account/claim-surprise-box', { method: 'POST' }),
@@ -108,7 +118,21 @@
         getConversations: () => accountFetch('/account/messages'),
         getThread: (username) => accountFetch(`/account/messages/${encodeURIComponent(username)}`),
         getThreads: () => accountFetch('/account/messages'),
-        sendMessage: (username, text) => accountFetch(`/account/messages/${encodeURIComponent(username)}`, { method: 'POST', body: JSON.stringify({ text }) }),
+        sendMessage: (username, payload) => accountFetch(`/account/messages/${encodeURIComponent(username)}`, { method: 'POST', body: JSON.stringify(typeof payload === 'string' ? { text: payload } : payload) }),
+        uploadDmMedia: async (file, type, duration) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            let url = `${API_BASE_URL}/account/messages/upload?type=${encodeURIComponent(type)}`;
+            if (duration) url += `&duration=${Math.round(duration)}`;
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${getToken()}` },
+                body: formData
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.message || 'فشل رفع الملف');
+            return data;
+        },
 
         // إعلانات + رسالة ترحيب
         getBroadcasts: () => accountFetch('/account/broadcasts'),
@@ -255,18 +279,23 @@
     let modalEl = null;
 
     async function openAuthModal(initialTab) {
-        const settings = await getSettings();
-        if (!settings.enableAccounts) return;
-
+        // ✅ نفتح المودال فورًا من غير ما نستنى أي طلب شبكة —
+        //    الانتظار هنا كان بيخلي الشاشة تبان متجمدة على النت البطيء (خصوصًا الموبايل)
+        //    لأن اللمسة/الضغطة ماكانش بيحصلها أي رد فعل بصري لحد ما الطلب يخلص.
         if (!modalEl) buildModal();
         modalEl.hidden = false;
         requestAnimationFrame(() => modalEl.classList.add('open'));
         setTab(initialTab || 'login');
+        modalEl.querySelectorAll('.toji-google-slot').forEach((el) => { el.hidden = true; });
 
-        if (settings.enableGoogleLogin && settings.googleClientId) {
-            renderGoogleButtons(settings.googleClientId);
-        } else {
-            modalEl.querySelectorAll('.toji-google-slot').forEach((el) => { el.hidden = true; });
+        try {
+            const settings = await getSettings();
+            if (!settings.enableAccounts) { closeAuthModal(); return; }
+            if (settings.enableGoogleLogin && settings.googleClientId) {
+                renderGoogleButtons(settings.googleClientId);
+            }
+        } catch {
+            // لو الإعدادات فشلت تتحمل، سيب الفورم شغالة زي ما هي (إيميل/باسورد لسه متاحة)
         }
     }
 
